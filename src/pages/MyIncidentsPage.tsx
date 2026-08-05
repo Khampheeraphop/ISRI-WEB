@@ -2,6 +2,7 @@ import {
   AddOutlined,
   ImageOutlined,
   LocationOnOutlined,
+  VisibilityOutlined,
 } from "@mui/icons-material";
 import {
   Box,
@@ -77,7 +78,11 @@ export function MyIncidentsPage() {
                     alignItems: "center",
                   }}
                 >
-                  <Typography variant="h6">{incident.category === "อื่น ๆ" && incident.otherCategory ? `${incident.category}: ${incident.otherCategory}` : incident.category}</Typography>
+                  <Typography variant="h6">
+                    {incident.category === "อื่น ๆ" && incident.otherCategory
+                      ? `${incident.category}: ${incident.otherCategory}`
+                      : incident.category}
+                  </Typography>
                   <IncidentStatusChip status={incident.status} />
                   <Typography variant="body2" color="text.secondary">
                     {incident.ticketNumber}
@@ -114,6 +119,17 @@ export function MyIncidentsPage() {
                       </Typography>
                     </Stack>
                   )}
+                </Stack>
+                <Stack direction="row" sx={{ justifyContent: "flex-end" }}>
+                  <Button
+                    component={Link}
+                    to={"/incidents/" + incident.id}
+                    size="small"
+                    variant="outlined"
+                    startIcon={<VisibilityOutlined />}
+                  >
+                    ดูรายละเอียด
+                  </Button>
                 </Stack>
               </Stack>
             </Paper>

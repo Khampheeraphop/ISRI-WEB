@@ -1,20 +1,14 @@
 import { AssignmentLateOutlined } from "@mui/icons-material";
 import { Alert, Box, CircularProgress, Stack, Typography } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
-import {
-  useCompleteWorkOrderMutation,
-  useEntityQuery,
-  useEntityUpdateMutation,
-} from "../../hooks/useEntity";
-import type { WorkOrderStatus } from "../../types/workOrder";
+import { useEntityQuery } from "../../hooks/useEntity";
 import { WorkOrderCard } from "./WorkOrderCard";
+import { useWorkOrderActions } from "./useWorkOrderActions";
 
 export function TechnicianWorkOrdersPage() {
   const { user } = useAuth();
-  const workOrders = useEntityQuery("workOrders");
+  const { workOrders, changeStatus, isUpdating } = useWorkOrderActions();
   const incidents = useEntityQuery("incidents");
-  const updateWorkOrder = useEntityUpdateMutation("workOrders");
-  const completeWorkOrder = useCompleteWorkOrderMutation();
   const items = (workOrders.data ?? [])
     .filter((order) => order.technicianId === user.id)
     .map((workOrder) => ({
@@ -34,29 +28,6 @@ export function TechnicianWorkOrdersPage() {
   const overdueCount = items.filter(
     ({ workOrder }) => new Date(workOrder.resolveDueAt).getTime() < Date.now(),
   ).length;
-  const changeStatus = async (id: string, status: WorkOrderStatus) => {
-    const workOrder = workOrders.data?.find((item) => item.id === id);
-    if (!workOrder) return;
-    if (status === "done") {
-      await completeWorkOrder.mutateAsync(id);
-      return;
-    }
-    await updateWorkOrder.mutateAsync({
-      id,
-      changes: {
-        status,
-        statusHistory: [
-          ...workOrder.statusHistory,
-          { status, changedAt: new Date().toISOString() },
-        ],
-      },
-    });
-  };
-  const saveRepairPhotos = (id: string, files: File[]) =>
-    updateWorkOrder.mutate({
-      id,
-      changes: { repairPhotoUrls: files.map((file) => file.name) },
-    });
   if (workOrders.isLoading || incidents.isLoading)
     return (
       <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
@@ -83,12 +54,7 @@ export function TechnicianWorkOrdersPage() {
             workOrder={workOrder}
             incident={incident}
             onStatusChange={(status) => changeStatus(workOrder.id, status)}
-            onSaveRepairPhotos={(files) =>
-              saveRepairPhotos(workOrder.id, files)
-            }
-            isUpdating={
-              updateWorkOrder.isPending || completeWorkOrder.isPending
-            }
+            isUpdating={isUpdating}
           />
         ))}
         {!items.length && (
