@@ -38,7 +38,7 @@ export function MyIncidentsPage() {
         }}
       >
         <Box>
-          <Typography variant="h3">เรื่องที่ฉันแจ้ง</Typography>
+          <Typography variant="h3">รายการแจ้งซ่อมของฉัน</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5 }}>
             ติดตามสถานะงานและรายละเอียดของแต่ละรายการ
           </Typography>
