@@ -15,6 +15,7 @@ import {
   Drawer,
   FormControl,
   IconButton,
+  InputLabel,
   List,
   ListItemButton,
   ListItemIcon,
@@ -103,6 +104,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ListItemButton>
         ))}
       </List>
+      <Box sx={{ px: 2.5, pb: 2 }}>
+        <Typography variant="caption" color="text.secondary">
+          เมนูจะแสดงตามมุมมองทดลองที่เลือกด้านบน
+        </Typography>
+      </Box>
       <Box
         sx={{
           position: "absolute",
@@ -114,7 +120,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 0
+          Prototype • Sprint 2
         </Typography>
       </Box>
     </Box>
@@ -138,6 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <IconButton
             onClick={() => setMobileOpen(true)}
+            aria-label="เปิดเมนู"
             sx={{ display: { md: "none" } }}
           >
             <MenuIcon />
@@ -160,7 +167,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               }}
             />
             <FormControl size="small" sx={{ minWidth: { xs: 136, sm: 190 } }}>
+              <InputLabel id="demo-role-label">มุมมองทดลอง</InputLabel>
               <Select
+                labelId="demo-role-label"
+                label="มุมมองทดลอง"
                 value={user.role}
                 onChange={(event) => setRole(event.target.value as Role)}
                 startAdornment={
