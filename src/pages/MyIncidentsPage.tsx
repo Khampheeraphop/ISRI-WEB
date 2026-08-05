@@ -48,7 +48,7 @@ export function MyIncidentsPage() {
           variant="contained"
           startIcon={<AddOutlined />}
         >
-          แจ้งปัญหา
+          สร้างคำขอ
         </Button>
       </Box>
       {incidents.isLoading ? (
