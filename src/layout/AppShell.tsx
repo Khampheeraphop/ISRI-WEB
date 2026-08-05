@@ -139,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 3B
+          Prototype • Sprint 5
         </Typography>
       </Box>
     </Box>
