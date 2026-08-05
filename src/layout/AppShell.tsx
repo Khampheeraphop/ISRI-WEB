@@ -2,6 +2,7 @@ import {
   AccountCircleOutlined,
   AdminPanelSettingsOutlined,
   AssignmentOutlined,
+  CardGiftcardOutlined,
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
@@ -15,6 +16,7 @@ import {
   Drawer,
   FormControl,
   IconButton,
+  InputLabel,
   List,
   ListItemButton,
   ListItemIcon,
@@ -27,6 +29,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
 
 const drawerWidth = 252;
@@ -38,9 +41,8 @@ const roleLabels: Record<Role, string> = {
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   reporter: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
-    { label: "แจ้งเหตุ", to: "/incidents/new", icon: <AssignmentOutlined /> },
     {
-      label: "เรื่องที่ฉันแจ้ง",
+      label: "รายการแจ้งซ่อมของฉัน",
       to: "/incidents/mine",
       icon: <AssignmentOutlined />,
     },
@@ -53,6 +55,7 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
+    { label: "จัดการของรางวัล", to: "/rewards/manage", icon: <CardGiftcardOutlined /> },
     {
       label: "จัดการผู้ใช้",
       to: "/users",
@@ -63,8 +66,10 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, setRole } = useAuth();
+  const wallets = useEntityQuery("pointWallets");
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pointBalance = (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ?? 0;
   const navigation = (
     <Box
       sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
@@ -103,6 +108,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ListItemButton>
         ))}
       </List>
+      <Box sx={{ px: 2.5, pb: 2 }}>
+        <Typography variant="caption" color="text.secondary">
+          เมนูจะแสดงตามมุมมองทดลองที่เลือกด้านบน
+        </Typography>
+      </Box>
       <Box
         sx={{
           position: "absolute",
@@ -114,7 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 0
+          Prototype • Sprint 3A
         </Typography>
       </Box>
     </Box>
@@ -138,6 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <IconButton
             onClick={() => setMobileOpen(true)}
+            aria-label="เปิดเมนู"
             sx={{ display: { md: "none" } }}
           >
             <MenuIcon />
@@ -150,7 +161,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Chip
-              label="120"
+              label={pointBalance.toLocaleString("th-TH")}
               color="primary"
               variant="outlined"
               sx={{
@@ -160,7 +171,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               }}
             />
             <FormControl size="small" sx={{ minWidth: { xs: 136, sm: 190 } }}>
+              <InputLabel id="demo-role-label">มุมมองทดลอง</InputLabel>
               <Select
+                labelId="demo-role-label"
+                label="มุมมองทดลอง"
                 value={user.role}
                 onChange={(event) => setRole(event.target.value as Role)}
                 startAdornment={

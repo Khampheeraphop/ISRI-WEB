@@ -7,7 +7,8 @@ import { Alert, Box, Chip, Paper, Stack, Typography } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import * as yup from "yup";
 import { GenericDataTable } from "../components/GenericDataTable";
-import { GenericForm, type FormField } from "../components/GenericForm";
+import { GenericForm } from "../components/form/GenericForm";
+import type { FormField } from "../components/form/types";
 import { useEntityMutation, useEntityQuery } from "../hooks/useEntity";
 import type { Role, User } from "../types/user";
 

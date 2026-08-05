@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
@@ -19,8 +20,18 @@ interface AuthValue {
 }
 const AuthContext = createContext<AuthValue | undefined>(undefined);
 
+function getInitialRole(): Role {
+  const savedRole = window.localStorage.getItem("isri-demo-role");
+  return savedRole === "technician" || savedRole === "admin" || savedRole === "reporter"
+    ? savedRole
+    : "reporter";
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [role, setRole] = useState<Role>("reporter");
+  const [role, setRole] = useState<Role>(getInitialRole);
+  useEffect(() => {
+    window.localStorage.setItem("isri-demo-role", role);
+  }, [role]);
   const value = useMemo(() => ({ user: demoUsers[role], setRole }), [role]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
