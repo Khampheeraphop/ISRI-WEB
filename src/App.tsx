@@ -3,9 +3,10 @@ import { AppShell } from "./layout/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
 import { IncidentReportPage } from "./pages/IncidentReportPage";
 import { MyIncidentsPage } from "./pages/MyIncidentsPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { SlaConfigPage } from "./features/sla/SlaConfigPage";
 import { TechnicianWorkOrdersPage } from "./features/workOrders/TechnicianWorkOrdersPage";
+import { RewardCatalogAdminPage } from "./features/rewards/RewardCatalogAdminPage";
+import { RewardWalletPage } from "./features/rewards/RewardWalletPage";
 
 function App() {
   return (
@@ -14,7 +15,8 @@ function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/incidents/new" element={<IncidentReportPage />} />
         <Route path="/incidents/mine" element={<MyIncidentsPage />} />
-        <Route path="/rewards" element={<PlaceholderPage title="แต้มและรางวัล" description="เตรียมไว้สำหรับ Sprint 3" />} />
+        <Route path="/rewards" element={<RewardWalletPage />} />
+        <Route path="/rewards/manage" element={<RewardCatalogAdminPage />} />
         <Route path="/work-orders" element={<TechnicianWorkOrdersPage />} />
         <Route path="/sla" element={<SlaConfigPage />} />
         <Route path="/users" element={<DashboardPage />} />

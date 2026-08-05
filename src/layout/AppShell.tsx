@@ -2,6 +2,7 @@ import {
   AccountCircleOutlined,
   AdminPanelSettingsOutlined,
   AssignmentOutlined,
+  CardGiftcardOutlined,
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
@@ -28,6 +29,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
 
 const drawerWidth = 252;
@@ -53,6 +55,7 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
+    { label: "จัดการของรางวัล", to: "/rewards/manage", icon: <CardGiftcardOutlined /> },
     {
       label: "จัดการผู้ใช้",
       to: "/users",
@@ -63,8 +66,10 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, setRole } = useAuth();
+  const wallets = useEntityQuery("pointWallets");
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pointBalance = (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ?? 0;
   const navigation = (
     <Box
       sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
@@ -119,7 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 2
+          Prototype • Sprint 3A
         </Typography>
       </Box>
     </Box>
@@ -156,7 +161,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Chip
-              label="120"
+              label={pointBalance.toLocaleString("th-TH")}
               color="primary"
               variant="outlined"
               sx={{
