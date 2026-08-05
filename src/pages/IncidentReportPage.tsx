@@ -16,5 +16,5 @@ export function IncidentReportPage() {
 
   if (!isLocationCode(locationCode)) return <Box><Typography variant="h3">แจ้งปัญหา</Typography><Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>หน้านี้เปิดได้จาก QR Code ของจุดแจ้งเหตุเท่านั้น</Typography><MainCard contentSx={{ p: { xs: 3, md: 5 } }}><Stack spacing={1.5} sx={{ alignItems: "center", textAlign: "center" }}><QrCodeScannerOutlined color="primary" sx={{ fontSize: 48 }} /><Typography variant="h5">กรุณาสแกน QR Code ที่จุดแจ้งเหตุ</Typography><Typography color="text.secondary">สแกน QR Code ที่ติดอยู่กับอาคารหรืออุปกรณ์ เพื่อระบุจุดแจ้งเหตุให้ถูกต้องก่อนกรอกข้อมูล</Typography></Stack></MainCard></Box>;
 
-  return <Box><Typography variant="h3">แจ้งปัญหา</Typography><Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>กรุณาระบุข้อมูลให้ครบถ้วน เพื่อให้เจ้าหน้าที่ดำเนินการได้รวดเร็ว</Typography><IncidentReportForm locationCode={locationCode} onSubmitted={setTicketNumber} /></Box>;
+  return <Box><Typography variant="h3">แจ้งปัญหา</Typography><Typography color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>กรุณาระบุข้อมูลให้ครบถ้วน เพื่อให้เจ้าหน้าที่ดำเนินการได้รวดเร็ว</Typography><IncidentReportForm locationCode={locationCode} assetName={searchParams.get("asset") ?? undefined} onSubmitted={setTicketNumber} /></Box>;
 }

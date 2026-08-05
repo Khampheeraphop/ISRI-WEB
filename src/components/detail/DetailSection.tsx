@@ -22,9 +22,14 @@ export function DetailSection({
   return (
     <MainCard
       title={
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Box color="primary.main">{icon}</Box>
-          <Typography variant="h5">{title}</Typography>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", minHeight: 28 }}>
+          <Box
+            color="primary.main"
+            sx={{ display: "flex", alignItems: "center", lineHeight: 0, "& svg": { display: "block" } }}
+          >
+            {icon}
+          </Box>
+          <Typography variant="h5" sx={{ lineHeight: 1.2 }}>{title}</Typography>
         </Stack>
       }
       contentSx={{ p: { xs: 2.5, md: 3 } }}

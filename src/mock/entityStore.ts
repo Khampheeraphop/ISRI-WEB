@@ -1,6 +1,7 @@
 import type { User } from "../types/user";
 import type { CreateIncident, Incident } from "../types/incident";
 import type { SLARule, WorkOrder } from "../types/workOrder";
+import type { CreatePMSchedule, PMLog, PMSchedule } from "../types/pm";
 import type {
   CreateRewardItem,
   PointTransaction,
@@ -24,6 +25,8 @@ export type EntityName =
   | "rewardRedemptions"
   | "rewardCampaigns"
   | "campaignScores"
+  | "pmSchedules"
+  | "pmLogs"
   | "fileStorages";
 export type EntityMap = {
   users: User;
@@ -36,6 +39,8 @@ export type EntityMap = {
   rewardRedemptions: RewardRedemption;
   rewardCampaigns: RewardCampaign;
   campaignScores: CampaignScore;
+  pmSchedules: PMSchedule;
+  pmLogs: PMLog;
   fileStorages: FileStorage;
 };
 type NewEntityMap = {
@@ -49,11 +54,18 @@ type NewEntityMap = {
   rewardRedemptions: Omit<RewardRedemption, "id">;
   rewardCampaigns: CreateRewardCampaign;
   campaignScores: Omit<CampaignScore, "id">;
+  pmSchedules: CreatePMSchedule;
+  pmLogs: Omit<PMLog, "id">;
   fileStorages: Omit<FileStorage, "id">;
 };
 
 const relativeTime = (minutesFromNow: number) =>
   new Date(Date.now() + minutesFromNow * 60_000).toISOString();
+const addMonths = (date: string, months: number) => {
+  const value = new Date(date);
+  value.setMonth(value.getMonth() + months);
+  return value.toISOString();
+};
 
 const records: { [K in EntityName]: EntityMap[K][] } = {
   users: [
@@ -133,6 +145,35 @@ const records: { [K in EntityName]: EntityMap[K][] } = {
       respondDueAt: relativeTime(-1480),
       resolveDueAt: relativeTime(-20),
       repairPhotoUrls: [],
+    },
+  ],
+  pmSchedules: [
+    {
+      id: "PMS-001",
+      locationId: "BLD-A-F2-Z03",
+      locationLabel: "อาคาร A · ชั้น 2 · โซน 03",
+      assetName: "เครื่องปรับอากาศหน้าห้องตรวจ",
+      intervalMonths: 3,
+      lastDoneAt: "2026-05-08T09:00:00+07:00",
+      nextDueAt: "2026-08-08T09:00:00+07:00",
+    },
+    {
+      id: "PMS-002",
+      locationId: "BLD-B-F1-Z01",
+      locationLabel: "อาคาร B · ชั้น 1 · โซน 01",
+      assetName: "ตู้ควบคุมไฟฟ้าทางเดิน",
+      intervalMonths: 6,
+      lastDoneAt: "2026-02-01T09:00:00+07:00",
+      nextDueAt: "2026-08-01T09:00:00+07:00",
+    },
+  ],
+  pmLogs: [
+    {
+      id: "PML-001",
+      scheduleId: "PMS-001",
+      completedAt: "2026-05-08T09:00:00+07:00",
+      technicianId: "USR-002",
+      notes: "ล้างแผงกรองและตรวจสอบแรงดันน้ำยาแล้ว",
     },
   ],
   pointWallets: [{ id: "WAL-001", userId: "USR-001", balance: 120 }],
@@ -263,6 +304,8 @@ const entityPrefixes: Record<EntityName, string> = {
   rewardRedemptions: "RDM",
   rewardCampaigns: "CMP",
   campaignScores: "CS",
+  pmSchedules: "PMS",
+  pmLogs: "PML",
   fileStorages: "FST",
 };
 
@@ -286,6 +329,15 @@ export const entityStore = {
             status: "submitted",
             createdAt: new Date().toISOString(),
           }
+        : entity === "pmSchedules"
+          ? {
+              ...values,
+              id,
+              nextDueAt: addMonths(
+                (values as CreatePMSchedule).lastDoneAt,
+                (values as CreatePMSchedule).intervalMonths,
+              ),
+            }
         : { ...values, id };
     records[entity].push(record as EntityMap[K]);
     return clone(record as EntityMap[K]);
@@ -434,5 +486,29 @@ export const entityStore = {
     if (campaign.status === "ended") return clone(campaign);
     campaign.status = "ended";
     return clone(campaign);
+  },
+  async completePMSchedule({
+    scheduleId,
+    technicianId,
+    notes,
+  }: {
+    scheduleId: string;
+    technicianId: string;
+    notes: string;
+  }): Promise<PMSchedule> {
+    await pause();
+    const schedule = records.pmSchedules.find((item) => item.id === scheduleId);
+    if (!schedule) throw new Error("ไม่พบตาราง PM");
+    const completedAt = new Date().toISOString();
+    records.pmLogs.push({
+      id: `PML-${String(records.pmLogs.length + 1).padStart(3, "0")}`,
+      scheduleId,
+      technicianId,
+      notes,
+      completedAt,
+    });
+    schedule.lastDoneAt = completedAt;
+    schedule.nextDueAt = addMonths(completedAt, schedule.intervalMonths);
+    return clone(schedule);
   },
 };

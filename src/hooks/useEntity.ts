@@ -88,6 +88,20 @@ export function useEndCampaignMutation() {
   });
 }
 
+export function useCompletePMScheduleMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (values: { scheduleId: string; technicianId: string; notes: string }) =>
+      entityStore.completePMSchedule(values),
+    onSuccess: () =>
+      Promise.all(
+        (["pmSchedules", "pmLogs"] as const).map((entity) =>
+          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+        ),
+      ),
+  });
+}
+
 export function useCompleteWorkOrderMutation() {
   const queryClient = useQueryClient();
   return useMutation({

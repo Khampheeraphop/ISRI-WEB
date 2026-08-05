@@ -13,6 +13,9 @@ import { RewardCatalogFormPage } from "./features/rewards/RewardCatalogFormPage"
 import { CampaignAdminPage } from "./features/campaigns/CampaignAdminPage";
 import { CampaignFormPage } from "./features/campaigns/CampaignFormPage";
 import { CampaignLeaderboardPage } from "./features/campaigns/CampaignLeaderboardPage";
+import { PMSchedulesPage } from "./features/pm/PMSchedulesPage";
+import { PMScheduleFormPage } from "./features/pm/PMScheduleFormPage";
+import { PMCompletePage } from "./features/pm/PMCompletePage";
 
 function App() {
   return (
@@ -28,6 +31,10 @@ function App() {
         <Route path="/campaigns" element={<CampaignLeaderboardPage />} />
         <Route path="/campaigns/manage" element={<CampaignAdminPage />} />
         <Route path="/campaigns/manage/:id" element={<CampaignFormPage />} />
+        <Route path="/pm" element={<PMSchedulesPage />} />
+        <Route path="/pm/new" element={<PMScheduleFormPage />} />
+        <Route path="/pm/:id/edit" element={<PMScheduleFormPage />} />
+        <Route path="/pm/:id/complete" element={<PMCompletePage />} />
         <Route path="/work-orders" element={<TechnicianWorkOrdersPage />} />
         <Route path="/work-orders/:id" element={<WorkOrderDetailPage />} />
         <Route path="/sla" element={<SlaConfigPage />} />

@@ -5,7 +5,8 @@ import type { IncidentReportFormValues } from "./incidentReport.types";
 export const incidentReportSchema: yup.ObjectSchema<IncidentReportFormValues> = yup.object({
   building: yup.string().required("ไม่พบข้อมูลอาคาร"),
   floor: yup.string().required("ไม่พบข้อมูลชั้น"),
-  assetName: yup.string().required("ไม่พบข้อมูลจุดหรือชิ้นงาน"),
+  zone: yup.string().required("ไม่พบข้อมูลโซน"),
+  assetName: yup.string().trim().required("กรุณาระบุชื่อชิ้นงาน"),
   category: yup.mixed<IncidentCategory>().oneOf(incidentCategories).required("กรุณาเลือกประเภทปัญหา"),
   otherCategory: yup.string().when("category", { is: "อื่น ๆ", then: (schema) => schema.trim().required("กรุณาระบุประเภทปัญหา"), otherwise: (schema) => schema.strip() }),
   urgencyReported: yup.mixed<UrgencyLevel>().oneOf(["critical", "urgent", "normal"]).required("กรุณาเลือกระดับความเร่งด่วน"),

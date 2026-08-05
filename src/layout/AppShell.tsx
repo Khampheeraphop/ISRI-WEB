@@ -52,10 +52,12 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   technician: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
+    { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
+    { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
     {
       label: "จัดการของรางวัล",
       to: "/rewards/manage",
@@ -157,7 +159,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Toolbar
-          sx={{ justifyContent: "space-between", minHeight: "70px !important" }}
+          sx={{ justifyContent: "flex-end", minHeight: "70px !important" }}
         >
           <IconButton
             onClick={() => setMobileOpen(true)}
@@ -166,12 +168,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ display: { xs: "none", md: "block" } }}
-          >
-            ระบบแจ้งเหตุและแรงจูงใจ
-          </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Chip
               label={pointBalance.toLocaleString("th-TH")}

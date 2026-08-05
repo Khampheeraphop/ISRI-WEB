@@ -32,6 +32,7 @@ export interface Incident {
   ticketNumber: string;
   locationId: string;
   locationLabel: string;
+  assetName?: string;
   category: IncidentCategory;
   otherCategory?: string;
   urgencyReported: UrgencyLevel;
