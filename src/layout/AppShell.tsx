@@ -47,6 +47,7 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       icon: <AssignmentOutlined />,
     },
     { label: "แต้มและรางวัล", to: "/rewards", icon: <EmojiEventsOutlined /> },
+    { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
   ],
   technician: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
@@ -55,7 +56,17 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
-    { label: "จัดการของรางวัล", to: "/rewards/manage", icon: <CardGiftcardOutlined /> },
+    {
+      label: "จัดการของรางวัล",
+      to: "/rewards/manage",
+      icon: <CardGiftcardOutlined />,
+    },
+    {
+      label: "จัดการแคมเปญ",
+      to: "/campaigns/manage",
+      icon: <EmojiEventsOutlined />,
+    },
+    { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
     {
       label: "จัดการผู้ใช้",
       to: "/users",
@@ -69,7 +80,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const wallets = useEntityQuery("pointWallets");
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const pointBalance = (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ?? 0;
+  const pointBalance =
+    (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ??
+    0;
   const navigation = (
     <Box
       sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
@@ -124,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 3A
+          Prototype • Sprint 3B
         </Typography>
       </Box>
     </Box>

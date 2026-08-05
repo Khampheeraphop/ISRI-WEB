@@ -9,6 +9,10 @@ import { TechnicianWorkOrdersPage } from "./features/workOrders/TechnicianWorkOr
 import { WorkOrderDetailPage } from "./features/workOrders/WorkOrderDetailPage";
 import { RewardCatalogAdminPage } from "./features/rewards/RewardCatalogAdminPage";
 import { RewardWalletPage } from "./features/rewards/RewardWalletPage";
+import { RewardCatalogFormPage } from "./features/rewards/RewardCatalogFormPage";
+import { CampaignAdminPage } from "./features/campaigns/CampaignAdminPage";
+import { CampaignFormPage } from "./features/campaigns/CampaignFormPage";
+import { CampaignLeaderboardPage } from "./features/campaigns/CampaignLeaderboardPage";
 
 function App() {
   return (
@@ -20,6 +24,10 @@ function App() {
         <Route path="/incidents/:id" element={<IncidentDetailPage />} />
         <Route path="/rewards" element={<RewardWalletPage />} />
         <Route path="/rewards/manage" element={<RewardCatalogAdminPage />} />
+        <Route path="/rewards/manage/:id" element={<RewardCatalogFormPage />} />
+        <Route path="/campaigns" element={<CampaignLeaderboardPage />} />
+        <Route path="/campaigns/manage" element={<CampaignAdminPage />} />
+        <Route path="/campaigns/manage/:id" element={<CampaignFormPage />} />
         <Route path="/work-orders" element={<TechnicianWorkOrdersPage />} />
         <Route path="/work-orders/:id" element={<WorkOrderDetailPage />} />
         <Route path="/sla" element={<SlaConfigPage />} />

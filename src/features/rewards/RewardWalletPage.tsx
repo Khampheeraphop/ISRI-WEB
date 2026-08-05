@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
 import { useAuth } from "../../context/AuthContext";
@@ -73,6 +74,7 @@ export function RewardWalletPage() {
   const wallets = useEntityQuery("pointWallets");
   const transactions = useEntityQuery("pointTransactions");
   const rewards = useEntityQuery("rewardItems");
+  const fileStorages = useEntityQuery("fileStorages");
   const redemption = useRewardRedemptionMutation();
   const [feedback, setFeedback] = useState<{
     severity: "success" | "error";
@@ -86,6 +88,15 @@ export function RewardWalletPage() {
   const availableRewards = (rewards.data ?? [])
     .filter((item) => item.isActive)
     .sort((a, b) => a.pointCost - b.pointCost);
+  const storageById = new Map(
+    (fileStorages.data ?? []).map((file) => [file.id, file]),
+  );
+  const standardRewards = availableRewards.filter(
+    (reward) => reward.rewardPeriod === "standard",
+  );
+  const annualRewards = availableRewards.filter(
+    (reward) => reward.rewardPeriod === "annual",
+  );
 
   const handleRedeem = async (rewardItemId: string) => {
     try {
@@ -103,7 +114,12 @@ export function RewardWalletPage() {
     }
   };
 
-  if (wallets.isLoading || transactions.isLoading || rewards.isLoading) {
+  if (
+    wallets.isLoading ||
+    transactions.isLoading ||
+    rewards.isLoading ||
+    fileStorages.isLoading
+  ) {
     return (
       <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
         <CircularProgress />
@@ -170,8 +186,12 @@ export function RewardWalletPage() {
           contentSx={{ p: { xs: 2, md: 3 } }}
         >
           <Stack spacing={1.5}>
-            {availableRewards.map((reward) => {
+            <Typography variant="h6">รางวัลทั่วไป</Typography>
+            {standardRewards.map((reward) => {
               const canRedeem = reward.stock > 0 && balance >= reward.pointCost;
+              const image = reward.imageFileStorageId
+                ? storageById.get(reward.imageFileStorageId)
+                : undefined;
               return (
                 <Box
                   key={reward.id}
@@ -187,7 +207,21 @@ export function RewardWalletPage() {
                     flexDirection: { xs: "column", sm: "row" },
                   }}
                 >
-                  <Box>
+                  <Box
+                    component="img"
+                    src={image?.publicUrl}
+                    alt={reward.name}
+                    sx={{
+                      width: { xs: "100%", sm: 132 },
+                      height: 132,
+                      objectFit: "cover",
+                      borderRadius: 1,
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "background.default",
+                    }}
+                  />
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="h6">{reward.name}</Typography>
                     <Typography
                       variant="body2"
@@ -229,11 +263,81 @@ export function RewardWalletPage() {
                 </Box>
               );
             })}
-            {!availableRewards.length && (
+            {!standardRewards.length && (
               <Typography color="text.secondary">
                 ยังไม่มีของรางวัลที่เปิดให้แลกในขณะนี้
               </Typography>
             )}
+            {!!annualRewards.length && (
+              <>
+                <Typography variant="h6" sx={{ pt: 2 }}>
+                  รางวัลประจำปี
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  มอบให้ตามผลการจัดอันดับของแคมเปญ โดยไม่ตัดแต้มจากกระเป๋าถาวร
+                </Typography>
+              </>
+            )}
+            {annualRewards.map((reward) => {
+              const image = reward.imageFileStorageId
+                ? storageById.get(reward.imageFileStorageId)
+                : undefined;
+              return (
+                <Box
+                  key={reward.id}
+                  sx={{
+                    p: 2,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1.5,
+                    display: "flex",
+                    gap: 2,
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    flexDirection: { xs: "column", sm: "row" },
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={image?.publicUrl}
+                    alt={reward.name}
+                    sx={{
+                      width: { xs: "100%", sm: 132 },
+                      height: 132,
+                      objectFit: "cover",
+                      borderRadius: 1,
+                      border: 1,
+                      borderColor: "divider",
+                      bgcolor: "background.default",
+                    }}
+                  />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6">{reward.name}</Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 0.35 }}
+                    >
+                      {reward.description}
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip
+                        size="small"
+                        color="secondary"
+                        label="รางวัลประจำปี"
+                      />
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={String(reward.pointCost) + " แต้ม"}
+                      />
+                    </Stack>
+                  </Box>
+                  <Button component={Link} to="/campaigns" variant="outlined">
+                    ดูอันดับแคมเปญ
+                  </Button>
+                </Box>
+              );
+            })}
           </Stack>
         </MainCard>
 
