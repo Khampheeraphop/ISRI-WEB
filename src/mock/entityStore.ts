@@ -100,7 +100,7 @@ const records: { [K in EntityName]: EntityMap[K][] } = {
     {
       id: "INC-001",
       ticketNumber: "ISRI-202608-001",
-      locationId: "BLD-A-F2-Z03",
+      locationId: "LOC-001",
       locationLabel: "อาคาร A · ชั้น 2 · โซน 03",
       category: "เครื่องปรับอากาศ",
       urgencyReported: "urgent",
@@ -113,7 +113,7 @@ const records: { [K in EntityName]: EntityMap[K][] } = {
     {
       id: "INC-002",
       ticketNumber: "ISRI-202608-002",
-      locationId: "BLD-B-F1-Z01",
+      locationId: "LOC-002",
       locationLabel: "อาคาร B · ชั้น 1 · โซน 01",
       category: "ไฟฟ้า",
       urgencyReported: "normal",
@@ -347,6 +347,13 @@ const entityPrefixes: Record<EntityName, string> = {
 export const entityStore = {
   async list<K extends EntityName>(entity: K): Promise<EntityMap[K][]> {
     await pause();
+    if (entity === "rewardCampaigns") {
+      const today = new Date().toISOString().slice(0, 10);
+      records.rewardCampaigns.forEach((campaign) => {
+        if (campaign.status === "active" && campaign.endDate < today)
+          campaign.status = "ended";
+      });
+    }
     return clone(records[entity]);
   },
   async create<K extends EntityName>(

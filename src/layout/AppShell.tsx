@@ -27,7 +27,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
@@ -40,17 +40,14 @@ const roleLabels: Record<Role, string> = {
 };
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   reporter: [
-    { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     {
       label: "รายการแจ้งซ่อมของฉัน",
       to: "/incidents/mine",
       icon: <AssignmentOutlined />,
     },
     { label: "แต้มและรางวัล", to: "/rewards", icon: <EmojiEventsOutlined /> },
-    { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
   ],
   technician: [
-    { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
@@ -82,10 +79,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, setRole } = useAuth();
   const wallets = useEntityQuery("pointWallets");
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pointBalance =
     (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ??
     0;
+  const handleRoleChange = (role: Role) => {
+    setRole(role);
+    navigate(menus[role][0].to);
+  };
   const navigation = (
     <Box
       sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
@@ -124,25 +126,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ListItemButton>
         ))}
       </List>
-      <Box sx={{ px: 2.5, pb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          เมนูจะแสดงตามมุมมองทดลองที่เลือกด้านบน
-        </Typography>
-      </Box>
-      <Box
-        sx={{
-          position: "absolute",
-          insetInline: 0,
-          bottom: 0,
-          p: 2.5,
-          borderTop: 1,
-          borderColor: "divider",
-        }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 6
-        </Typography>
-      </Box>
     </Box>
   );
   return (
@@ -181,12 +164,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               }}
             />
             <FormControl size="small" sx={{ minWidth: { xs: 136, sm: 190 } }}>
-              <InputLabel id="demo-role-label">มุมมองทดลอง</InputLabel>
+              <InputLabel id="role-label">ผู้ใช้งาน</InputLabel>
               <Select
-                labelId="demo-role-label"
-                label="มุมมองทดลอง"
+                labelId="role-label"
+                label="ผู้ใช้งาน"
                 value={user.role}
-                onChange={(event) => setRole(event.target.value as Role)}
+                onChange={(event) =>
+                  handleRoleChange(event.target.value as Role)
+                }
                 startAdornment={
                   <AccountCircleOutlined
                     sx={{ mr: 1, color: "primary.main" }}
