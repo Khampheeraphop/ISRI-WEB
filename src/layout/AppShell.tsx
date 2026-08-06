@@ -2,6 +2,7 @@ import {
   AccountCircleOutlined,
   AdminPanelSettingsOutlined,
   AssignmentOutlined,
+  CardGiftcardOutlined,
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
@@ -15,6 +16,7 @@ import {
   Drawer,
   FormControl,
   IconButton,
+  InputLabel,
   List,
   ListItemButton,
   ListItemIcon,
@@ -25,8 +27,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
 
 const drawerWidth = 252;
@@ -37,34 +40,54 @@ const roleLabels: Record<Role, string> = {
 };
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   reporter: [
-    { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
-    { label: "แจ้งเหตุ", to: "/incidents/new", icon: <AssignmentOutlined /> },
     {
-      label: "เรื่องที่ฉันแจ้ง",
+      label: "รายการแจ้งซ่อมของฉัน",
       to: "/incidents/mine",
       icon: <AssignmentOutlined />,
     },
     { label: "แต้มและรางวัล", to: "/rewards", icon: <EmojiEventsOutlined /> },
   ],
   technician: [
-    { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
+    { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
+    { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
+    {
+      label: "จัดการของรางวัล",
+      to: "/rewards/manage",
+      icon: <CardGiftcardOutlined />,
+    },
+    {
+      label: "จัดการแคมเปญ",
+      to: "/campaigns/manage",
+      icon: <EmojiEventsOutlined />,
+    },
+    { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
     {
       label: "จัดการผู้ใช้",
       to: "/users",
       icon: <AdminPanelSettingsOutlined />,
     },
+    { label: "QR Code", to: "/locations", icon: <AssignmentOutlined /> },
   ],
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, setRole } = useAuth();
+  const wallets = useEntityQuery("pointWallets");
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pointBalance =
+    (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ??
+    0;
+  const handleRoleChange = (role: Role) => {
+    setRole(role);
+    navigate(menus[role][0].to);
+  };
   const navigation = (
     <Box
       sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
@@ -103,20 +126,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ListItemButton>
         ))}
       </List>
-      <Box
-        sx={{
-          position: "absolute",
-          insetInline: 0,
-          bottom: 0,
-          p: 2.5,
-          borderTop: 1,
-          borderColor: "divider",
-        }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 0
-        </Typography>
-      </Box>
     </Box>
   );
   return (
@@ -134,23 +143,18 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Toolbar
-          sx={{ justifyContent: "space-between", minHeight: "70px !important" }}
+          sx={{ justifyContent: "flex-end", minHeight: "70px !important" }}
         >
           <IconButton
             onClick={() => setMobileOpen(true)}
+            aria-label="เปิดเมนู"
             sx={{ display: { md: "none" } }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ display: { xs: "none", md: "block" } }}
-          >
-            ระบบแจ้งเหตุและแรงจูงใจ
-          </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Chip
-              label="120"
+              label={pointBalance.toLocaleString("th-TH")}
               color="primary"
               variant="outlined"
               sx={{
@@ -160,9 +164,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               }}
             />
             <FormControl size="small" sx={{ minWidth: { xs: 136, sm: 190 } }}>
+              <InputLabel id="role-label">ผู้ใช้งาน</InputLabel>
               <Select
+                labelId="role-label"
+                label="ผู้ใช้งาน"
                 value={user.role}
-                onChange={(event) => setRole(event.target.value as Role)}
+                onChange={(event) =>
+                  handleRoleChange(event.target.value as Role)
+                }
                 startAdornment={
                   <AccountCircleOutlined
                     sx={{ mr: 1, color: "primary.main" }}

@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { entityStore, type EntityName } from "../mock/entityStore";
+import {
+  entityStore,
+  type EntityMap,
+  type EntityName,
+} from "../mock/entityStore";
 
 export const entityKeys = { all: (entity: EntityName) => [entity] as const };
 
@@ -17,5 +21,104 @@ export function useEntityMutation<K extends EntityName>(entity: K) {
       entityStore.create(entity, values),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+  });
+}
+
+export function useEntityUpdateMutation<K extends EntityName>(entity: K) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      changes,
+    }: {
+      id: string;
+      changes: Partial<EntityMap[K]>;
+    }) => entityStore.update(entity, id, changes),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+  });
+}
+
+export function useEntityDeleteMutation<K extends EntityName>(entity: K) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => entityStore.remove(entity, id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+  });
+}
+
+export function useRewardRedemptionMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      userId,
+      rewardItemId,
+    }: {
+      userId: string;
+      rewardItemId: string;
+    }) => entityStore.redeemReward(userId, rewardItemId),
+    onSuccess: () =>
+      Promise.all(
+        (
+          [
+            "pointWallets",
+            "pointTransactions",
+            "campaignScores",
+            "rewardItems",
+            "rewardRedemptions",
+          ] as const
+        ).map((entity) =>
+          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+        ),
+      ),
+  });
+}
+
+export function useEndCampaignMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (campaignId: string) => entityStore.endCampaign(campaignId),
+    onSuccess: () =>
+      Promise.all(
+        (["rewardCampaigns", "campaignScores"] as const).map((entity) =>
+          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+        ),
+      ),
+  });
+}
+
+export function useCompletePMScheduleMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (values: { scheduleId: string; technicianId: string; notes: string }) =>
+      entityStore.completePMSchedule(values),
+    onSuccess: () =>
+      Promise.all(
+        (["pmSchedules", "pmLogs"] as const).map((entity) =>
+          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+        ),
+      ),
+  });
+}
+
+export function useCompleteWorkOrderMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (workOrderId: string) =>
+      entityStore.completeWorkOrder(workOrderId),
+    onSuccess: () =>
+      Promise.all(
+        (
+          [
+            "workOrders",
+            "incidents",
+            "pointWallets",
+            "pointTransactions",
+          ] as const
+        ).map((entity) =>
+          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
+        ),
+      ),
   });
 }
