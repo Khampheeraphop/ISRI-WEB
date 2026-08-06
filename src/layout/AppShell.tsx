@@ -28,7 +28,7 @@ import {
 } from "@mui/material";
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
 
@@ -47,20 +47,34 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       icon: <AssignmentOutlined />,
     },
     { label: "แต้มและรางวัล", to: "/rewards", icon: <EmojiEventsOutlined /> },
+    { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
   ],
   technician: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
+    { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
-    { label: "จัดการของรางวัล", to: "/rewards/manage", icon: <CardGiftcardOutlined /> },
+    { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
+    {
+      label: "จัดการของรางวัล",
+      to: "/rewards/manage",
+      icon: <CardGiftcardOutlined />,
+    },
+    {
+      label: "จัดการแคมเปญ",
+      to: "/campaigns/manage",
+      icon: <EmojiEventsOutlined />,
+    },
+    { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
     {
       label: "จัดการผู้ใช้",
       to: "/users",
       icon: <AdminPanelSettingsOutlined />,
     },
+    { label: "QR Code", to: "/locations", icon: <AssignmentOutlined /> },
   ],
 };
 
@@ -69,7 +83,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const wallets = useEntityQuery("pointWallets");
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const pointBalance = (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ?? 0;
+  const pointBalance =
+    (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ??
+    0;
   const navigation = (
     <Box
       sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
@@ -124,7 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 3A
+          Prototype • Sprint 6
         </Typography>
       </Box>
     </Box>
@@ -144,7 +160,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Toolbar
-          sx={{ justifyContent: "space-between", minHeight: "70px !important" }}
+          sx={{ justifyContent: "flex-end", minHeight: "70px !important" }}
         >
           <IconButton
             onClick={() => setMobileOpen(true)}
@@ -153,12 +169,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography
-            variant="h6"
-            sx={{ display: { xs: "none", md: "block" } }}
-          >
-            ระบบแจ้งเหตุและแรงจูงใจ
-          </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Chip
               label={pointBalance.toLocaleString("th-TH")}

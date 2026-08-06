@@ -1,116 +1,73 @@
 import {
+  AddOutlined,
   DeleteOutlined,
   EditOutlined,
   Inventory2Outlined,
 } from "@mui/icons-material";
-import { Alert, Box, Chip, IconButton, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
-import * as yup from "yup";
+import { Link } from "react-router-dom";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
-import { GenericForm } from "../../components/form/GenericForm";
-import type { FormField } from "../../components/form/types";
-import {
-  useEntityDeleteMutation,
-  useEntityMutation,
-  useEntityQuery,
-  useEntityUpdateMutation,
-} from "../../hooks/useEntity";
+import { useEntityDeleteMutation, useEntityQuery } from "../../hooks/useEntity";
 import type { RewardItem } from "../../types/reward";
-
-type RewardItemForm = {
-  name: string;
-  description: string;
-  pointCost: number;
-  stock: number;
-  isActive: "true" | "false";
-};
-
-const defaultValues: RewardItemForm = {
-  name: "",
-  description: "",
-  pointCost: 20,
-  stock: 1,
-  isActive: "true",
-};
-
-const fields: FormField<RewardItemForm>[] = [
-  { name: "name", label: "ชื่อของรางวัล", required: true },
-  {
-    name: "pointCost",
-    label: "คะแนนที่ใช้แลก",
-    type: "number",
-    required: true,
-  },
-  {
-    name: "description",
-    label: "รายละเอียด",
-    type: "textarea",
-    required: true,
-    fullWidth: true,
-  },
-  { name: "stock", label: "จำนวนคงเหลือ", type: "number", required: true },
-  {
-    name: "isActive",
-    label: "สถานะ",
-    type: "select",
-    required: true,
-    options: [
-      { label: "เปิดให้แลก", value: "true" },
-      { label: "ปิดการแลก", value: "false" },
-    ],
-  },
-];
-
-const schema: yup.ObjectSchema<RewardItemForm> = yup.object({
-  name: yup.string().trim().required("กรุณาระบุชื่อของรางวัล"),
-  description: yup.string().trim().required("กรุณาระบุรายละเอียด"),
-  pointCost: yup
-    .number()
-    .typeError("กรุณาระบุเป็นตัวเลข")
-    .integer()
-    .min(1, "ต้องมากกว่า 0")
-    .required(),
-  stock: yup
-    .number()
-    .typeError("กรุณาระบุเป็นตัวเลข")
-    .integer()
-    .min(0, "ต้องไม่น้อยกว่า 0")
-    .required(),
-  isActive: yup.mixed<"true" | "false">().oneOf(["true", "false"]).required(),
-});
 
 export function RewardCatalogAdminPage() {
   const rewards = useEntityQuery("rewardItems");
-  const createReward = useEntityMutation("rewardItems");
-  const updateReward = useEntityUpdateMutation("rewardItems");
+  const fileStorages = useEntityQuery("fileStorages");
   const deleteReward = useEntityDeleteMutation("rewardItems");
-  const [editing, setEditing] = useState<RewardItem>();
-  const [formVersion, setFormVersion] = useState(0);
   const [feedback, setFeedback] = useState<{
     severity: "success" | "error";
     message: string;
   }>();
-
-  const formValues: RewardItemForm = editing
-    ? {
-        name: editing.name,
-        description: editing.description,
-        pointCost: editing.pointCost,
-        stock: editing.stock,
-        isActive: String(editing.isActive) as RewardItemForm["isActive"],
-      }
-    : defaultValues;
-
+  const storageById = new Map(
+    (fileStorages.data ?? []).map((file) => [file.id, file]),
+  );
   const columns: GridColDef<RewardItem>[] = [
-    { field: "name", headerName: "ของรางวัล", minWidth: 210, flex: 1 },
+    {
+      field: "imageFileStorageId",
+      headerName: "รูป",
+      width: 84,
+      sortable: false,
+      renderCell: ({ value, row }) => (
+        <Avatar
+          variant="rounded"
+          alt={row.name}
+          src={storageById.get(value)?.publicUrl}
+          sx={{ width: 48, height: 48, bgcolor: "background.default" }}
+        />
+      ),
+    },
+    { field: "name", headerName: "ของรางวัล", minWidth: 220, flex: 1 },
     { field: "pointCost", headerName: "แต้ม", minWidth: 90, type: "number" },
     { field: "stock", headerName: "คงเหลือ", minWidth: 95, type: "number" },
     {
+      field: "rewardPeriod",
+      headerName: "รอบรางวัล",
+      minWidth: 125,
+      renderCell: ({ value }) => (
+        <Chip
+          size="small"
+          color={value === "annual" ? "secondary" : "default"}
+          variant="outlined"
+          label={value === "annual" ? "ประจำปี" : "ทั่วไป"}
+        />
+      ),
+    },
+    {
       field: "isActive",
       headerName: "สถานะ",
-      minWidth: 125,
+      minWidth: 115,
       renderCell: ({ row }) => (
         <Chip
           size="small"
@@ -128,8 +85,9 @@ export function RewardCatalogAdminPage() {
       renderCell: ({ row }) => (
         <Stack direction="row">
           <IconButton
+            component={Link}
+            to={"/rewards/manage/" + row.id}
             aria-label={"แก้ไข " + row.name}
-            onClick={() => setEditing(row)}
           >
             <EditOutlined fontSize="small" />
           </IconButton>
@@ -159,42 +117,31 @@ export function RewardCatalogAdminPage() {
     },
   ];
 
-  const saveReward = async (values: RewardItemForm) => {
-    const changes = {
-      name: values.name,
-      description: values.description,
-      pointCost: Number(values.pointCost),
-      stock: Number(values.stock),
-      isActive: values.isActive === "true",
-    };
-    try {
-      if (editing) {
-        await updateReward.mutateAsync({ id: editing.id, changes });
-        setFeedback({
-          severity: "success",
-          message: "บันทึกการแก้ไขของรางวัลแล้ว",
-        });
-      } else {
-        await createReward.mutateAsync(changes);
-        setFeedback({ severity: "success", message: "เพิ่มของรางวัลแล้ว" });
-      }
-      setEditing(undefined);
-      setFormVersion((version) => version + 1);
-    } catch {
-      setFeedback({
-        severity: "error",
-        message: "ไม่สามารถบันทึกของรางวัลได้",
-      });
-    }
-  };
-
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="h3">จัดการของรางวัล</Typography>
-        <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          เพิ่ม แก้ไข เปิดหรือปิดการแลก และกำหนดจำนวนคงเหลือของรางวัล
-        </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 2,
+          alignItems: { xs: "flex-start", sm: "center" },
+          flexDirection: { xs: "column", sm: "row" },
+        }}
+      >
+        <Box>
+          <Typography variant="h3">จัดการของรางวัล</Typography>
+          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+            รายการรางวัล รูปประกอบ และจำนวนคงเหลือสำหรับแลก
+          </Typography>
+        </Box>
+        <Button
+          component={Link}
+          to="/rewards/manage/new"
+          variant="contained"
+          startIcon={<AddOutlined />}
+        >
+          เพิ่มของรางวัล
+        </Button>
       </Box>
       {feedback && (
         <Alert
@@ -204,55 +151,21 @@ export function RewardCatalogAdminPage() {
           {feedback.message}
         </Alert>
       )}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            xl: "minmax(0, 1.3fr) minmax(340px, 0.7fr)",
-          },
-          gap: 3,
-          alignItems: "start",
-        }}
+      <MainCard
+        title={
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <Inventory2Outlined color="primary" />
+            <Typography variant="h5">รายการของรางวัล</Typography>
+          </Stack>
+        }
       >
-        <MainCard
-          title={
-            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-              <Inventory2Outlined color="primary" />
-              <Typography variant="h5">แคตตาล็อกรางวัล</Typography>
-            </Stack>
-          }
-        >
-          <GenericDataTable
-            rows={rewards.data ?? []}
-            columns={columns}
-            loading={rewards.isLoading}
-            emptyMessage="ยังไม่มีของรางวัล"
-          />
-        </MainCard>
-        <MainCard
-          title={
-            <Typography variant="h5">
-              {editing ? "แก้ไขของรางวัล" : "เพิ่มของรางวัล"}
-            </Typography>
-          }
-          subheader="ข้อมูลนี้จะแสดงในหน้ารางวัลของผู้แจ้งเหตุ"
-          contentSx={{ p: { xs: 2.5, md: 3 } }}
-        >
-          <GenericForm<RewardItemForm>
-            key={editing?.id ?? "create-reward-" + formVersion}
-            fields={fields}
-            schema={schema}
-            defaultValues={formValues}
-            columns={2}
-            submitLabel={editing ? "บันทึกการแก้ไข" : "เพิ่มของรางวัล"}
-            cancelLabel="ยกเลิก"
-            onCancel={editing ? () => setEditing(undefined) : undefined}
-            onSubmit={saveReward}
-            isSubmitting={createReward.isPending || updateReward.isPending}
-          />
-        </MainCard>
-      </Box>
+        <GenericDataTable
+          rows={rewards.data ?? []}
+          columns={columns}
+          loading={rewards.isLoading || fileStorages.isLoading}
+          emptyMessage="ยังไม่มีของรางวัล"
+        />
+      </MainCard>
     </Stack>
   );
 }

@@ -5,7 +5,7 @@ export type FormOption = { label: string; value: string };
 export type FormField<T extends FieldValues> = {
   name: Path<T>;
   label: string;
-  type?: "text" | "number" | "textarea" | "select" | "file";
+  type?: "text" | "number" | "date" | "textarea" | "select" | "file";
   options?: FormOption[];
   placeholder?: string;
   readOnly?: boolean;

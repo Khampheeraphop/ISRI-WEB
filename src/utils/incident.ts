@@ -20,12 +20,12 @@ export function getLocationDetails(locationCode: string) {
     return {
       building: "ไม่ระบุอาคาร",
       floor: "ไม่ระบุชั้น",
-      assetName: locationCode,
+      zone: "ไม่ระบุโซน",
     };
   return {
     building: `อาคาร ${match[1].toUpperCase()}`,
     floor: `ชั้น ${match[2]}`,
-    assetName: `โซน ${match[3]}`,
+    zone: `โซน ${match[3]}`,
   };
 }
 

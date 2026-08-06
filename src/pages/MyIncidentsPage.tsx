@@ -15,7 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import { IncidentStatusChip } from "../components/IncidentStatusChip";
 import { PriorityRibbon } from "../components/PriorityRibbon";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useEntityQuery } from "../hooks/useEntity";
 import { formatBangkokDate } from "../utils/incident";
 
@@ -38,7 +38,7 @@ export function MyIncidentsPage() {
         }}
       >
         <Box>
-          <Typography variant="h3">เรื่องที่ฉันแจ้ง</Typography>
+          <Typography variant="h3">รายการแจ้งซ่อมของฉัน</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5 }}>
             ติดตามสถานะงานและรายละเอียดของแต่ละรายการ
           </Typography>

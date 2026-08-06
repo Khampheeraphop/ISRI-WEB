@@ -1,6 +1,6 @@
 import { AssignmentLateOutlined } from "@mui/icons-material";
 import { Alert, Box, CircularProgress, Stack, Typography } from "@mui/material";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { useEntityQuery } from "../../hooks/useEntity";
 import { WorkOrderCard } from "./WorkOrderCard";
 import { useWorkOrderActions } from "./useWorkOrderActions";

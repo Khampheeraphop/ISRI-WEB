@@ -1,11 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type PropsWithChildren,
-} from "react";
+import { useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import { AuthContext } from "./authContextValue";
 import type { Role, User } from "../types/user";
 
 const demoUsers: Record<Role, User> = {
@@ -14,15 +8,11 @@ const demoUsers: Record<Role, User> = {
   admin: { id: "USR-003", name: "นางสาวกมลวรรณ ศรีสุข", role: "admin" },
 };
 
-interface AuthValue {
-  user: User;
-  setRole: (role: Role) => void;
-}
-const AuthContext = createContext<AuthValue | undefined>(undefined);
-
 function getInitialRole(): Role {
   const savedRole = window.localStorage.getItem("isri-demo-role");
-  return savedRole === "technician" || savedRole === "admin" || savedRole === "reporter"
+  return savedRole === "technician" ||
+    savedRole === "admin" ||
+    savedRole === "reporter"
     ? savedRole
     : "reporter";
 }
@@ -34,10 +24,4 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [role]);
   const value = useMemo(() => ({ user: demoUsers[role], setRole }), [role]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
 }
