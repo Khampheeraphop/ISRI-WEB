@@ -1,5 +1,6 @@
 import type { User } from "../types/user";
 import type { CreateIncident, Incident } from "../types/incident";
+import type { CreateManagedLocation, ManagedLocation } from "../types/location";
 import type { SLARule, WorkOrder } from "../types/workOrder";
 import type { CreatePMSchedule, PMLog, PMSchedule } from "../types/pm";
 import type {
@@ -16,6 +17,7 @@ import type {
 
 export type EntityName =
   | "users"
+  | "locations"
   | "incidents"
   | "slaRules"
   | "workOrders"
@@ -30,6 +32,7 @@ export type EntityName =
   | "fileStorages";
 export type EntityMap = {
   users: User;
+  locations: ManagedLocation;
   incidents: Incident;
   slaRules: SLARule;
   workOrders: WorkOrder;
@@ -45,6 +48,7 @@ export type EntityMap = {
 };
 type NewEntityMap = {
   users: Omit<User, "id">;
+  locations: CreateManagedLocation;
   incidents: CreateIncident;
   slaRules: Omit<SLARule, "id">;
   workOrders: Omit<WorkOrder, "id">;
@@ -73,6 +77,24 @@ const records: { [K in EntityName]: EntityMap[K][] } = {
     { id: "USR-002", name: "นายธนกร ช่างทอง", role: "technician" },
     { id: "USR-003", name: "นางสาวกมลวรรณ ศรีสุข", role: "admin" },
     { id: "USR-004", name: "นางสาวพิมพ์ชนก แสนดี", role: "reporter" },
+  ],
+  locations: [
+    {
+      id: "LOC-001",
+      code: "BLD-A-F2-Z03",
+      building: "อาคาร A",
+      floor: "ชั้น 2",
+      zone: "โซน 03",
+      assetName: "เครื่องปรับอากาศหน้าห้องตรวจ",
+    },
+    {
+      id: "LOC-002",
+      code: "BLD-B-F1-Z01",
+      building: "อาคาร B",
+      floor: "ชั้น 1",
+      zone: "โซน 01",
+      assetName: "ตู้ควบคุมไฟฟ้าทางเดิน",
+    },
   ],
   incidents: [
     {
@@ -285,8 +307,20 @@ const records: { [K in EntityName]: EntityMap[K][] } = {
     },
   ],
   campaignScores: [
-    { id: "CS-001", campaignId: "CMP-001", userId: "USR-001", points: 80, lastScoredAt: "2026-08-04T10:30:00+07:00" },
-    { id: "CS-002", campaignId: "CMP-001", userId: "USR-004", points: 65, lastScoredAt: "2026-08-04T14:15:00+07:00" },
+    {
+      id: "CS-001",
+      campaignId: "CMP-001",
+      userId: "USR-001",
+      points: 80,
+      lastScoredAt: "2026-08-04T10:30:00+07:00",
+    },
+    {
+      id: "CS-002",
+      campaignId: "CMP-001",
+      userId: "USR-004",
+      points: 65,
+      lastScoredAt: "2026-08-04T14:15:00+07:00",
+    },
   ],
   rewardRedemptions: [],
 };
@@ -295,6 +329,7 @@ const clone = <T>(value: T): T => structuredClone(value);
 const pause = () => new Promise((resolve) => setTimeout(resolve, 120));
 const entityPrefixes: Record<EntityName, string> = {
   users: "USR",
+  locations: "LOC",
   incidents: "INC",
   slaRules: "SLA",
   workOrders: "WO",
@@ -338,7 +373,7 @@ export const entityStore = {
                 (values as CreatePMSchedule).intervalMonths,
               ),
             }
-        : { ...values, id };
+          : { ...values, id };
     records[entity].push(record as EntityMap[K]);
     return clone(record as EntityMap[K]);
   },
@@ -461,17 +496,16 @@ export const entityStore = {
               item.campaignId === activeCampaign.id &&
               item.userId === incident.reporterId,
           );
-        if (score) {
-          score.points += amount;
-          score.lastScoredAt = new Date().toISOString();
-        }
-        else
-          records.campaignScores.push({
+          if (score) {
+            score.points += amount;
+            score.lastScoredAt = new Date().toISOString();
+          } else
+            records.campaignScores.push({
               id: `CS-${String(records.campaignScores.length + 1).padStart(3, "0")}`,
               campaignId: activeCampaign.id,
-            userId: incident.reporterId,
-            points: amount,
-            lastScoredAt: new Date().toISOString(),
+              userId: incident.reporterId,
+              points: amount,
+              lastScoredAt: new Date().toISOString(),
             });
         });
     }

@@ -16,6 +16,10 @@ import { CampaignLeaderboardPage } from "./features/campaigns/CampaignLeaderboar
 import { PMSchedulesPage } from "./features/pm/PMSchedulesPage";
 import { PMScheduleFormPage } from "./features/pm/PMScheduleFormPage";
 import { PMCompletePage } from "./features/pm/PMCompletePage";
+import { UserManagementPage } from "./features/admin/UserManagementPage";
+import { UserFormPage } from "./features/admin/UserFormPage";
+import { LocationManagementPage } from "./features/admin/LocationManagementPage";
+import { LocationFormPage } from "./features/admin/LocationFormPage";
 
 function App() {
   return (
@@ -38,7 +42,12 @@ function App() {
         <Route path="/work-orders" element={<TechnicianWorkOrdersPage />} />
         <Route path="/work-orders/:id" element={<WorkOrderDetailPage />} />
         <Route path="/sla" element={<SlaConfigPage />} />
-        <Route path="/users" element={<DashboardPage />} />
+        <Route path="/users" element={<UserManagementPage />} />
+        <Route path="/users/new" element={<UserFormPage />} />
+        <Route path="/users/:id" element={<UserFormPage />} />
+        <Route path="/locations" element={<LocationManagementPage />} />
+        <Route path="/locations/new" element={<LocationFormPage />} />
+        <Route path="/locations/:id" element={<LocationFormPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>

@@ -17,7 +17,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import {
   useEntityQuery,
   useRewardRedemptionMutation,

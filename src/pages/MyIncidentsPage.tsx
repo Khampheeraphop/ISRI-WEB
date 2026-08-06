@@ -15,7 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import { IncidentStatusChip } from "../components/IncidentStatusChip";
 import { PriorityRibbon } from "../components/PriorityRibbon";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useEntityQuery } from "../hooks/useEntity";
 import { formatBangkokDate } from "../utils/incident";
 

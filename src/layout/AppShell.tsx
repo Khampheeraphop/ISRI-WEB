@@ -28,7 +28,7 @@ import {
 } from "@mui/material";
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
 
@@ -74,6 +74,7 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       to: "/users",
       icon: <AdminPanelSettingsOutlined />,
     },
+    { label: "QR Code", to: "/locations", icon: <AssignmentOutlined /> },
   ],
 };
 
@@ -139,7 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 5
+          Prototype • Sprint 6
         </Typography>
       </Box>
     </Box>
