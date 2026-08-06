@@ -40,17 +40,14 @@ const roleLabels: Record<Role, string> = {
 };
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   reporter: [
-    { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     {
       label: "รายการแจ้งซ่อมของฉัน",
       to: "/incidents/mine",
       icon: <AssignmentOutlined />,
     },
     { label: "แต้มและรางวัล", to: "/rewards", icon: <EmojiEventsOutlined /> },
-    { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
   ],
   technician: [
-    { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
