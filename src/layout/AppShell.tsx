@@ -124,25 +124,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </ListItemButton>
         ))}
       </List>
-      <Box sx={{ px: 2.5, pb: 2 }}>
-        <Typography variant="caption" color="text.secondary">
-          เมนูจะแสดงตามมุมมองทดลองที่เลือกด้านบน
-        </Typography>
-      </Box>
-      <Box
-        sx={{
-          position: "absolute",
-          insetInline: 0,
-          bottom: 0,
-          p: 2.5,
-          borderTop: 1,
-          borderColor: "divider",
-        }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Prototype • Sprint 6
-        </Typography>
-      </Box>
     </Box>
   );
   return (
@@ -181,10 +162,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               }}
             />
             <FormControl size="small" sx={{ minWidth: { xs: 136, sm: 190 } }}>
-              <InputLabel id="demo-role-label">มุมมองทดลอง</InputLabel>
+              <InputLabel id="role-label">ผู้ใช้งาน</InputLabel>
               <Select
-                labelId="demo-role-label"
-                label="มุมมองทดลอง"
+                labelId="role-label"
+                label="ผู้ใช้งาน"
                 value={user.role}
                 onChange={(event) => setRole(event.target.value as Role)}
                 startAdornment={
