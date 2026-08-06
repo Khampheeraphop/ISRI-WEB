@@ -27,7 +27,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
@@ -79,10 +79,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, setRole } = useAuth();
   const wallets = useEntityQuery("pointWallets");
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pointBalance =
     (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ??
     0;
+  const handleRoleChange = (role: Role) => {
+    setRole(role);
+    navigate(menus[role][0].to);
+  };
   const navigation = (
     <Box
       sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
@@ -164,7 +169,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 labelId="role-label"
                 label="ผู้ใช้งาน"
                 value={user.role}
-                onChange={(event) => setRole(event.target.value as Role)}
+                onChange={(event) =>
+                  handleRoleChange(event.target.value as Role)
+                }
                 startAdornment={
                   <AccountCircleOutlined
                     sx={{ mr: 1, color: "primary.main" }}
