@@ -3,27 +3,36 @@ import {
   CalendarMonthOutlined,
   CardGiftcardOutlined,
   EmojiEventsOutlined,
+  LockOutlined,
 } from "@mui/icons-material";
-import { Alert, Box, Button, Chip, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
-import { useEndCampaignMutation, useEntityQuery } from "../../hooks/useEntity";
+import { ActionDialog } from "../../components/feedback/ActionDialog";
 import type { RewardCampaign } from "../../types/reward";
 import {
   campaignPeriodLabel,
   campaignStatusLabel,
   formatCampaignPeriod,
 } from "./campaign.constants";
+import { closeCampaign, getCampaigns } from "./campaignApi";
 
 function CampaignListCard({
   campaign,
-  onEnd,
-  isEnding,
+  onClose,
 }: {
   campaign: RewardCampaign;
-  onEnd: (campaign: RewardCampaign) => void;
-  isEnding: boolean;
+  onClose: (campaign: RewardCampaign) => void;
 }) {
   const isActive = campaign.status === "active";
   return (
@@ -64,8 +73,8 @@ function CampaignListCard({
             <Button
               variant="text"
               color="warning"
-              disabled={isEnding}
-              onClick={() => onEnd(campaign)}
+              startIcon={<LockOutlined />}
+              onClick={() => onClose(campaign)}
             >
               ปิดรอบและล็อกอันดับ
             </Button>
@@ -76,10 +85,16 @@ function CampaignListCard({
       <Stack spacing={1.25}>
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <CalendarMonthOutlined color="primary" fontSize="small" />
-          <Typography>{formatCampaignPeriod(campaign.startDate, campaign.endDate)}</Typography>
+          <Typography>
+            {formatCampaignPeriod(campaign.startDate, campaign.endDate)}
+          </Typography>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
-          <CardGiftcardOutlined color="primary" fontSize="small" sx={{ mt: 0.25 }} />
+          <CardGiftcardOutlined
+            color="primary"
+            fontSize="small"
+            sx={{ mt: 0.25 }}
+          />
           <Box>
             <Typography variant="body2" color="text.secondary">
               รางวัลสำหรับผู้ชนะ
@@ -93,27 +108,20 @@ function CampaignListCard({
 }
 
 export function CampaignAdminPage() {
-  const campaigns = useEntityQuery("rewardCampaigns");
-  const endCampaign = useEndCampaignMutation();
-  const [feedback, setFeedback] = useState<{
-    severity: "success" | "error";
-    message: string;
-  }>();
-  const handleEnd = (campaign: RewardCampaign) => {
-    if (!window.confirm(`ปิดรอบ “${campaign.name}” และล็อกอันดับใช่หรือไม่`)) return;
-    endCampaign.mutate(campaign.id, {
-      onSuccess: () =>
-        setFeedback({
-          severity: "success",
-          message: "ปิดรอบแคมเปญและล็อกอันดับแล้ว",
-        }),
-      onError: () =>
-        setFeedback({
-          severity: "error",
-          message: "ไม่สามารถปิดรอบแคมเปญได้",
-        }),
-    });
-  };
+  const queryClient = useQueryClient();
+  const campaigns = useQuery({ queryKey: ["campaigns"], queryFn: getCampaigns });
+  const [target, setTarget] = useState<RewardCampaign>();
+  const [feedback, setFeedback] = useState<string>();
+  const close = useMutation({
+    mutationFn: closeCampaign,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      setTarget(undefined);
+      setFeedback("ปิดรอบแคมเปญและล็อกผลการจัดอันดับแล้ว");
+    },
+    onError: (cause) =>
+      setFeedback(cause instanceof Error ? cause.message : "ไม่สามารถปิดรอบแคมเปญได้"),
+  });
 
   return (
     <Stack spacing={3}>
@@ -129,7 +137,7 @@ export function CampaignAdminPage() {
         <Box>
           <Typography variant="h3">จัดการแคมเปญรางวัล</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-            กำหนดรอบสะสมคะแนน รางวัล และการประกาศผลผู้ชนะ
+            กำหนดช่วงสะสมคะแนน รางวัล และผลการจัดอันดับของแต่ละรอบ
           </Typography>
         </Box>
         <Button
@@ -142,27 +150,57 @@ export function CampaignAdminPage() {
         </Button>
       </Box>
       {feedback && (
-        <Alert severity={feedback.severity} onClose={() => setFeedback(undefined)}>
-          {feedback.message}
+        <Alert severity="success" onClose={() => setFeedback(undefined)}>
+          {feedback}
         </Alert>
       )}
-      <Stack spacing={2}>
-        {(campaigns.data ?? []).map((campaign) => (
-          <CampaignListCard
-            key={campaign.id}
-            campaign={campaign}
-            onEnd={handleEnd}
-            isEnding={endCampaign.isPending}
-          />
-        ))}
-        {!campaigns.isLoading && !(campaigns.data ?? []).length && (
-          <MainCard title={<Typography variant="h5">ยังไม่มีแคมเปญ</Typography>}>
-            <Typography color="text.secondary">
-              สร้างแคมเปญเพื่อเริ่มสะสมคะแนนและจัดอันดับผู้แจ้งเหตุ
-            </Typography>
-          </MainCard>
-        )}
-      </Stack>
+      {campaigns.isLoading ? (
+        <Box sx={{ minHeight: 240, display: "grid", placeItems: "center" }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Stack spacing={2}>
+          {(campaigns.data ?? []).map((campaign) => (
+            <CampaignListCard
+              key={campaign.id}
+              campaign={campaign}
+              onClose={setTarget}
+            />
+          ))}
+          {!campaigns.data?.length && (
+            <MainCard title={<Typography variant="h5">ยังไม่มีแคมเปญ</Typography>}>
+              <Typography color="text.secondary">
+                สร้างแคมเปญเพื่อเริ่มสะสมคะแนนและจัดอันดับผู้แจ้งเหตุ
+              </Typography>
+            </MainCard>
+          )}
+        </Stack>
+      )}
+      <ActionDialog
+        open={Boolean(target)}
+        title="ยืนยันการปิดรอบแคมเปญ"
+        icon={<LockOutlined color="warning" />}
+        onRequestClose={close.isPending ? undefined : () => setTarget(undefined)}
+        footer={
+          <>
+            <Button disabled={close.isPending} onClick={() => setTarget(undefined)}>
+              ยกเลิก
+            </Button>
+            <Button
+              variant="contained"
+              color="warning"
+              disabled={close.isPending || !target}
+              onClick={() => target && close.mutate(target.id)}
+            >
+              ยืนยันปิดรอบ
+            </Button>
+          </>
+        }
+      >
+        <Typography>
+          เมื่อปิดรอบ “{target?.name}” คะแนนจะหยุดสะสมและผลการจัดอันดับจะถูกล็อก
+        </Typography>
+      </ActionDialog>
     </Stack>
   );
 }

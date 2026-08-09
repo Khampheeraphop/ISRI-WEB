@@ -48,60 +48,6 @@ export function useEntityDeleteMutation<K extends EntityName>(entity: K) {
   });
 }
 
-export function useRewardRedemptionMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      userId,
-      rewardItemId,
-    }: {
-      userId: string;
-      rewardItemId: string;
-    }) => entityStore.redeemReward(userId, rewardItemId),
-    onSuccess: () =>
-      Promise.all(
-        (
-          [
-            "pointWallets",
-            "pointTransactions",
-            "campaignScores",
-            "rewardItems",
-            "rewardRedemptions",
-          ] as const
-        ).map((entity) =>
-          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
-        ),
-      ),
-  });
-}
-
-export function useEndCampaignMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (campaignId: string) => entityStore.endCampaign(campaignId),
-    onSuccess: () =>
-      Promise.all(
-        (["rewardCampaigns", "campaignScores"] as const).map((entity) =>
-          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
-        ),
-      ),
-  });
-}
-
-export function useCompletePMScheduleMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (values: { scheduleId: string; technicianId: string; notes: string }) =>
-      entityStore.completePMSchedule(values),
-    onSuccess: () =>
-      Promise.all(
-        (["pmSchedules", "pmLogs"] as const).map((entity) =>
-          queryClient.invalidateQueries({ queryKey: entityKeys.all(entity) }),
-        ),
-      ),
-  });
-}
-
 export function useCompleteWorkOrderMutation() {
   const queryClient = useQueryClient();
   return useMutation({

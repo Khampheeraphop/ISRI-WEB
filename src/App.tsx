@@ -231,7 +231,7 @@ function ApplicationRoutes() {
           <Route
             path="/pm/new"
             element={
-              <RoleRoute roles={["technician", "admin"]}>
+              <RoleRoute roles={["admin"]}>
                 <PMScheduleFormPage />
               </RoleRoute>
             }
@@ -239,7 +239,7 @@ function ApplicationRoutes() {
           <Route
             path="/pm/:id/edit"
             element={
-              <RoleRoute roles={["technician", "admin"]}>
+              <RoleRoute roles={["admin"]}>
                 <PMScheduleFormPage />
               </RoleRoute>
             }
@@ -247,7 +247,7 @@ function ApplicationRoutes() {
           <Route
             path="/pm/:id/complete"
             element={
-              <RoleRoute roles={["technician", "admin"]}>
+              <RoleRoute roles={["technician"]}>
                 <PMCompletePage />
               </RoleRoute>
             }
