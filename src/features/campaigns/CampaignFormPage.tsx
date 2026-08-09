@@ -1,17 +1,14 @@
 import { ArrowBackOutlined } from "@mui/icons-material";
 import { Alert, Box, Button, Stack, Typography } from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as yup from "yup";
 import { MainCard } from "../../components/base/MainCard";
 import { GenericForm } from "../../components/form/GenericForm";
 import type { FormField } from "../../components/form/types";
-import {
-  useEntityMutation,
-  useEntityQuery,
-  useEntityUpdateMutation,
-} from "../../hooks/useEntity";
 import type { CampaignPeriodType } from "../../types/reward";
+import { createCampaign, getCampaigns, updateCampaign } from "./campaignApi";
 
 type CampaignForm = {
   name: string;
@@ -64,9 +61,16 @@ const schema = yup.object({
 export function CampaignFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const campaigns = useEntityQuery("rewardCampaigns");
-  const createCampaign = useEntityMutation("rewardCampaigns");
-  const updateCampaign = useEntityUpdateMutation("rewardCampaigns");
+  const queryClient = useQueryClient();
+  const campaigns = useQuery({ queryKey: ["campaigns"], queryFn: getCampaigns });
+  const create = useMutation({
+    mutationFn: createCampaign,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["campaigns"] }),
+  });
+  const update = useMutation({
+    mutationFn: updateCampaign,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["campaigns"] }),
+  });
   const [feedback, setFeedback] = useState<string>();
   const editing =
     id && id !== "new"
@@ -85,8 +89,8 @@ export function CampaignFormPage() {
         : {
             name: "",
             periodType: "monthly",
-            startDate: "2026-08-01",
-            endDate: "2026-08-31",
+            startDate: new Date().toISOString().slice(0, 10),
+            endDate: new Date().toISOString().slice(0, 10),
             prizeDescription: "",
           },
     [editing],
@@ -98,11 +102,11 @@ export function CampaignFormPage() {
   const save = async (values: CampaignForm) => {
     try {
       if (editing)
-        await updateCampaign.mutateAsync({
+        await update.mutateAsync({
           id: editing.id,
-          changes: values,
+          ...values,
         });
-      else await createCampaign.mutateAsync({ ...values, status: "active" });
+      else await create.mutateAsync(values);
       navigate("/campaigns/manage");
     } catch {
       setFeedback("ไม่สามารถบันทึกแคมเปญได้");
@@ -140,7 +144,7 @@ export function CampaignFormPage() {
           submitLabel={editing ? "บันทึกการแก้ไข" : "สร้างแคมเปญ"}
           onCancel={() => navigate("/campaigns/manage")}
           onSubmit={save}
-          isSubmitting={createCampaign.isPending || updateCampaign.isPending}
+          isSubmitting={create.isPending || update.isPending}
         />
       </MainCard>
     </Stack>

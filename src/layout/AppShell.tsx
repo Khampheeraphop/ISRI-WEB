@@ -1,41 +1,48 @@
 import {
   AccountCircleOutlined,
+  NotificationsOutlined,
   AdminPanelSettingsOutlined,
   AssignmentOutlined,
   CardGiftcardOutlined,
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
+  AssignmentIndOutlined,
+  LogoutOutlined,
   Menu as MenuIcon,
   SettingsOutlined,
 } from "@mui/icons-material";
 import {
   AppBar,
+  Badge,
   Box,
-  Chip,
+  Button,
   Drawer,
-  FormControl,
   IconButton,
-  InputLabel,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
   MenuItem,
-  Select,
   Toolbar,
   Typography,
 } from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
+import {
+  getNotifications,
+  markNotificationRead,
+} from "../features/notifications/notificationsApi";
 
 const drawerWidth = 252;
 const roleLabels: Record<Role, string> = {
   reporter: "ผู้แจ้งเหตุ",
   technician: "ช่างซ่อมบำรุง",
+  dispatcher: "ผู้จัดสรรงาน",
   admin: "ผู้ดูแลระบบ",
 };
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
@@ -50,6 +57,13 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   technician: [
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
+  ],
+  dispatcher: [
+    {
+      label: "คิวรอจัดสรรงาน",
+      to: "/dispatch",
+      icon: <AssignmentIndOutlined />,
+    },
   ],
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
@@ -71,27 +85,31 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       to: "/users",
       icon: <AdminPanelSettingsOutlined />,
     },
-    { label: "QR Code", to: "/locations", icon: <AssignmentOutlined /> },
+    { label: "ตำแหน่งและ QR", to: "/locations", icon: <AssignmentOutlined /> },
   ],
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, setRole } = useAuth();
-  const wallets = useEntityQuery("pointWallets");
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const pointBalance =
-    (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ??
-    0;
-  const handleRoleChange = (role: Role) => {
-    setRole(role);
-    navigate(menus[role][0].to);
-  };
+  const [accountAnchor, setAccountAnchor] = useState<HTMLElement | null>(null);
+  const [notificationAnchor, setNotificationAnchor] =
+    useState<HTMLElement | null>(null);
+  const queryClient = useQueryClient();
+  const notifications = useQuery({
+    queryKey: ["notifications"],
+    queryFn: getNotifications,
+  });
+  const markRead = useMutation({
+    mutationFn: markNotificationRead,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+  if (!user) return null;
   const navigation = (
-    <Box
-      sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
-    >
+    <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
       <Box sx={{ px: 3, py: 3, borderBottom: 1, borderColor: "divider" }}>
         <Typography variant="h4" color="primary.main" sx={{ lineHeight: 1 }}>
           ISRI
@@ -143,7 +161,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Toolbar
-          sx={{ justifyContent: "flex-end", minHeight: "70px !important" }}
+          sx={{ justifyContent: "space-between", minHeight: "70px !important" }}
         >
           <IconButton
             onClick={() => setMobileOpen(true)}
@@ -152,40 +170,88 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Chip
-              label={pointBalance.toLocaleString("th-TH")}
-              color="primary"
-              variant="outlined"
-              sx={{
-                height: 36,
-                borderRadius: "50%",
-                "& .MuiChip-label": { px: 1.1 },
-              }}
-            />
-            <FormControl size="small" sx={{ minWidth: { xs: 136, sm: 190 } }}>
-              <InputLabel id="role-label">ผู้ใช้งาน</InputLabel>
-              <Select
-                labelId="role-label"
-                label="ผู้ใช้งาน"
-                value={user.role}
-                onChange={(event) =>
-                  handleRoleChange(event.target.value as Role)
-                }
-                startAdornment={
-                  <AccountCircleOutlined
-                    sx={{ mr: 1, color: "primary.main" }}
-                  />
-                }
+          <Box sx={{ flexGrow: 1 }} />
+          <IconButton
+            aria-label="การแจ้งเตือน"
+            onClick={(event) => setNotificationAnchor(event.currentTarget)}
+          >
+            <Badge
+              badgeContent={
+                (notifications.data ?? []).filter((item) => !item.is_read)
+                  .length
+              }
+              color="error"
+            >
+              <NotificationsOutlined />
+            </Badge>
+          </IconButton>
+          <Button
+            color="inherit"
+            onClick={(event) => setAccountAnchor(event.currentTarget)}
+            startIcon={<AccountCircleOutlined color="primary" />}
+            sx={{ textTransform: "none", textAlign: "left", py: 0.5 }}
+          >
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
               >
-                {(Object.keys(roleLabels) as Role[]).map((role) => (
-                  <MenuItem key={role} value={role}>
-                    {roleLabels[role]}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+                {user.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {roleLabels[user.role]}
+              </Typography>
+            </Box>
+          </Button>
+          <Menu
+            anchorEl={accountAnchor}
+            open={Boolean(accountAnchor)}
+            onClose={() => setAccountAnchor(null)}
+          >
+            <MenuItem onClick={() => void signOut()}>
+              <ListItemIcon>
+                <LogoutOutlined fontSize="small" />
+              </ListItemIcon>
+              ออกจากระบบ
+            </MenuItem>
+          </Menu>
+          <Menu
+            anchorEl={notificationAnchor}
+            open={Boolean(notificationAnchor)}
+            onClose={() => setNotificationAnchor(null)}
+            slotProps={{
+              paper: { sx: { width: 360, maxWidth: "calc(100vw - 24px)" } },
+            }}
+          >
+            {(notifications.data ?? []).length ? (
+              (notifications.data ?? []).map((item) => (
+                <MenuItem
+                  key={item.id}
+                  onClick={() => {
+                    if (!item.is_read) markRead.mutate(item.id);
+                    setNotificationAnchor(null);
+                    if (user.role === "reporter" && item.related_incident_id)
+                      navigate(`/incidents/${item.related_incident_id}`);
+                    else if (user.role === "technician")
+                      navigate("/work-orders");
+                    else navigate("/dispatch");
+                  }}
+                  sx={{
+                    whiteSpace: "normal",
+                    alignItems: "flex-start",
+                    py: 1.25,
+                    bgcolor: item.is_read
+                      ? "transparent"
+                      : "rgba(75,59,134,.06)",
+                  }}
+                >
+                  {item.message}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem disabled>ไม่มีการแจ้งเตือนใหม่</MenuItem>
+            )}
+          </Menu>
         </Toolbar>
       </AppBar>
       <Box

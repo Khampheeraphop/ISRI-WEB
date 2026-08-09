@@ -1,10 +1,13 @@
 const locationCodePattern = /^BLD-([A-Z]+)-F(\d+)-Z(\d+)$/i;
+const managedLocationCodePattern = /^LOC-[A-Z0-9]{12}$/i;
 
 export function isLocationCode(
   locationCode: string | null,
 ): locationCode is string {
   return (
-    typeof locationCode === "string" && locationCodePattern.test(locationCode)
+    typeof locationCode === "string" &&
+    (managedLocationCodePattern.test(locationCode) ||
+      locationCodePattern.test(locationCode))
   );
 }
 
