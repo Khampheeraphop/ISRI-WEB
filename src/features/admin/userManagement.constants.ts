@@ -4,6 +4,7 @@ import type { Role } from "../../types/user";
 export const roleLabels: Record<Role, string> = {
   reporter: "ผู้แจ้งเหตุ",
   technician: "ช่างซ่อมบำรุง",
+  dispatcher: "ผู้จัดสรรงาน",
   admin: "ผู้ดูแลระบบ",
 };
 

@@ -1,6 +1,11 @@
 import { apiFetch } from "../api/apiClient";
 import { supabase } from "../../lib/supabase/client";
-import type { Incident, IncidentCategory, IncidentStatus, UrgencyLevel } from "../../types/incident";
+import type {
+  Incident,
+  IncidentCategory,
+  IncidentStatus,
+  UrgencyLevel,
+} from "../../types/incident";
 import type { ManagedLocation } from "../../types/location";
 
 type IncidentResponse = {
@@ -25,7 +30,12 @@ type LocationResponse = {
   asset_name: string | null;
 };
 
-type Attachment = { objectPath: string; fileName: string; mimeType: string; sizeBytes: number };
+type Attachment = {
+  objectPath: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+};
 
 const toIncident = (incident: IncidentResponse): Incident => ({
   id: incident.id,
@@ -42,26 +52,69 @@ const toIncident = (incident: IncidentResponse): Incident => ({
   createdAt: incident.created_at,
 });
 
-export async function getLocationByCode(code: string): Promise<ManagedLocation> {
-  const result = await apiFetch<{ data: LocationResponse }>(`/locations/code/${encodeURIComponent(code)}`);
-  return { id: result.data.id, code: result.data.code, building: result.data.building, floor: result.data.floor, zone: result.data.zone, assetName: result.data.asset_name ?? undefined };
+export async function getLocationByCode(
+  code: string,
+): Promise<ManagedLocation> {
+  const result = await apiFetch<{ data: LocationResponse }>(
+    `/locations/code/${encodeURIComponent(code)}`,
+  );
+  return {
+    id: result.data.id,
+    code: result.data.code,
+    building: result.data.building,
+    floor: result.data.floor,
+    zone: result.data.zone,
+    assetName: result.data.asset_name ?? undefined,
+  };
 }
 
 export async function getMyIncidents() {
-  const result = await apiFetch<{ data: IncidentResponse[] }>("/incidents/mine");
+  const result = await apiFetch<{ data: IncidentResponse[] }>(
+    "/incidents/mine",
+  );
   return result.data.map(toIncident);
+}
+
+export type IncidentDetail = Incident & {
+  attachments: Array<{
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+    url: string;
+  }>;
+};
+
+export async function getMyIncidentDetail(id: string): Promise<IncidentDetail> {
+  const result = await apiFetch<{
+    data: IncidentResponse & { attachments: IncidentDetail["attachments"] };
+  }>(`/incidents/${id}`);
+  return { ...toIncident(result.data), attachments: result.data.attachments };
 }
 
 async function uploadIncidentAttachment(file: File): Promise<Attachment> {
   if (!supabase) throw new Error("ยังไม่ได้ตั้งค่าการเชื่อมต่อระบบ");
-  const signed = await apiFetch<{ data: { bucket: string; objectPath: string; token: string } }>("/uploads/incident-attachments", {
+  const signed = await apiFetch<{
+    data: { bucket: string; objectPath: string; token: string };
+  }>("/uploads/incident-attachments", {
     method: "POST",
-    body: JSON.stringify({ fileName: file.name, mimeType: file.type, sizeBytes: file.size }),
+    body: JSON.stringify({
+      fileName: file.name,
+      mimeType: file.type,
+      sizeBytes: file.size,
+    }),
   });
-  const { error } = await supabase.storage.from(signed.data.bucket)
-    .uploadToSignedUrl(signed.data.objectPath, signed.data.token, file, { contentType: file.type });
+  const { error } = await supabase.storage
+    .from(signed.data.bucket)
+    .uploadToSignedUrl(signed.data.objectPath, signed.data.token, file, {
+      contentType: file.type,
+    });
   if (error) throw new Error(error.message);
-  return { objectPath: signed.data.objectPath, fileName: file.name, mimeType: file.type, sizeBytes: file.size };
+  return {
+    objectPath: signed.data.objectPath,
+    fileName: file.name,
+    mimeType: file.type,
+    sizeBytes: file.size,
+  };
 }
 
 export async function createIncident(input: {
@@ -72,7 +125,9 @@ export async function createIncident(input: {
   description: string;
   photos: File[];
 }) {
-  const attachments = await Promise.all(input.photos.map(uploadIncidentAttachment));
+  const attachments = await Promise.all(
+    input.photos.map(uploadIncidentAttachment),
+  );
   const result = await apiFetch<{ data: IncidentResponse }>("/incidents", {
     method: "POST",
     body: JSON.stringify({ ...input, photos: undefined, attachments }),

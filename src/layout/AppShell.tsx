@@ -34,6 +34,7 @@ const drawerWidth = 252;
 const roleLabels: Record<Role, string> = {
   reporter: "ผู้แจ้งเหตุ",
   technician: "ช่างซ่อมบำรุง",
+  dispatcher: "ผู้จัดสรรงาน",
   admin: "ผู้ดูแลระบบ",
 };
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
@@ -49,6 +50,7 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
+  dispatcher: [],
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
