@@ -11,8 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ApexOptions } from "apexcharts";
-import { useState } from "react";
-import Chart from "react-apexcharts";
+import { lazy, useState } from "react";
 import { Link } from "react-router-dom";
 import { MainCard } from "../components/base/MainCard";
 import { useEntityQuery } from "../hooks/useEntity";
@@ -20,19 +19,27 @@ import type { IncidentStatus } from "../types/incident";
 
 type StatusFilter = IncidentStatus | "all";
 
+const DashboardChart = lazy(() => import("react-apexcharts"));
+
 const statusLabels: Record<IncidentStatus, string> = {
   submitted: "รับแจ้งแล้ว",
+  pending_assignment: "รอจัดสรรงาน",
   assigned: "มอบหมายงานแล้ว",
   in_progress: "กำลังดำเนินการ",
+  pending_parts_approval: "รออนุมัติเบิกอะไหล่",
   waiting_parts: "รอชิ้นส่วน",
+  pending_repair_approval: "รอตรวจรับงานซ่อม",
   done: "เสร็จสิ้น",
 };
 
 const statusColors: Record<IncidentStatus, string> = {
   submitted: "#6B5AA6",
+  pending_assignment: "#647FA8",
   assigned: "#647FA8",
   in_progress: "#C68A2E",
+  pending_parts_approval: "#C68A2E",
   waiting_parts: "#9A80A8",
+  pending_repair_approval: "#C68A2E",
   done: "#3B8F6D",
 };
 
@@ -318,7 +325,7 @@ export function DashboardPage() {
               </Box>
             </Box>
             <Divider sx={{ my: 2.5 }} />
-            <Chart
+            <DashboardChart
               type="bar"
               height={310}
               options={trendOptions}
@@ -346,7 +353,7 @@ export function DashboardPage() {
                 alignItems: "center",
               }}
             >
-              <Chart
+              <DashboardChart
                 type="donut"
                 height={280}
                 options={statusOptions}

@@ -9,9 +9,12 @@ export const incidentCategories = [
 export const urgencyLevels = ["critical", "urgent", "normal"] as const;
 export const incidentStatuses = [
   "submitted",
+  "pending_assignment",
   "assigned",
   "in_progress",
+  "pending_parts_approval",
   "waiting_parts",
+  "pending_repair_approval",
   "done",
 ] as const;
 

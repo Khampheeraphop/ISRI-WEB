@@ -12,14 +12,21 @@ import {
   Chip,
   CircularProgress,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DetailSection } from "../components/detail/DetailSection";
 import { IncidentStatusChip } from "../components/IncidentStatusChip";
 import { PriorityRibbon } from "../components/PriorityRibbon";
-import { getMyIncidentDetail } from "../features/incidents/incidentsApi";
+import {
+  getMyIncidentDetail,
+  getMyIncidentHistory,
+} from "../features/incidents/incidentsApi";
+import { WorkOrderHistoryTimeline } from "../features/workOrders/WorkOrderHistoryTimeline";
 import { useAuth } from "../hooks/useAuth";
 import { formatBangkokDate } from "../utils/incident";
 
@@ -32,9 +39,15 @@ const urgencyLabel = {
 export function IncidentDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const [tab, setTab] = useState(0);
   const detail = useQuery({
     queryKey: ["incident", id],
     queryFn: () => getMyIncidentDetail(id ?? ""),
+    enabled: Boolean(id),
+  });
+  const history = useQuery({
+    queryKey: ["incident-history", id],
+    queryFn: () => getMyIncidentHistory(id ?? ""),
     enabled: Boolean(id),
   });
   if (detail.isLoading)
@@ -69,153 +82,194 @@ export function IncidentDetailPage() {
           {incident.ticketNumber}
         </Typography>
       </Box>
-      <Box sx={{ position: "relative" }}>
-        <PriorityRibbon urgency={incident.urgencyReported} />
-        <DetailSection
-          title="ภาพรวมรายการ"
-          icon={<DescriptionOutlined />}
-          fields={[
-            {
-              label: "เลขที่ใบแจ้ง",
-              value: (
-                <Typography sx={{ fontWeight: 700 }}>
-                  {incident.ticketNumber}
-                </Typography>
-              ),
-            },
-            {
-              label: "สถานะปัจจุบัน",
-              value: <IncidentStatusChip status={incident.status} />,
-            },
-            {
-              label: "ประเภทปัญหา",
-              value: <Typography>{incident.category}</Typography>,
-            },
-            {
-              label: "ระดับความเร่งด่วน",
-              value: (
-                <Chip
-                  size="small"
-                  color={
-                    incident.urgencyReported === "critical"
-                      ? "error"
-                      : incident.urgencyReported === "urgent"
-                        ? "warning"
-                        : "info"
-                  }
-                  label={urgencyLabel[incident.urgencyReported]}
-                />
-              ),
-            },
-          ]}
-        />
-      </Box>
-      <DetailSection
-        title="รายละเอียดปัญหา"
-        icon={<DescriptionOutlined />}
-        fields={[
-          {
-            label: "รายละเอียดที่แจ้ง",
-            value: (
-              <Typography sx={{ whiteSpace: "pre-wrap" }}>
-                {incident.description}
-              </Typography>
-            ),
-            fullWidth: true,
-          },
-          {
-            label: "ภาพประกอบ",
-            value: incident.attachments.length ? (
-              <Stack
-                direction="row"
-                spacing={1.5}
-                sx={{ flexWrap: "wrap", rowGap: 1.5 }}
-              >
-                {incident.attachments.map((file) => (
-                  <Box
-                    key={file.url}
-                    component="a"
-                    href={file.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    sx={{
-                      width: 132,
-                      height: 96,
-                      borderRadius: 1.5,
-                      overflow: "hidden",
-                      border: 1,
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={file.url}
-                      alt={file.fileName}
-                      sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  </Box>
-                ))}
-              </Stack>
-            ) : (
-              <Typography color="text.secondary">ไม่มีภาพประกอบ</Typography>
-            ),
-            fullWidth: true,
-          },
-        ]}
-      />
-      <DetailSection
-        title="จุดแจ้งซ่อม"
-        icon={<LocationOnOutlined />}
-        fields={[
-          {
-            label: "ตำแหน่ง",
-            value: <Typography>{incident.locationLabel}</Typography>,
-          },
-          {
-            label: "ชื่อชิ้นงาน",
-            value: (
-              <Typography>{incident.assetName || "ไม่ได้ระบุ"}</Typography>
-            ),
-          },
-        ]}
-      />
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
-          gap: 3,
-        }}
+      <Tabs
+        value={tab}
+        onChange={(_, value) => setTab(value)}
+        aria-label="รายละเอียดรายการแจ้งซ่อม"
       >
-        <DetailSection
-          title="ข้อมูลผู้แจ้ง"
-          icon={<PersonOutlineOutlined />}
-          fields={[
-            {
-              label: "ชื่อผู้แจ้ง",
-              value: <Typography>{user?.name}</Typography>,
-            },
-            {
-              label: "วันที่แจ้ง",
-              value: (
-                <Typography>
-                  {formatBangkokDate(incident.createdAt)} น.
-                </Typography>
-              ),
-            },
-          ]}
+        <Tab label="รายละเอียด" />
+        <Tab
+          label={`ประวัติการดำเนินงาน (${history.data?.events.length ?? 0})`}
         />
-        <DetailSection
-          title="การดำเนินงาน"
-          icon={<TimelineOutlined />}
-          fields={[
-            { label: "ใบสั่งงาน", value: <Typography>รอรับเรื่อง</Typography> },
-            {
-              label: "สถานะงานซ่อม",
-              value: <Typography>ยังไม่มีการมอบหมายงาน</Typography>,
-            },
-          ]}
-        />
-      </Box>
+      </Tabs>
+      {tab === 0 && (
+        <>
+          <Box sx={{ position: "relative" }}>
+            <PriorityRibbon urgency={incident.urgencyReported} />
+            <DetailSection
+              title="ภาพรวมรายการ"
+              icon={<DescriptionOutlined />}
+              fields={[
+                {
+                  label: "เลขที่ใบแจ้ง",
+                  value: (
+                    <Typography sx={{ fontWeight: 700 }}>
+                      {incident.ticketNumber}
+                    </Typography>
+                  ),
+                },
+                {
+                  label: "สถานะปัจจุบัน",
+                  value: <IncidentStatusChip status={incident.status} />,
+                },
+                {
+                  label: "ประเภทปัญหา",
+                  value: <Typography>{incident.category}</Typography>,
+                },
+                {
+                  label: "ระดับความเร่งด่วน",
+                  value: (
+                    <Chip
+                      size="small"
+                      color={
+                        incident.urgencyReported === "critical"
+                          ? "error"
+                          : incident.urgencyReported === "urgent"
+                            ? "warning"
+                            : "info"
+                      }
+                      label={urgencyLabel[incident.urgencyReported]}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </Box>
+          <DetailSection
+            title="รายละเอียดปัญหา"
+            icon={<DescriptionOutlined />}
+            fields={[
+              {
+                label: "รายละเอียดที่แจ้ง",
+                value: (
+                  <Typography sx={{ whiteSpace: "pre-wrap" }}>
+                    {incident.description}
+                  </Typography>
+                ),
+                fullWidth: true,
+              },
+              {
+                label: "ภาพประกอบ",
+                value: incident.attachments.length ? (
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    sx={{ flexWrap: "wrap", rowGap: 1.5 }}
+                  >
+                    {incident.attachments.map((file) => (
+                      <Box
+                        key={file.url}
+                        component="a"
+                        href={file.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        sx={{
+                          width: 132,
+                          height: 96,
+                          borderRadius: 1.5,
+                          overflow: "hidden",
+                          border: 1,
+                          borderColor: "divider",
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={file.url}
+                          alt={file.fileName}
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Box>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography color="text.secondary">ไม่มีภาพประกอบ</Typography>
+                ),
+                fullWidth: true,
+              },
+            ]}
+          />
+          <DetailSection
+            title="จุดแจ้งซ่อม"
+            icon={<LocationOnOutlined />}
+            fields={[
+              {
+                label: "ตำแหน่ง",
+                value: <Typography>{incident.locationLabel}</Typography>,
+              },
+              {
+                label: "ชื่อชิ้นงาน",
+                value: (
+                  <Typography>{incident.assetName || "ไม่ได้ระบุ"}</Typography>
+                ),
+              },
+            ]}
+          />
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                lg: "repeat(2, minmax(0, 1fr))",
+              },
+              gap: 3,
+            }}
+          >
+            <DetailSection
+              title="ข้อมูลผู้แจ้ง"
+              icon={<PersonOutlineOutlined />}
+              fields={[
+                {
+                  label: "ชื่อผู้แจ้ง",
+                  value: <Typography>{user?.name}</Typography>,
+                },
+                {
+                  label: "วันที่แจ้ง",
+                  value: (
+                    <Typography>
+                      {formatBangkokDate(incident.createdAt)} น.
+                    </Typography>
+                  ),
+                },
+              ]}
+            />
+            <DetailSection
+              title="การดำเนินงาน"
+              icon={<TimelineOutlined />}
+              fields={[
+                {
+                  label: "ใบสั่งงาน",
+                  value: <Typography>รอรับเรื่อง</Typography>,
+                },
+                {
+                  label: "สถานะงานซ่อม",
+                  value: <Typography>ยังไม่มีการมอบหมายงาน</Typography>,
+                },
+              ]}
+            />
+          </Box>
+        </>
+      )}
+      {tab === 1 && (
+        <DetailSection title="ประวัติการดำเนินงาน" icon={<TimelineOutlined />}>
+          {history.isLoading ? (
+            <Box sx={{ minHeight: 160, display: "grid", placeItems: "center" }}>
+              <CircularProgress size={28} />
+            </Box>
+          ) : history.error ? (
+            <Alert severity="error">
+              {history.error instanceof Error
+                ? history.error.message
+                : "ไม่สามารถโหลดประวัติได้"}
+            </Alert>
+          ) : (
+            <WorkOrderHistoryTimeline events={history.data?.events ?? []} />
+          )}
+        </DetailSection>
+      )}
     </Stack>
   );
 }

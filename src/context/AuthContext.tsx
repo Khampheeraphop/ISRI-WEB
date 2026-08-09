@@ -47,7 +47,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setAuthUser(session?.user ?? null);
-        if (!session?.user) setProfile(null);
+        if (!session?.user) {
+          setProfile(null);
+          return;
+        }
+        void refreshProfile();
       },
     );
     return () => subscription.subscription.unsubscribe();

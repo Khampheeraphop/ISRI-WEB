@@ -3,81 +3,103 @@ import {
   BuildOutlined,
   DescriptionOutlined,
   LocationOnOutlined,
-  PersonOutlineOutlined,
-  PhotoCameraBackOutlined,
-  ScheduleOutlined,
   TimelineOutlined,
 } from "@mui/icons-material";
 import {
   Alert,
   Box,
   Button,
-  Collapse,
-  Divider,
+  Chip,
+  CircularProgress,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DetailSection } from "../../components/detail/DetailSection";
-import { ImageUploadField } from "../../components/form/fields/ImageUploadField";
-import { IncidentStatusChip } from "../../components/IncidentStatusChip";
-import { MainCard } from "../../components/base/MainCard";
-import { PriorityRibbon } from "../../components/PriorityRibbon";
-import { SlaCountdown } from "../../components/SlaCountdown";
-import { useEntityQuery } from "../../hooks/useEntity";
+import { useAuth } from "../../hooks/useAuth";
 import { formatBangkokDate } from "../../utils/incident";
-import { workOrderStatusDetail } from "./workOrder.constants";
-import { useWorkOrderActions } from "./useWorkOrderActions";
-
-const formatMinutes = (minutes: number) =>
-  minutes % 60 === 0
-    ? String(minutes / 60) + " ชั่วโมง"
-    : String(minutes) + " นาที";
+import { WorkOrderActionDialog } from "./WorkOrderActionDialog";
+import { WorkOrderHistoryTimeline } from "./WorkOrderHistoryTimeline";
+import {
+  getIncident,
+  getWorkOrderDetail,
+  performWorkOrderAction,
+  uploadWorkOrderAttachments,
+} from "./workOrdersApi";
+import {
+  actionTitles,
+  technicianPrimaryAction,
+  workOrderStatusLabels,
+} from "./workOrderWorkflowUi";
 
 export function WorkOrderDetailPage() {
   const { id } = useParams();
-  const { workOrders, changeStatus, saveRepairPhotos, isUpdating } =
-    useWorkOrderActions();
-  const incidents = useEntityQuery("incidents");
-  const users = useEntityQuery("users");
-  const slaRules = useEntityQuery("slaRules");
-  const [showPhotos, setShowPhotos] = useState(false);
-  const [repairFiles, setRepairFiles] = useState<File[]>([]);
-
-  if (
-    workOrders.isLoading ||
-    incidents.isLoading ||
-    users.isLoading ||
-    slaRules.isLoading
-  ) {
+  const { user } = useAuth();
+  const client = useQueryClient();
+  const [tab, setTab] = useState(0);
+  const [actionName, setActionName] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string>();
+  const detail = useQuery({
+    queryKey: ["work-order", id],
+    queryFn: () => getWorkOrderDetail(id ?? ""),
+    enabled: Boolean(id),
+  });
+  const action = useMutation({
+    mutationFn: async ({
+      name,
+      note,
+      files,
+    }: {
+      name: string;
+      note: string;
+      files: File[];
+    }) =>
+      performWorkOrderAction({
+        id: id ?? "",
+        action: name,
+        note,
+        attachments: await uploadWorkOrderAttachments(files),
+      }),
+    onSuccess: async () => {
+      await Promise.all([
+        client.invalidateQueries({ queryKey: ["work-order", id] }),
+        client.invalidateQueries({ queryKey: ["my-work-orders"] }),
+      ]);
+      setActionName(null);
+    },
+    onError: (cause) =>
+      setActionError(
+        cause instanceof Error
+          ? cause.message
+          : "ไม่สามารถบันทึกการดำเนินงานได้",
+      ),
+  });
+  if (detail.isLoading)
     return (
       <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
-        <Typography color="text.secondary">กำลังโหลดรายละเอียดงาน</Typography>
+        <CircularProgress />
       </Box>
     );
-  }
-
-  const workOrder = (workOrders.data ?? []).find((item) => item.id === id);
-  if (!workOrder)
-    return <Alert severity="warning">ไม่พบใบสั่งงานที่ต้องการ</Alert>;
-  const incident = (incidents.data ?? []).find(
-    (item) => item.id === workOrder.incidentId,
-  );
+  if (detail.error || !detail.data)
+    return (
+      <Alert severity="error">
+        {detail.error instanceof Error
+          ? detail.error.message
+          : "ไม่พบใบสั่งงาน"}
+      </Alert>
+    );
+  const { workOrder, events } = detail.data;
+  const incident = getIncident(workOrder);
   if (!incident)
-    return <Alert severity="warning">ไม่พบรายการแจ้งซ่อมของใบสั่งงานนี้</Alert>;
-
-  const reporter = (users.data ?? []).find(
-    (item) => item.id === incident.reporterId,
-  );
-  const technician = (users.data ?? []).find(
-    (item) => item.id === workOrder.technicianId,
-  );
-  const slaRule = (slaRules.data ?? []).find(
-    (item) => item.urgencyLevel === incident.urgencyReported,
-  );
-  const status = workOrderStatusDetail[workOrder.status];
-
+    return <Alert severity="error">ไม่พบข้อมูลรายการแจ้งซ่อม</Alert>;
+  const primary =
+    user?.role === "technician"
+      ? technicianPrimaryAction[workOrder.status]
+      : undefined;
   return (
     <Stack spacing={3}>
       <Box>
@@ -87,248 +109,158 @@ export function WorkOrderDetailPage() {
           startIcon={<ArrowBackOutlined />}
           sx={{ mb: 1 }}
         >
-          กลับไปยังงานของฉัน
+          กลับไปงานของฉัน
         </Button>
-        <Typography variant="h3">รายละเอียดใบสั่งงาน</Typography>
-        <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          {workOrder.id} · {incident.ticketNumber}
-        </Typography>
-      </Box>
-
-      <Box sx={{ position: "relative" }}>
-        <PriorityRibbon urgency={incident.urgencyReported} />
-        <DetailSection
-          title="ภาพรวมงาน"
-          icon={<BuildOutlined />}
-          fields={[
-            {
-              label: "ประเภทปัญหา",
-              value: <Typography>{incident.category}</Typography>,
-            },
-            {
-              label: "สถานะงาน",
-              value: <Typography>{status.label}</Typography>,
-            },
-            {
-              label: "ใบสั่งงาน",
-              value: (
-                <Typography sx={{ fontWeight: 700 }}>{workOrder.id}</Typography>
-              ),
-            },
-            {
-              label: "สถานะแจ้งซ่อม",
-              value: <IncidentStatusChip status={incident.status} />,
-            },
-          ]}
-        />
-      </Box>
-
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
-          gap: 3,
-        }}
-      >
-        <DetailSection
-          title="รายละเอียดปัญหา"
-          icon={<DescriptionOutlined />}
-          fields={[
-            {
-              label: "รายละเอียดที่แจ้ง",
-              value: (
-                <Typography sx={{ whiteSpace: "pre-wrap" }}>
-                  {incident.description}
-                </Typography>
-              ),
-              fullWidth: true,
-            },
-            {
-              label: "ภาพประกอบ",
-              value: incident.photoUrls.length ? (
-                <Stack spacing={0.5}>
-                  {incident.photoUrls.map((file) => (
-                    <Typography key={file} variant="body2">
-                      {file}
-                    </Typography>
-                  ))}
-                </Stack>
-              ) : (
-                <Typography color="text.secondary">ไม่มีภาพประกอบ</Typography>
-              ),
-              fullWidth: true,
-            },
-          ]}
-        />
-        <DetailSection
-          title="จุดแจ้งซ่อม"
-          icon={<LocationOnOutlined />}
-          fields={[
-            {
-              label: "ตำแหน่ง",
-              value: <Typography>{incident.locationLabel}</Typography>,
-            },
-            {
-              label: "รหัส QR / จุดแจ้ง",
-              value: <Typography>{incident.locationId}</Typography>,
-            },
-          ]}
-        />
-        <DetailSection
-          title="ข้อมูลผู้แจ้ง"
-          icon={<PersonOutlineOutlined />}
-          fields={[
-            {
-              label: "ชื่อผู้แจ้ง",
-              value: (
-                <Typography>
-                  {reporter?.name ?? "ไม่พบข้อมูลผู้แจ้ง"}
-                </Typography>
-              ),
-            },
-            {
-              label: "วันที่แจ้ง",
-              value: (
-                <Typography>
-                  {formatBangkokDate(incident.createdAt)} น.
-                </Typography>
-              ),
-            },
-            {
-              label: "ผู้รับผิดชอบ",
-              value: (
-                <Typography>{technician?.name ?? "ไม่พบข้อมูลช่าง"}</Typography>
-              ),
-              fullWidth: true,
-            },
-          ]}
-        />
-        <DetailSection
-          title="เวลา SLA"
-          icon={<ScheduleOutlined />}
-          fields={[
-            {
-              label: "เวลาตอบรับที่กำหนด",
-              value: (
-                <Typography>
-                  {slaRule ? formatMinutes(slaRule.responseMinutes) : "-"}
-                </Typography>
-              ),
-            },
-            {
-              label: "เวลาแก้ไขที่กำหนด",
-              value: (
-                <Typography>
-                  {slaRule ? formatMinutes(slaRule.resolveMinutes) : "-"}
-                </Typography>
-              ),
-            },
-            {
-              label: "กำหนดตอบรับ",
-              value: (
-                <Typography>
-                  {formatBangkokDate(workOrder.respondDueAt)} น.
-                </Typography>
-              ),
-            },
-            {
-              label: "กำหนดแก้ไข",
-              value: (
-                <Typography>
-                  {formatBangkokDate(workOrder.resolveDueAt)} น.
-                </Typography>
-              ),
-            },
-          ]}
-        />
-      </Box>
-
-      <DetailSection title="ลำดับการดำเนินงาน" icon={<TimelineOutlined />}>
-        <Stack spacing={1.5}>
-          {workOrder.statusHistory.map((history) => (
-            <Stack
-              key={history.changedAt + history.status}
-              direction={{ xs: "column", sm: "row" }}
-              spacing={{ xs: 0.25, sm: 2 }}
-              sx={{ pb: 1.5, borderBottom: 1, borderColor: "divider" }}
-            >
-              <Typography
-                sx={{ minWidth: { sm: 170 } }}
-                color="text.secondary"
-                variant="body2"
-              >
-                {formatBangkokDate(history.changedAt)} น.
-              </Typography>
-              <Typography>
-                {workOrderStatusDetail[history.status].label}
-              </Typography>
-            </Stack>
-          ))}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }}
+        >
+          <Box>
+            <Typography variant="h3">รายละเอียดงานซ่อม</Typography>
+            <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+              {incident.ticket_number}
+            </Typography>
+          </Box>
+          <Chip
+            color={workOrder.status === "done" ? "success" : "primary"}
+            label={workOrderStatusLabels[workOrder.status] ?? workOrder.status}
+          />
         </Stack>
-      </DetailSection>
-
-      <MainCard
-        title={<Typography variant="h5">ดำเนินการกับงาน</Typography>}
-        contentSx={{ p: { xs: 2.5, md: 3 } }}
+      </Box>
+      <Tabs
+        value={tab}
+        onChange={(_, value) => setTab(value)}
+        aria-label="รายละเอียดงาน"
       >
-        <Stack spacing={2}>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-            {workOrder.status === "pending" && (
-              <SlaCountdown dueAt={workOrder.respondDueAt} label="ตอบรับ" />
-            )}
-            <SlaCountdown dueAt={workOrder.resolveDueAt} label="แก้ไข" />
-          </Stack>
-          <Divider />
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1.25}
-            sx={{ justifyContent: "flex-end" }}
-          >
-            <Button
-              variant="outlined"
-              startIcon={<PhotoCameraBackOutlined />}
-              onClick={() => setShowPhotos((open) => !open)}
+        <Tab label="รายละเอียด" />
+        <Tab label={`ประวัติการดำเนินงาน (${events.length})`} />
+      </Tabs>
+      {tab === 0 && (
+        <Stack spacing={3}>
+          <DetailSection
+            title="ข้อมูลงานซ่อม"
+            icon={<DescriptionOutlined />}
+            fields={[
+              {
+                label: "เลขที่ใบแจ้ง",
+                value: (
+                  <Typography sx={{ fontWeight: 700 }}>
+                    {incident.ticket_number}
+                  </Typography>
+                ),
+              },
+              {
+                label: "สถานะ",
+                value: (
+                  <Typography>
+                    {workOrderStatusLabels[workOrder.status] ??
+                      workOrder.status}
+                  </Typography>
+                ),
+              },
+              {
+                label: "ประเภทปัญหา",
+                value: <Typography>{incident.category}</Typography>,
+              },
+              {
+                label: "รายละเอียดที่แจ้ง",
+                value: (
+                  <Typography sx={{ whiteSpace: "pre-wrap" }}>
+                    {incident.description}
+                  </Typography>
+                ),
+                fullWidth: true,
+              },
+            ]}
+          />
+          <DetailSection
+            title="จุดแจ้งซ่อม"
+            icon={<LocationOnOutlined />}
+            fields={[
+              {
+                label: "ตำแหน่ง",
+                value: <Typography>{incident.location_label}</Typography>,
+              },
+              {
+                label: "ชื่อชิ้นงาน",
+                value: (
+                  <Typography>{incident.asset_name || "ไม่ได้ระบุ"}</Typography>
+                ),
+              },
+            ]}
+          />
+          <DetailSection
+            title="กำหนดเวลา SLA"
+            icon={<TimelineOutlined />}
+            fields={[
+              {
+                label: "รับงานภายใน",
+                value: (
+                  <Typography>
+                    {formatBangkokDate(workOrder.respond_due_at)} น.
+                  </Typography>
+                ),
+              },
+              {
+                label: "แก้ไขให้แล้วเสร็จ",
+                value: (
+                  <Typography>
+                    {formatBangkokDate(workOrder.resolve_due_at)} น.
+                  </Typography>
+                ),
+              },
+            ]}
+          />
+          {primary || workOrder.status === "in_progress" ? (
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              sx={{ justifyContent: "flex-end" }}
             >
-              {showPhotos ? "ซ่อนช่องแนบรูป" : "แนบรูปหลังซ่อม"}
-            </Button>
-            {status.next && (
-              <Button
-                variant="contained"
-                startIcon={<BuildOutlined />}
-                disabled={isUpdating}
-                onClick={() => changeStatus(workOrder.id, status.next!)}
-              >
-                {status.nextLabel}
-              </Button>
-            )}
-          </Stack>
-          <Collapse in={showPhotos}>
-            <Box sx={{ pt: 1 }}>
-              <ImageUploadField
-                label="รูปหลังซ่อม"
-                files={repairFiles}
-                onChange={setRepairFiles}
-              />
-              <Stack
-                direction="row"
-                sx={{ justifyContent: "flex-end", mt: 1.5 }}
-              >
+              {workOrder.status === "in_progress" && (
                 <Button
-                  size="small"
-                  disabled={!repairFiles.length || isUpdating}
-                  onClick={async () => {
-                    await saveRepairPhotos(workOrder.id, repairFiles);
-                    setRepairFiles([]);
-                    setShowPhotos(false);
+                  variant="outlined"
+                  onClick={() => {
+                    setActionError(undefined);
+                    setActionName("request_parts");
                   }}
                 >
-                  บันทึกรูปหลังซ่อม
+                  เบิกอะไหล่
                 </Button>
-              </Stack>
-            </Box>
-          </Collapse>
+              )}
+              {primary && (
+                <Button
+                  variant="contained"
+                  startIcon={<BuildOutlined />}
+                  onClick={() => {
+                    setActionError(undefined);
+                    setActionName(primary.action);
+                  }}
+                >
+                  {primary.label}
+                </Button>
+              )}
+            </Stack>
+          ) : null}
         </Stack>
-      </MainCard>
+      )}
+      {tab === 1 && (
+        <DetailSection title="ประวัติการดำเนินงาน" icon={<TimelineOutlined />}>
+          <WorkOrderHistoryTimeline events={events} />
+        </DetailSection>
+      )}
+      <WorkOrderActionDialog
+        open={Boolean(actionName)}
+        action={actionName}
+        title={actionName ? actionTitles[actionName] : ""}
+        busy={action.isPending}
+        error={actionError}
+        onClose={() => setActionName(null)}
+        onSubmit={(note, files) =>
+          actionName && action.mutate({ name: actionName, note, files })
+        }
+      />
     </Stack>
   );
 }

@@ -48,7 +48,7 @@ export function MyIncidentsPage() {
         </Box>
         <Button
           component={Link}
-          to="/incidents/new?loc=BLD-A-F2-Z03"
+          to="/incidents/new"
           variant="contained"
           startIcon={<AddOutlined />}
         >

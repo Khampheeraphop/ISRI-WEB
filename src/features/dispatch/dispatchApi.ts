@@ -1,4 +1,5 @@
 import { apiFetch } from "../api/apiClient";
+import type { MyWorkOrder } from "../workOrders/workOrdersApi";
 
 export type DispatchIncident = {
   id: string;
@@ -36,4 +37,8 @@ export async function assignWorkOrder(input: {
       body: JSON.stringify(input),
     })
   ).data;
+}
+
+export async function getDispatchReviews() {
+  return (await apiFetch<{ data: MyWorkOrder[] }>("/dispatch/reviews")).data;
 }

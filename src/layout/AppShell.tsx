@@ -30,7 +30,7 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import type { Role } from "../types/user";
 import {
@@ -92,6 +92,7 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountAnchor, setAccountAnchor] = useState<HTMLElement | null>(null);
   const [notificationAnchor, setNotificationAnchor] =
@@ -226,7 +227,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               (notifications.data ?? []).map((item) => (
                 <MenuItem
                   key={item.id}
-                  onClick={() => !item.is_read && markRead.mutate(item.id)}
+                  onClick={() => {
+                    if (!item.is_read) markRead.mutate(item.id);
+                    setNotificationAnchor(null);
+                    if (user.role === "reporter" && item.related_incident_id)
+                      navigate(`/incidents/${item.related_incident_id}`);
+                    else if (user.role === "technician")
+                      navigate("/work-orders");
+                    else navigate("/dispatch");
+                  }}
                   sx={{
                     whiteSpace: "normal",
                     alignItems: "flex-start",

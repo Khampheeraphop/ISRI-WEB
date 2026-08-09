@@ -91,6 +91,29 @@ export async function getMyIncidentDetail(id: string): Promise<IncidentDetail> {
   return { ...toIncident(result.data), attachments: result.data.attachments };
 }
 
+export type IncidentHistory = {
+  workOrder: { id: string; status: string; assigned_at: string | null } | null;
+  events: Array<{
+    id: string;
+    status: string;
+    changed_at: string;
+    changed_by: string | null;
+    changed_by_name: string;
+    note: string | null;
+    event_type: string;
+    attachments: Array<{
+      fileName: string;
+      mimeType: string;
+      sizeBytes: number;
+      url: string;
+    }>;
+  }>;
+};
+export async function getMyIncidentHistory(id: string) {
+  return (await apiFetch<{ data: IncidentHistory }>(`/incidents/${id}/history`))
+    .data;
+}
+
 async function uploadIncidentAttachment(file: File): Promise<Attachment> {
   if (!supabase) throw new Error("ยังไม่ได้ตั้งค่าการเชื่อมต่อระบบ");
   const signed = await apiFetch<{
