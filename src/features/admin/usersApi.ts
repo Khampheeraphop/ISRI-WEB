@@ -42,7 +42,7 @@ export async function getManagedUsers() {
 
 export async function decideUserApproval(input: {
   id: string;
-  approvalStatus: "approved" | "rejected";
+  approvalStatus: ApprovalStatus;
   role?: Role;
   technicianSpecialties?: TechnicianSpecialty[];
   note?: string;

@@ -1,7 +1,7 @@
 import {
   CheckCircleOutlined,
   PeopleAltOutlined,
-  VisibilityOutlined,
+  ManageAccountsOutlined,
 } from "@mui/icons-material";
 import { Alert, Box, Button, Chip, Stack, Typography } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -77,7 +77,7 @@ export function UserManagementPage() {
             row.approvalStatus === "pending" ? (
               <CheckCircleOutlined />
             ) : (
-              <VisibilityOutlined />
+              <ManageAccountsOutlined />
             )
           }
           onClick={() => setSelectedUser(row)}
