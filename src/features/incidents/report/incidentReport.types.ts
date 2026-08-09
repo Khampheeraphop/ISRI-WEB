@@ -6,7 +6,6 @@ export type IncidentReportFormValues = {
   zone: string;
   assetName: string;
   category: IncidentCategory;
-  otherCategory?: string;
   urgencyReported: UrgencyLevel;
   description: string;
   photos?: File[];

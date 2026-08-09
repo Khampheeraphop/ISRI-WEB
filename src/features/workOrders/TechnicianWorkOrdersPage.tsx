@@ -9,6 +9,7 @@ export function TechnicianWorkOrdersPage() {
   const { user } = useAuth();
   const { workOrders, changeStatus, isUpdating } = useWorkOrderActions();
   const incidents = useEntityQuery("incidents");
+  if (!user) return null;
   const items = (workOrders.data ?? [])
     .filter((order) => order.technicianId === user.id)
     .map((workOrder) => ({

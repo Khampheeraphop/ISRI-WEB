@@ -16,15 +16,18 @@ import { Link } from "react-router-dom";
 import { IncidentStatusChip } from "../components/IncidentStatusChip";
 import { PriorityRibbon } from "../components/PriorityRibbon";
 import { useAuth } from "../hooks/useAuth";
-import { useEntityQuery } from "../hooks/useEntity";
+import { useQuery } from "@tanstack/react-query";
+import { getMyIncidents } from "../features/incidents/incidentsApi";
 import { formatBangkokDate } from "../utils/incident";
 
 export function MyIncidentsPage() {
   const { user } = useAuth();
-  const incidents = useEntityQuery("incidents");
-  const items = (incidents.data ?? [])
-    .filter((incident) => incident.reporterId === user.id)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const incidents = useQuery({
+    queryKey: ["my-incidents"],
+    queryFn: getMyIncidents,
+  });
+  if (!user) return null;
+  const items = incidents.data ?? [];
 
   return (
     <Box>
@@ -78,11 +81,7 @@ export function MyIncidentsPage() {
                     alignItems: "center",
                   }}
                 >
-                  <Typography variant="h6">
-                    {incident.category === "อื่น ๆ" && incident.otherCategory
-                      ? `${incident.category}: ${incident.otherCategory}`
-                      : incident.category}
-                  </Typography>
+                  <Typography variant="h6">{incident.category}</Typography>
                   <IncidentStatusChip status={incident.status} />
                   <Typography variant="body2" color="text.secondary">
                     {incident.ticketNumber}

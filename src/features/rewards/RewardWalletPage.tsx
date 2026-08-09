@@ -80,6 +80,7 @@ export function RewardWalletPage() {
     severity: "success" | "error";
     message: string;
   }>();
+  if (!user) return null;
   const wallet = (wallets.data ?? []).find((item) => item.userId === user.id);
   const balance = wallet?.balance ?? 0;
   const transactionRows = (transactions.data ?? [])

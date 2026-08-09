@@ -37,6 +37,7 @@ export function PMCompletePage() {
   const schedules = useEntityQuery("pmSchedules");
   const logs = useEntityQuery("pmLogs");
   const complete = useCompletePMScheduleMutation();
+  if (!user) return null;
   const schedule = (schedules.data ?? []).find((item) => item.id === id);
   if (!schedules.isLoading && !schedule)
     return <Alert severity="warning">ไม่พบตาราง PM</Alert>;

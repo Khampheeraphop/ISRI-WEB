@@ -6,15 +6,16 @@ import {
   QrCode2Outlined,
   VisibilityOutlined,
 } from "@mui/icons-material";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
-import { useEntityDeleteMutation, useEntityQuery } from "../../hooks/useEntity";
 import type { ManagedLocation } from "../../types/location";
+import { deleteManagedLocation, getManagedLocations } from "./locationsApi";
 
 const downloadQr = async (location: ManagedLocation) => {
   const asset = location.assetName
@@ -38,8 +39,12 @@ const getQrImage = (location: ManagedLocation) => {
 };
 
 export function LocationManagementPage() {
-  const locations = useEntityQuery("locations");
-  const remove = useEntityDeleteMutation("locations");
+  const queryClient = useQueryClient();
+  const locations = useQuery({ queryKey: ["managed-locations"], queryFn: getManagedLocations });
+  const remove = useMutation({
+    mutationFn: deleteManagedLocation,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["managed-locations"] }),
+  });
   const [preview, setPreview] = useState<{ location: ManagedLocation; image: string }>();
   const columns: GridColDef<ManagedLocation>[] = [
     { field: "code", headerName: "รหัส QR", width: 160 },
@@ -110,6 +115,10 @@ export function LocationManagementPage() {
           </Stack>
         }
       >
+        {locations.error && <Alert severity="error" sx={{ mb: 2 }}>{locations.error instanceof Error ? locations.error.message : "ไม่สามารถโหลดรายการตำแหน่งได้"}</Alert>}
+        <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+          แนะนำติดตั้ง QR ที่ระดับสายตา 120–150 ซม. จากพื้น ใกล้จุดที่มักเกิดปัญหา และไม่ถูกบดบัง
+        </Alert>
         <GenericDataTable
           rows={locations.data ?? []}
           columns={columns}

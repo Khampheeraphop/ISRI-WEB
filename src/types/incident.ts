@@ -1,10 +1,9 @@
 export const incidentCategories = [
   "ไฟฟ้า",
   "ประปา",
-  "โครงสร้าง",
   "เครื่องปรับอากาศ",
   "ลิฟต์",
-  "อื่น ๆ",
+  "โครงสร้าง/พื้นผิวอาคาร (ผนัง พื้น เพดาน ประตู)",
 ] as const;
 
 export const urgencyLevels = ["critical", "urgent", "normal"] as const;

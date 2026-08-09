@@ -1,9 +1,16 @@
 import { createContext } from "react";
-import type { Role, User } from "../types/user";
+import type { AuthUser } from "@supabase/supabase-js";
+import type { AuthProfile } from "../types/auth";
+import type { User } from "../types/user";
 
 export interface AuthValue {
-  user: User;
-  setRole: (role: Role) => void;
+  authUser: AuthUser | null;
+  profile: AuthProfile | null;
+  user: User | null;
+  isLoading: boolean;
+  signInWithGoogle: (returnTo?: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<AuthProfile | null>;
 }
 
 export const AuthContext = createContext<AuthValue | undefined>(undefined);

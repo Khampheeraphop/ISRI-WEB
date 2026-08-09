@@ -6,30 +6,28 @@ import {
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
+  LogoutOutlined,
   Menu as MenuIcon,
   SettingsOutlined,
 } from "@mui/icons-material";
 import {
   AppBar,
   Box,
-  Chip,
+  Button,
   Drawer,
-  FormControl,
   IconButton,
-  InputLabel,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
   MenuItem,
-  Select,
   Toolbar,
   Typography,
 } from "@mui/material";
 import { useState, type ReactNode } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { useEntityQuery } from "../hooks/useEntity";
 import type { Role } from "../types/user";
 
 const drawerWidth = 252;
@@ -71,27 +69,18 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       to: "/users",
       icon: <AdminPanelSettingsOutlined />,
     },
-    { label: "QR Code", to: "/locations", icon: <AssignmentOutlined /> },
+    { label: "ตำแหน่งและ QR", to: "/locations", icon: <AssignmentOutlined /> },
   ],
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, setRole } = useAuth();
-  const wallets = useEntityQuery("pointWallets");
+  const { user, signOut } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const pointBalance =
-    (wallets.data ?? []).find((wallet) => wallet.userId === user.id)?.balance ??
-    0;
-  const handleRoleChange = (role: Role) => {
-    setRole(role);
-    navigate(menus[role][0].to);
-  };
+  const [accountAnchor, setAccountAnchor] = useState<HTMLElement | null>(null);
+  if (!user) return null;
   const navigation = (
-    <Box
-      sx={{ height: "100%", bgcolor: "background.paper", position: "relative" }}
-    >
+    <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
       <Box sx={{ px: 3, py: 3, borderBottom: 1, borderColor: "divider" }}>
         <Typography variant="h4" color="primary.main" sx={{ lineHeight: 1 }}>
           ISRI
@@ -143,7 +132,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <Toolbar
-          sx={{ justifyContent: "flex-end", minHeight: "70px !important" }}
+          sx={{ justifyContent: "space-between", minHeight: "70px !important" }}
         >
           <IconButton
             onClick={() => setMobileOpen(true)}
@@ -152,40 +141,37 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Chip
-              label={pointBalance.toLocaleString("th-TH")}
-              color="primary"
-              variant="outlined"
-              sx={{
-                height: 36,
-                borderRadius: "50%",
-                "& .MuiChip-label": { px: 1.1 },
-              }}
-            />
-            <FormControl size="small" sx={{ minWidth: { xs: 136, sm: 190 } }}>
-              <InputLabel id="role-label">ผู้ใช้งาน</InputLabel>
-              <Select
-                labelId="role-label"
-                label="ผู้ใช้งาน"
-                value={user.role}
-                onChange={(event) =>
-                  handleRoleChange(event.target.value as Role)
-                }
-                startAdornment={
-                  <AccountCircleOutlined
-                    sx={{ mr: 1, color: "primary.main" }}
-                  />
-                }
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            color="inherit"
+            onClick={(event) => setAccountAnchor(event.currentTarget)}
+            startIcon={<AccountCircleOutlined color="primary" />}
+            sx={{ textTransform: "none", textAlign: "left", py: 0.5 }}
+          >
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 700, lineHeight: 1.2 }}
               >
-                {(Object.keys(roleLabels) as Role[]).map((role) => (
-                  <MenuItem key={role} value={role}>
-                    {roleLabels[role]}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+                {user.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {roleLabels[user.role]}
+              </Typography>
+            </Box>
+          </Button>
+          <Menu
+            anchorEl={accountAnchor}
+            open={Boolean(accountAnchor)}
+            onClose={() => setAccountAnchor(null)}
+          >
+            <MenuItem onClick={() => void signOut()}>
+              <ListItemIcon>
+                <LogoutOutlined fontSize="small" />
+              </ListItemIcon>
+              ออกจากระบบ
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
       <Box
