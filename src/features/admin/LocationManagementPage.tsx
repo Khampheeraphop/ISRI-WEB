@@ -6,15 +6,27 @@ import {
   QrCode2Outlined,
   VisibilityOutlined,
 } from "@mui/icons-material";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
-import { useEntityDeleteMutation, useEntityQuery } from "../../hooks/useEntity";
 import type { ManagedLocation } from "../../types/location";
+import { deleteManagedLocation, getManagedLocations } from "./locationsApi";
 
 const downloadQr = async (location: ManagedLocation) => {
   const asset = location.assetName
@@ -28,21 +40,36 @@ const downloadQr = async (location: ManagedLocation) => {
   });
   const link = document.createElement("a");
   link.href = image;
-  link.download = `QR-${location.code}.png`;
+  link.download = "QR-จุดแจ้งเหตุ.png";
   link.click();
 };
 
 const getQrImage = (location: ManagedLocation) => {
-  const asset = location.assetName ? `&asset=${encodeURIComponent(location.assetName)}` : "";
-  return QRCode.toDataURL(`${window.location.origin}/incidents/new?loc=${encodeURIComponent(location.code)}${asset}`, { width: 768, margin: 2, color: { dark: "#4B3B86", light: "#FFFFFF" } });
+  const asset = location.assetName
+    ? `&asset=${encodeURIComponent(location.assetName)}`
+    : "";
+  return QRCode.toDataURL(
+    `${window.location.origin}/incidents/new?loc=${encodeURIComponent(location.code)}${asset}`,
+    { width: 768, margin: 2, color: { dark: "#4B3B86", light: "#FFFFFF" } },
+  );
 };
 
 export function LocationManagementPage() {
-  const locations = useEntityQuery("locations");
-  const remove = useEntityDeleteMutation("locations");
-  const [preview, setPreview] = useState<{ location: ManagedLocation; image: string }>();
+  const queryClient = useQueryClient();
+  const locations = useQuery({
+    queryKey: ["managed-locations"],
+    queryFn: getManagedLocations,
+  });
+  const remove = useMutation({
+    mutationFn: deleteManagedLocation,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["managed-locations"] }),
+  });
+  const [preview, setPreview] = useState<{
+    location: ManagedLocation;
+    image: string;
+  }>();
   const columns: GridColDef<ManagedLocation>[] = [
-    { field: "code", headerName: "รหัส QR", width: 160 },
     { field: "building", headerName: "อาคาร", width: 120 },
     { field: "floor", headerName: "ชั้น", width: 100 },
     { field: "zone", headerName: "โซน", width: 110 },
@@ -54,7 +81,12 @@ export function LocationManagementPage() {
       sortable: false,
       renderCell: ({ row }) => (
         <Stack direction="row">
-          <IconButton aria-label={`ดู QR ${row.code}`} onClick={async () => setPreview({ location: row, image: await getQrImage(row) })}>
+          <IconButton
+            aria-label="ดู QR"
+            onClick={async () =>
+              setPreview({ location: row, image: await getQrImage(row) })
+            }
+          >
             <VisibilityOutlined fontSize="small" />
           </IconButton>
           <IconButton onClick={() => downloadQr(row)}>
@@ -66,7 +98,11 @@ export function LocationManagementPage() {
           <IconButton
             color="error"
             onClick={() => {
-              if (window.confirm(`ลบตำแหน่ง ${row.code} ใช่หรือไม่`))
+              if (
+                window.confirm(
+                  `ลบจุดแจ้งเหตุ ${row.building} · ${row.floor} · ${row.zone} ใช่หรือไม่`,
+                )
+              )
                 remove.mutate(row.id);
             }}
           >
@@ -110,6 +146,17 @@ export function LocationManagementPage() {
           </Stack>
         }
       >
+        {locations.error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {locations.error instanceof Error
+              ? locations.error.message
+              : "ไม่สามารถโหลดรายการตำแหน่งได้"}
+          </Alert>
+        )}
+        <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+          แนะนำติดตั้ง QR ที่ระดับสายตา 120–150 ซม. จากพื้น
+          ใกล้จุดที่มักเกิดปัญหา และไม่ถูกบดบัง
+        </Alert>
         <GenericDataTable
           rows={locations.data ?? []}
           columns={columns}
@@ -117,9 +164,57 @@ export function LocationManagementPage() {
           emptyMessage="ยังไม่มีตำแหน่ง"
         />
       </MainCard>
-      <Dialog open={Boolean(preview)} onClose={() => setPreview(undefined)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={Boolean(preview)}
+        onClose={() => setPreview(undefined)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>QR สำหรับจุดแจ้งเหตุ</DialogTitle>
-        {preview && <><DialogContent><Stack spacing={2} sx={{ alignItems: "center", textAlign: "center" }}><Box component="img" src={preview.image} alt={`QR ${preview.location.code}`} sx={{ width: "100%", maxWidth: 280, border: 1, borderColor: "divider" }} /><Box><Typography sx={{ fontWeight: 700 }}>{preview.location.assetName || preview.location.code}</Typography><Typography variant="body2" color="text.secondary">{preview.location.building} · {preview.location.floor} · {preview.location.zone}</Typography><Typography variant="caption" color="text.secondary">สแกนแล้วเปิดหน้าแจ้งปัญหาพร้อมตำแหน่งนี้</Typography></Box></Stack></DialogContent><DialogActions><Button onClick={() => setPreview(undefined)}>ปิด</Button><Button variant="contained" startIcon={<DownloadOutlined />} onClick={() => downloadQr(preview.location)}>ดาวน์โหลด PNG</Button></DialogActions></>}
+        {preview && (
+          <>
+            <DialogContent>
+              <Stack
+                spacing={2}
+                sx={{ alignItems: "center", textAlign: "center" }}
+              >
+                <Box
+                  component="img"
+                  src={preview.image}
+                  alt="QR สำหรับจุดแจ้งเหตุ"
+                  sx={{
+                    width: "100%",
+                    maxWidth: 280,
+                    border: 1,
+                    borderColor: "divider",
+                  }}
+                />
+                <Box>
+                  <Typography sx={{ fontWeight: 700 }}>
+                    {preview.location.assetName || "จุดแจ้งเหตุ"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {preview.location.building} · {preview.location.floor} ·{" "}
+                    {preview.location.zone}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    สแกนแล้วเปิดหน้าแจ้งปัญหาพร้อมตำแหน่งนี้
+                  </Typography>
+                </Box>
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setPreview(undefined)}>ปิด</Button>
+              <Button
+                variant="contained"
+                startIcon={<DownloadOutlined />}
+                onClick={() => downloadQr(preview.location)}
+              >
+                ดาวน์โหลด PNG
+              </Button>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
     </Stack>
   );

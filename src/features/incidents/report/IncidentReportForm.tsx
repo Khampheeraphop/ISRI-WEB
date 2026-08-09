@@ -1,11 +1,11 @@
 import { QrCode2Outlined } from "@mui/icons-material";
-import { Alert, Box, Stack, Typography } from "@mui/material";
+import { Alert, Box, CircularProgress, Stack, Typography } from "@mui/material";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { MainCard } from "../../../components/base/MainCard";
 import { GenericForm } from "../../../components/form/GenericForm";
 import { useAuth } from "../../../hooks/useAuth";
-import { useEntityMutation } from "../../../hooks/useEntity";
-import { getLocationDetails } from "../../../utils/incident";
+import { createIncident, getLocationByCode } from "../incidentsApi";
 import { incidentReportFields } from "./incidentReport.fields";
 import { incidentReportSchema } from "./incidentReport.schema";
 import type { IncidentReportFormValues } from "./incidentReport.types";
@@ -23,8 +23,36 @@ export function IncidentReportForm({
 }: IncidentReportFormProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const createIncident = useEntityMutation("incidents");
-  const location = getLocationDetails(locationCode);
+  const locationQuery = useQuery({
+    queryKey: ["location", locationCode],
+    queryFn: () => getLocationByCode(locationCode),
+  });
+  const create = useMutation({ mutationFn: createIncident });
+
+  if (!user) return null;
+  if (user.role !== "reporter")
+    return (
+      <Alert severity="info">บัญชีนี้ไม่มีสิทธิ์สร้างรายการแจ้งเหตุ</Alert>
+    );
+  if (locationQuery.isLoading)
+    return (
+      <MainCard contentSx={{ py: 7 }}>
+        <Stack sx={{ alignItems: "center" }}>
+          <CircularProgress />
+        </Stack>
+      </MainCard>
+    );
+  if (locationQuery.error || !locationQuery.data)
+    return (
+      <Alert severity="error">
+        {locationQuery.error instanceof Error
+          ? locationQuery.error.message
+          : "ไม่พบตำแหน่งจาก QR Code นี้"}
+      </Alert>
+    );
+
+  const location = locationQuery.data;
+  const qrAssetName = assetName ?? location.assetName;
   return (
     <MainCard
       title={<Typography variant="h5">รายละเอียดการแจ้งปัญหา</Typography>}
@@ -40,12 +68,11 @@ export function IncidentReportForm({
         <Box>
           <Typography variant="h6">ข้อมูลจาก QR Code</Typography>
           <Typography color="text.secondary">
-            {location.building} · {location.floor} · {location.zone} (
-            {locationCode})
+            {location.building} · {location.floor} · {location.zone}
           </Typography>
-          {assetName && (
+          {qrAssetName && (
             <Typography variant="body2" color="text.secondary">
-              ชิ้นงานจาก QR: {assetName}
+              ชิ้นงานจาก QR: {qrAssetName}
             </Typography>
           )}
         </Box>
@@ -53,34 +80,40 @@ export function IncidentReportForm({
       <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
         ตำแหน่งนี้อ่านจาก QR Code และไม่สามารถแก้ไขในหน้านี้ได้
       </Alert>
+      {create.error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {create.error instanceof Error
+            ? create.error.message
+            : "ไม่สามารถส่งรายการได้"}
+        </Alert>
+      )}
       <GenericForm<IncidentReportFormValues>
+        key={location.id}
         fields={incidentReportFields}
         schema={incidentReportSchema}
         defaultValues={{
-          ...location,
-          assetName: assetName ?? "",
-          category: "ไฟฟ้า",
+          building: location.building,
+          floor: location.floor,
+          zone: location.zone,
+          assetName: qrAssetName ?? "",
+          category: "electrical",
           urgencyReported: "normal",
-          otherCategory: "",
           description: "",
           photos: [],
         }}
         submitLabel="ส่งแจ้งเหตุ"
         cancelLabel="ยกเลิก"
         onCancel={() => navigate("/incidents/mine")}
-        isSubmitting={createIncident.isPending}
+        isSubmitting={create.isPending}
         columns={2}
         onSubmit={async (values) => {
-          const incident = await createIncident.mutateAsync({
-            locationId: locationCode,
-            locationLabel: `${values.building} · ${values.floor} · ${values.zone}`,
+          const incident = await create.mutateAsync({
+            locationId: location.id,
             assetName: values.assetName,
             category: values.category,
-            otherCategory: values.otherCategory,
             urgencyReported: values.urgencyReported,
             description: values.description,
-            photoUrls: values.photos?.map((file) => file.name) ?? [],
-            reporterId: user.id,
+            photos: values.photos ?? [],
           });
           onSubmitted(incident.ticketNumber);
         }}

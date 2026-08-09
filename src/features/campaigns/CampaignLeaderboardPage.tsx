@@ -12,14 +12,15 @@ import {
   Typography,
 } from "@mui/material";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
-import { useEntityQuery } from "../../hooks/useEntity";
 import {
   campaignPeriodLabel,
   campaignStatusLabel,
   formatCampaignPeriod,
 } from "./campaign.constants";
+import { getCampaignLeaderboard, getCampaigns } from "./campaignApi";
 
 type LeaderboardRow = {
   id: string;
@@ -137,28 +138,24 @@ function PodiumWinner({ row }: { row: LeaderboardRow }) {
 
 export function CampaignLeaderboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const campaigns = useEntityQuery("rewardCampaigns");
-  const scores = useEntityQuery("campaignScores");
-  const users = useEntityQuery("users");
+  const campaigns = useQuery({ queryKey: ["campaigns"], queryFn: getCampaigns });
   const selectedId = searchParams.get("campaign");
   const selectedCampaign =
     (campaigns.data ?? []).find((item) => item.id === selectedId) ??
     (campaigns.data ?? []).find((item) => item.status === "active") ??
     campaigns.data?.[0];
+  const leaderboard = useQuery({
+    queryKey: ["campaign-leaderboard", selectedCampaign?.id],
+    queryFn: () => getCampaignLeaderboard(selectedCampaign!.id),
+    enabled: Boolean(selectedCampaign),
+  });
   const rows = useMemo<LeaderboardRow[]>(() => {
-    if (!selectedCampaign) return [];
-    const scoreByUserId = new Map(
-      (scores.data ?? [])
-        .filter((score) => score.campaignId === selectedCampaign.id)
-        .map((score) => [score.userId, score]),
-    );
-    return (users.data ?? [])
-      .filter((user) => user.role === "reporter")
-      .map((user) => ({
-        id: user.id,
-        name: user.name,
-        points: scoreByUserId.get(user.id)?.points ?? 0,
-        lastScoredAt: scoreByUserId.get(user.id)?.lastScoredAt,
+    return (leaderboard.data?.scores ?? [])
+      .map((score) => ({
+        id: score.userId,
+        name: score.name,
+        points: score.points,
+        lastScoredAt: score.lastScoredAt,
         rank: 0,
       }))
       .sort(
@@ -168,7 +165,7 @@ export function CampaignLeaderboardPage() {
           a.name.localeCompare(b.name, "th"),
       )
       .map((row, index) => ({ ...row, rank: index + 1 }));
-  }, [scores.data, selectedCampaign, users.data]);
+  }, [leaderboard.data]);
   const leaders = rows.slice(0, 3);
   const followers = rows.slice(3);
   const maxPoints = leaders[0]?.points || 1;
@@ -179,7 +176,7 @@ export function CampaignLeaderboardPage() {
         ? "repeat(3, minmax(0, 1fr))"
         : "repeat(3, minmax(0, 1fr))";
 
-  if (campaigns.isLoading || scores.isLoading || users.isLoading)
+  if (campaigns.isLoading || (selectedCampaign && leaderboard.isLoading))
     return (
       <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
         <CircularProgress />
