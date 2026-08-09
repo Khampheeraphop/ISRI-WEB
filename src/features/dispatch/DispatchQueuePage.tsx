@@ -1,25 +1,18 @@
-import { AssignmentIndOutlined } from "@mui/icons-material";
+import { AssignmentIndOutlined, VisibilityOutlined } from "@mui/icons-material";
 import {
   Alert,
   Box,
   Button,
   Chip,
   CircularProgress,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
-import {
-  assignWorkOrder,
-  getDispatchIncidents,
-  getDispatchTechnicians,
-} from "./dispatchApi";
-import { getDispatchReviews } from "./dispatchApi";
 import { WorkOrderActionDialog } from "../workOrders/WorkOrderActionDialog";
 import {
   getIncident,
@@ -31,6 +24,13 @@ import {
   reviewPrimaryAction,
   workOrderStatusLabels,
 } from "../workOrders/workOrderWorkflowUi";
+import { getDispatchIncidents, getDispatchReviews } from "./dispatchApi";
+
+const urgencyLabels = {
+  critical: "วิกฤต",
+  urgent: "เร่งด่วน",
+  normal: "ปกติ",
+} as const;
 
 export function DispatchQueuePage() {
   const client = useQueryClient();
@@ -38,25 +38,15 @@ export function DispatchQueuePage() {
     queryKey: ["dispatch-incidents"],
     queryFn: getDispatchIncidents,
   });
-  const technicians = useQuery({
-    queryKey: ["dispatch-technicians"],
-    queryFn: getDispatchTechnicians,
-  });
   const reviews = useQuery({
     queryKey: ["dispatch-reviews"],
     queryFn: getDispatchReviews,
   });
-  const [selected, setSelected] = useState<Record<string, string>>({});
   const [pendingAction, setPendingAction] = useState<{
     order: MyWorkOrder;
     action: string;
   } | null>(null);
   const [actionError, setActionError] = useState<string>();
-  const assign = useMutation({
-    mutationFn: assignWorkOrder,
-    onSuccess: () =>
-      client.invalidateQueries({ queryKey: ["dispatch-incidents"] }),
-  });
   const reviewAction = useMutation({
     mutationFn: ({
       id,
@@ -79,18 +69,20 @@ export function DispatchQueuePage() {
         cause instanceof Error ? cause.message : "ไม่สามารถบันทึกการอนุมัติได้",
       ),
   });
-  if (incidents.isLoading || technicians.isLoading)
+
+  if (incidents.isLoading)
     return (
       <Box sx={{ minHeight: 280, display: "grid", placeItems: "center" }}>
         <CircularProgress />
       </Box>
     );
+
   return (
     <Stack spacing={3}>
       <Box>
         <Typography variant="h3">คิวรอจัดสรรงาน</Typography>
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          เลือกช่างที่เหมาะสมและมอบหมายงานตามระดับความเร่งด่วน
+          ตรวจสอบรายละเอียดคำขอก่อนเลือกช่างผู้รับผิดชอบและมอบหมายงาน
         </Typography>
       </Box>
       {incidents.error && (
@@ -100,18 +92,11 @@ export function DispatchQueuePage() {
             : "ไม่สามารถโหลดคิวงานได้"}
         </Alert>
       )}
-      <MainCard
-        title={
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <AssignmentIndOutlined color="primary" />
-            <Typography variant="h5">รายการรอจัดสรร</Typography>
-          </Stack>
-        }
-      >
+      <MainCard title={<CardTitle label="รายการรอจัดสรร" />}>
         <Stack spacing={2}>
           {(incidents.data ?? []).map((incident) => (
             <Paper key={incident.id} variant="outlined" sx={{ p: 2.5 }}>
-              <Stack spacing={1.5}>
+              <Stack spacing={1.25}>
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
                   spacing={1}
@@ -134,63 +119,26 @@ export function DispatchQueuePage() {
                           ? "warning"
                           : "info"
                     }
-                    label={
-                      incident.urgency_reported === "critical"
-                        ? "วิกฤต"
-                        : incident.urgency_reported === "urgent"
-                          ? "เร่งด่วน"
-                          : "ปกติ"
-                    }
+                    label={urgencyLabels[incident.urgency_reported]}
                   />
                 </Stack>
                 <Typography>
                   {incident.category} ·{" "}
-                  {incident.asset_name || "ไม่ระบุชิ้นงาน"}
+                  {incident.asset_name || "ไม่ได้ระบุชิ้นงาน"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {incident.description}
                 </Typography>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={1.25}
-                  sx={{ justifyContent: "flex-end" }}
-                >
-                  <Select
-                    size="small"
-                    displayEmpty
-                    value={selected[incident.id] ?? ""}
-                    onChange={(event) =>
-                      setSelected((current) => ({
-                        ...current,
-                        [incident.id]: event.target.value,
-                      }))
-                    }
-                    sx={{ minWidth: 250 }}
-                  >
-                    <MenuItem value="" disabled>
-                      เลือกช่างผู้รับผิดชอบ
-                    </MenuItem>
-                    {(technicians.data ?? []).map((tech) => (
-                      <MenuItem key={tech.id} value={tech.id}>
-                        {tech.full_name} —{" "}
-                        {tech.technician_specialties.join(", ") ||
-                          "ยังไม่ระบุความเชี่ยวชาญ"}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                   <Button
-                    variant="contained"
-                    disabled={!selected[incident.id] || assign.isPending}
-                    onClick={() =>
-                      assign.mutate({
-                        incidentId: incident.id,
-                        technicianId: selected[incident.id],
-                      })
-                    }
+                    component={Link}
+                    to={`/dispatch/incidents/${incident.id}`}
+                    variant="outlined"
+                    startIcon={<VisibilityOutlined />}
                   >
-                    มอบหมายงาน
+                    ดูรายละเอียดและมอบหมาย
                   </Button>
-                </Stack>
+                </Box>
               </Stack>
             </Paper>
           ))}
@@ -199,14 +147,7 @@ export function DispatchQueuePage() {
           )}
         </Stack>
       </MainCard>
-      <MainCard
-        title={
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <AssignmentIndOutlined color="primary" />
-            <Typography variant="h5">รายการรอพิจารณา</Typography>
-          </Stack>
-        }
-      >
+      <MainCard title={<CardTitle label="รายการรอพิจารณา" />}>
         <Stack spacing={2}>
           {reviews.error && (
             <Alert severity="error">
@@ -247,6 +188,15 @@ export function DispatchQueuePage() {
           })
         }
       />
+    </Stack>
+  );
+}
+
+function CardTitle({ label }: { label: string }) {
+  return (
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+      <AssignmentIndOutlined color="primary" />
+      <Typography variant="h5">{label}</Typography>
     </Stack>
   );
 }
@@ -294,6 +244,13 @@ function ReviewItem({
           spacing={1}
           sx={{ justifyContent: "flex-end" }}
         >
+          <Button
+            component={Link}
+            to={`/work-orders/${order.id}`}
+            variant="outlined"
+          >
+            ดูรายละเอียด
+          </Button>
           {order.status === "pending_repair_approval" && (
             <Button
               variant="outlined"

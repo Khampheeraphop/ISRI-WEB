@@ -109,6 +109,11 @@ const DispatchQueuePage = lazy(() =>
     default: module.DispatchQueuePage,
   })),
 );
+const DispatchIncidentDetailPage = lazy(() =>
+  import("./features/dispatch/DispatchIncidentDetailPage").then((module) => ({
+    default: module.DispatchIncidentDetailPage,
+  })),
+);
 const LoginPage = lazy(() =>
   import("./features/auth/LoginPage").then((module) => ({
     default: module.LoginPage,
@@ -317,6 +322,14 @@ function ApplicationRoutes() {
             element={
               <RoleRoute roles={["dispatcher", "admin"]}>
                 <DispatchQueuePage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/dispatch/incidents/:id"
+            element={
+              <RoleRoute roles={["dispatcher", "admin"]}>
+                <DispatchIncidentDetailPage />
               </RoleRoute>
             }
           />

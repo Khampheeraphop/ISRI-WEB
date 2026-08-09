@@ -37,7 +37,7 @@ type Attachment = {
   sizeBytes: number;
 };
 
-const toIncident = (incident: IncidentResponse): Incident => ({
+export const toIncident = (incident: IncidentResponse): Incident => ({
   id: incident.id,
   ticketNumber: incident.ticket_number,
   locationId: incident.location_id,
