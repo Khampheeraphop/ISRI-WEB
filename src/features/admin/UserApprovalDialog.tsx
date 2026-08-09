@@ -61,8 +61,9 @@ const decisionCopy: Record<
     color: "error",
   },
   pending: {
-    title: "ยืนยันการส่งกลับรอตรวจสอบ",
-    description: "บัญชีจะถูกระงับสิทธิ์ชั่วคราวจนกว่าจะได้รับการอนุมัติใหม่",
+    title: "ยืนยันการนำกลับเข้าคิวอนุมัติ",
+    description:
+      "บัญชีจะกลับไปอยู่สถานะ “รออนุมัติ” ในรายการจัดการผู้ใช้ และยังเข้าใช้งานไม่ได้จนกว่าผู้ดูแลระบบจะอนุมัติอีกครั้ง",
     color: "error",
   },
 };
@@ -143,7 +144,7 @@ export function UserApprovalDialog({
                   onClick={() => setDecision("pending")}
                   disabled={isSubmitting}
                 >
-                  ส่งกลับรอตรวจสอบ
+                  นำกลับเข้าคิวอนุมัติ
                 </Button>
                 <Button
                   variant="contained"

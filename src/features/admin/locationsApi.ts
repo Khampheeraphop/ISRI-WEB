@@ -10,7 +10,12 @@ type LocationResponse = {
   asset_name: string | null;
 };
 
-export type LocationInput = Omit<ManagedLocation, "id">;
+export type LocationInput = Pick<
+  ManagedLocation,
+  "building" | "floor" | "zone"
+> & {
+  assetName?: string;
+};
 
 const toManagedLocation = (location: LocationResponse): ManagedLocation => ({
   id: location.id,
@@ -27,21 +32,31 @@ export async function getManagedLocations() {
 }
 
 export async function createManagedLocation(input: LocationInput) {
-  const result = await apiFetch<{ data: LocationResponse }>("/admin/locations", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+  const result = await apiFetch<{ data: LocationResponse }>(
+    "/admin/locations",
+    {
+      method: "POST",
+      body: JSON.stringify(input),
+    },
+  );
   return toManagedLocation(result.data);
 }
 
-export async function updateManagedLocation(input: LocationInput & { id: string }) {
-  const result = await apiFetch<{ data: LocationResponse }>(`/admin/locations/${input.id}`, {
-    method: "PATCH",
-    body: JSON.stringify(input),
-  });
+export async function updateManagedLocation(
+  input: LocationInput & { id: string },
+) {
+  const result = await apiFetch<{ data: LocationResponse }>(
+    `/admin/locations/${input.id}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    },
+  );
   return toManagedLocation(result.data);
 }
 
 export async function deleteManagedLocation(id: string) {
-  await apiFetch<{ data: { id: string } }>(`/admin/locations/${id}`, { method: "DELETE" });
+  await apiFetch<{ data: { id: string } }>(`/admin/locations/${id}`, {
+    method: "DELETE",
+  });
 }

@@ -6,21 +6,18 @@ import * as yup from "yup";
 import { MainCard } from "../../components/base/MainCard";
 import { GenericForm } from "../../components/form/GenericForm";
 import type { FormField } from "../../components/form/types";
-import { createManagedLocation, getManagedLocations, updateManagedLocation } from "./locationsApi";
+import {
+  createManagedLocation,
+  getManagedLocations,
+  updateManagedLocation,
+} from "./locationsApi";
 type FormValues = {
-  code: string;
   building: string;
   floor: string;
   zone: string;
   assetName: string;
 };
 const fields: FormField<FormValues>[] = [
-  {
-    name: "code",
-    label: "รหัส QR",
-    required: true,
-    placeholder: "BLD-A-F2-Z03",
-  },
   { name: "building", label: "อาคาร", required: true },
   { name: "floor", label: "ชั้น", required: true },
   { name: "zone", label: "โซน", required: true },
@@ -32,10 +29,6 @@ const fields: FormField<FormValues>[] = [
   },
 ];
 const schema = yup.object({
-  code: yup
-    .string()
-    .matches(/^BLD-[A-Z]+-F\d+-Z\d+$/i, "รูปแบบ BLD-A-F2-Z03")
-    .required(),
   building: yup.string().required(),
   floor: yup.string().required(),
   zone: yup.string().required(),
@@ -45,9 +38,20 @@ export function LocationFormPage() {
   const { id } = useParams();
   const nav = useNavigate();
   const queryClient = useQueryClient();
-  const locations = useQuery({ queryKey: ["managed-locations"], queryFn: getManagedLocations });
-  const create = useMutation({ mutationFn: createManagedLocation, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["managed-locations"] }) });
-  const update = useMutation({ mutationFn: updateManagedLocation, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["managed-locations"] }) });
+  const locations = useQuery({
+    queryKey: ["managed-locations"],
+    queryFn: getManagedLocations,
+  });
+  const create = useMutation({
+    mutationFn: createManagedLocation,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["managed-locations"] }),
+  });
+  const update = useMutation({
+    mutationFn: updateManagedLocation,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["managed-locations"] }),
+  });
   const item =
     id && id !== "new"
       ? (locations.data ?? []).find((x) => x.id === id)
@@ -74,6 +78,11 @@ export function LocationFormPage() {
         </Typography>
       </Box>
       <MainCard title={<Typography variant="h5">ข้อมูลตำแหน่ง</Typography>}>
+        {!item && (
+          <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
+            ระบบจะสร้าง QR สำหรับจุดนี้ให้อัตโนมัติหลังบันทึกข้อมูล
+          </Alert>
+        )}
         <GenericForm<FormValues>
           key={item?.id ?? "new"}
           fields={fields}
@@ -81,14 +90,12 @@ export function LocationFormPage() {
           defaultValues={
             item
               ? {
-                  code: item.code,
                   building: item.building,
                   floor: item.floor,
                   zone: item.zone,
                   assetName: item.assetName ?? "",
                 }
               : {
-                  code: "",
                   building: "",
                   floor: "",
                   zone: "",
