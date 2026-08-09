@@ -1,17 +1,20 @@
 import {
   AccountCircleOutlined,
+  NotificationsOutlined,
   AdminPanelSettingsOutlined,
   AssignmentOutlined,
   CardGiftcardOutlined,
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
+  AssignmentIndOutlined,
   LogoutOutlined,
   Menu as MenuIcon,
   SettingsOutlined,
 } from "@mui/icons-material";
 import {
   AppBar,
+  Badge,
   Box,
   Button,
   Drawer,
@@ -25,10 +28,15 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import type { Role } from "../types/user";
+import {
+  getNotifications,
+  markNotificationRead,
+} from "../features/notifications/notificationsApi";
 
 const drawerWidth = 252;
 const roleLabels: Record<Role, string> = {
@@ -50,7 +58,13 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
-  dispatcher: [],
+  dispatcher: [
+    {
+      label: "คิวรอจัดสรรงาน",
+      to: "/dispatch",
+      icon: <AssignmentIndOutlined />,
+    },
+  ],
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
@@ -80,6 +94,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountAnchor, setAccountAnchor] = useState<HTMLElement | null>(null);
+  const [notificationAnchor, setNotificationAnchor] =
+    useState<HTMLElement | null>(null);
+  const queryClient = useQueryClient();
+  const notifications = useQuery({
+    queryKey: ["notifications"],
+    queryFn: getNotifications,
+  });
+  const markRead = useMutation({
+    mutationFn: markNotificationRead,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
   if (!user) return null;
   const navigation = (
     <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
@@ -144,6 +170,20 @@ export function AppShell({ children }: { children: ReactNode }) {
             <MenuIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }} />
+          <IconButton
+            aria-label="การแจ้งเตือน"
+            onClick={(event) => setNotificationAnchor(event.currentTarget)}
+          >
+            <Badge
+              badgeContent={
+                (notifications.data ?? []).filter((item) => !item.is_read)
+                  .length
+              }
+              color="error"
+            >
+              <NotificationsOutlined />
+            </Badge>
+          </IconButton>
           <Button
             color="inherit"
             onClick={(event) => setAccountAnchor(event.currentTarget)}
@@ -173,6 +213,35 @@ export function AppShell({ children }: { children: ReactNode }) {
               </ListItemIcon>
               ออกจากระบบ
             </MenuItem>
+          </Menu>
+          <Menu
+            anchorEl={notificationAnchor}
+            open={Boolean(notificationAnchor)}
+            onClose={() => setNotificationAnchor(null)}
+            slotProps={{
+              paper: { sx: { width: 360, maxWidth: "calc(100vw - 24px)" } },
+            }}
+          >
+            {(notifications.data ?? []).length ? (
+              (notifications.data ?? []).map((item) => (
+                <MenuItem
+                  key={item.id}
+                  onClick={() => !item.is_read && markRead.mutate(item.id)}
+                  sx={{
+                    whiteSpace: "normal",
+                    alignItems: "flex-start",
+                    py: 1.25,
+                    bgcolor: item.is_read
+                      ? "transparent"
+                      : "rgba(75,59,134,.06)",
+                  }}
+                >
+                  {item.message}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem disabled>ไม่มีการแจ้งเตือนใหม่</MenuItem>
+            )}
           </Menu>
         </Toolbar>
       </AppBar>
