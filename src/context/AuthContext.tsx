@@ -11,6 +11,7 @@ import { getMyProfile } from "../features/auth/authApi";
 import { isSupabaseConfigured, supabase } from "../lib/supabase/client";
 import type { AuthProfile } from "../types/auth";
 import type { User } from "../types/user";
+import { saveAuthReturnTo } from "../features/auth/authReturnTo";
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [refreshProfile]);
   const signInWithGoogle = useCallback(async (returnTo = "/") => {
     if (!supabase) throw new Error("Supabase has not been configured.");
-    window.sessionStorage.setItem("isri-auth-return-to", returnTo);
+    saveAuthReturnTo(returnTo);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },

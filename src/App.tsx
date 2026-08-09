@@ -4,6 +4,10 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "./layout/AppShell";
 import { useAuth } from "./hooks/useAuth";
 import { RoleRoute } from "./components/auth/RoleRoute";
+import {
+  clearAuthReturnTo,
+  getAuthReturnTo,
+} from "./features/auth/authReturnTo";
 
 const DashboardPage = lazy(() =>
   import("./pages/DashboardPage").then((module) => ({
@@ -335,6 +339,11 @@ function ProtectedApplication() {
       />
     );
   if (!profile || !user) return <Navigate to="/onboarding" replace />;
+  const returnTo = getAuthReturnTo();
+  const currentPath = `${location.pathname}${location.search}`;
+  if (returnTo && returnTo !== currentPath)
+    return <Navigate to={returnTo} replace />;
+  if (returnTo === currentPath) clearAuthReturnTo();
   return <ApplicationRoutes />;
 }
 

@@ -17,6 +17,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { saveOnboarding } from "./authApi";
 import { AuthPageFrame } from "./AuthPageFrame";
 import type { TechnicianSpecialty } from "../../types/auth";
+import { clearAuthReturnTo, getAuthReturnTo } from "./authReturnTo";
 
 const specialties: { value: TechnicianSpecialty; label: string }[] = [
   { value: "electrical", label: "งานไฟฟ้า" },
@@ -43,9 +44,8 @@ export function OnboardingPage() {
     );
   if (!authUser) return <Navigate to="/login" replace />;
   if (profile?.approvalStatus === "approved" && profile.role) {
-    const returnTo =
-      window.sessionStorage.getItem("isri-auth-return-to") ?? "/";
-    window.sessionStorage.removeItem("isri-auth-return-to");
+    const returnTo = getAuthReturnTo() ?? "/";
+    clearAuthReturnTo();
     return <Navigate to={returnTo} replace />;
   }
   const handleSubmit = async () => {

@@ -1,5 +1,4 @@
 import {
-  AddOutlined,
   ImageOutlined,
   LocationOnOutlined,
   VisibilityOutlined,
@@ -31,29 +30,13 @@ export function MyIncidentsPage() {
 
   return (
     <Box>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 2,
-          alignItems: "flex-start",
-          mb: 3,
-        }}
-      >
+      <Box sx={{ mb: 3 }}>
         <Box>
           <Typography variant="h3">รายการแจ้งซ่อมของฉัน</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5 }}>
             ติดตามสถานะงานและรายละเอียดของแต่ละรายการ
           </Typography>
         </Box>
-        <Button
-          component={Link}
-          to="/incidents/new"
-          variant="contained"
-          startIcon={<AddOutlined />}
-        >
-          สร้างคำขอ
-        </Button>
       </Box>
       {incidents.isLoading ? (
         <Box sx={{ display: "grid", placeItems: "center", minHeight: 280 }}>
