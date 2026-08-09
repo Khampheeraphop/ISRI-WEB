@@ -1,7 +1,7 @@
 import * as yup from "yup";
 import {
-  incidentCategories,
-  type IncidentCategory,
+  incidentCategoryOptions,
+  type IncidentCategoryCode,
   type UrgencyLevel,
 } from "../../../types/incident";
 import type { IncidentReportFormValues } from "./incidentReport.types";
@@ -13,8 +13,8 @@ export const incidentReportSchema: yup.ObjectSchema<IncidentReportFormValues> =
     zone: yup.string().required("ไม่พบข้อมูลโซน"),
     assetName: yup.string().trim().required("กรุณาระบุชื่อชิ้นงาน"),
     category: yup
-      .mixed<IncidentCategory>()
-      .oneOf(incidentCategories)
+      .mixed<IncidentCategoryCode>()
+      .oneOf(incidentCategoryOptions.map((option) => option.value))
       .required("กรุณาเลือกประเภทปัญหา"),
     urgencyReported: yup
       .mixed<UrgencyLevel>()

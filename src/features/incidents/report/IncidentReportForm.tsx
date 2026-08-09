@@ -96,7 +96,7 @@ export function IncidentReportForm({
           floor: location.floor,
           zone: location.zone,
           assetName: qrAssetName ?? "",
-          category: "ไฟฟ้า",
+          category: "electrical",
           urgencyReported: "normal",
           description: "",
           photos: [],

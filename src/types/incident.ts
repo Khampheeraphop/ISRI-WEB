@@ -18,7 +18,17 @@ export const incidentStatuses = [
   "done",
 ] as const;
 
+export const incidentCategoryOptions = [
+  { value: "electrical", label: incidentCategories[0] },
+  { value: "plumbing", label: incidentCategories[1] },
+  { value: "air_conditioning", label: incidentCategories[2] },
+  { value: "elevator", label: incidentCategories[3] },
+  { value: "building", label: incidentCategories[4] },
+] as const;
+
 export type IncidentCategory = (typeof incidentCategories)[number];
+export type IncidentCategoryCode =
+  (typeof incidentCategoryOptions)[number]["value"];
 export type UrgencyLevel = (typeof urgencyLevels)[number];
 export type IncidentStatus = (typeof incidentStatuses)[number];
 

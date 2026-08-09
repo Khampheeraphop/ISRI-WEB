@@ -1,4 +1,4 @@
-import { incidentCategories } from "../../../types/incident";
+import { incidentCategoryOptions } from "../../../types/incident";
 import type { FormField } from "../../../components/form/types";
 import type { IncidentReportFormValues } from "./incidentReport.types";
 
@@ -18,7 +18,10 @@ export const incidentReportFields: FormField<IncidentReportFormValues>[] = [
     label: "ประเภทปัญหา",
     type: "select",
     required: true,
-    options: incidentCategories.map((value) => ({ value, label: value })),
+    options: incidentCategoryOptions.map(({ value, label }) => ({
+      value,
+      label,
+    })),
   },
   {
     name: "urgencyReported",

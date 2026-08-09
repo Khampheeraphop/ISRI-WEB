@@ -143,7 +143,7 @@ async function uploadIncidentAttachment(file: File): Promise<Attachment> {
 export async function createIncident(input: {
   locationId: string;
   assetName: string;
-  category: IncidentCategory;
+  category: string;
   urgencyReported: UrgencyLevel;
   description: string;
   photos: File[];
