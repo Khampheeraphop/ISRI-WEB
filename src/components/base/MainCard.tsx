@@ -44,8 +44,10 @@ export function MainCard({
             title={title}
             subheader={subheader}
             action={action}
-            titleTypographyProps={{ component: "div" }}
-            subheaderTypographyProps={{ component: "div" }}
+            slotProps={{
+              title: { component: "div" },
+              subheader: { component: "div" },
+            }}
             sx={{
               px: { xs: 2.5, md: 3.5 },
               py: 2.5,
