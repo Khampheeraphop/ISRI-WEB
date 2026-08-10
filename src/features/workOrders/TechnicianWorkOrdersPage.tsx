@@ -1,4 +1,3 @@
-import { Inventory2Outlined } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -9,59 +8,15 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { WorkOrderActionDialog } from "./WorkOrderActionDialog";
-import {
-  getIncident,
-  getMyWorkOrders,
-  performWorkOrderAction,
-  uploadWorkOrderAttachments,
-  type MyWorkOrder,
-} from "./workOrdersApi";
-import {
-  actionTitles,
-  technicianPrimaryAction,
-  workOrderStatusLabels,
-} from "./workOrderWorkflowUi";
-
-type PendingAction = { order: MyWorkOrder; action: string } | null;
+import { getIncident, getMyWorkOrders } from "./workOrdersApi";
+import { workOrderStatusLabels } from "./workOrderWorkflowUi";
 
 export function TechnicianWorkOrdersPage() {
-  const client = useQueryClient();
-  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
-  const [actionError, setActionError] = useState<string>();
   const orders = useQuery({
     queryKey: ["my-work-orders"],
     queryFn: getMyWorkOrders,
-  });
-  const action = useMutation({
-    mutationFn: async (input: {
-      id: string;
-      action: string;
-      note: string;
-      files: File[];
-    }) =>
-      performWorkOrderAction({
-        id: input.id,
-        action: input.action,
-        note: input.note,
-        attachments: await uploadWorkOrderAttachments(input.files),
-      }),
-    onSuccess: async () => {
-      await Promise.all([
-        client.invalidateQueries({ queryKey: ["my-work-orders"] }),
-        client.invalidateQueries({ queryKey: ["work-order"] }),
-      ]);
-      setPendingAction(null);
-    },
-    onError: (cause) =>
-      setActionError(
-        cause instanceof Error
-          ? cause.message
-          : "ไม่สามารถบันทึกการดำเนินงานได้",
-      ),
   });
   if (orders.isLoading)
     return (
@@ -74,7 +29,7 @@ export function TechnicianWorkOrdersPage() {
       <Box>
         <Typography variant="h3">งานของฉัน</Typography>
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          ดำเนินงานผ่านปุ่มตามขั้นตอน ระบบจะบันทึกสถานะและประวัติให้อัตโนมัติ
+          เลือกรายการเพื่อดูรายละเอียดและดำเนินงานตามขั้นตอน
         </Typography>
       </Box>
       {orders.error && (
@@ -86,53 +41,22 @@ export function TechnicianWorkOrdersPage() {
       )}
       <Stack spacing={2}>
         {(orders.data ?? []).map((order) => (
-          <WorkOrderItem
-            key={order.id}
-            order={order}
-            isPending={action.isPending}
-            onAction={(actionName) => {
-              setActionError(undefined);
-              setPendingAction({ order, action: actionName });
-            }}
-          />
+          <WorkOrderItem key={order.id} order={order} />
         ))}
         {!(orders.data ?? []).length && (
           <Alert severity="info">ยังไม่มีงานที่ได้รับมอบหมาย</Alert>
         )}
       </Stack>
-      <WorkOrderActionDialog
-        open={Boolean(pendingAction)}
-        action={pendingAction?.action ?? null}
-        title={pendingAction ? actionTitles[pendingAction.action] : ""}
-        busy={action.isPending}
-        error={actionError}
-        onClose={() => setPendingAction(null)}
-        onSubmit={(note, files) =>
-          pendingAction &&
-          action.mutate({
-            id: pendingAction.order.id,
-            action: pendingAction.action,
-            note,
-            files,
-          })
-        }
-      />
     </Stack>
   );
 }
 
 function WorkOrderItem({
   order,
-  isPending,
-  onAction,
 }: {
-  order: MyWorkOrder;
-  isPending: boolean;
-  onAction: (action: string) => void;
+  order: Awaited<ReturnType<typeof getMyWorkOrders>>[number];
 }) {
   const incident = getIncident(order);
-  const primary = technicianPrimaryAction[order.status];
-  const PrimaryIcon = primary?.icon;
   const overdue =
     new Date(order.resolve_due_at).getTime() < Date.now() &&
     order.status !== "done";
@@ -169,30 +93,10 @@ function WorkOrderItem({
           <Button
             component={Link}
             to={`/work-orders/${order.id}`}
-            variant="outlined"
+            variant="contained"
           >
             ดูรายละเอียด
           </Button>
-          {order.status === "in_progress" && (
-            <Button
-              variant="outlined"
-              startIcon={<Inventory2Outlined />}
-              onClick={() => onAction("request_parts")}
-              disabled={isPending}
-            >
-              เบิกอะไหล่
-            </Button>
-          )}
-          {primary && (
-            <Button
-              variant="contained"
-              startIcon={PrimaryIcon ? <PrimaryIcon /> : undefined}
-              onClick={() => onAction(primary.action)}
-              disabled={isPending}
-            >
-              {primary.label}
-            </Button>
-          )}
         </Stack>
       </Stack>
     </Paper>

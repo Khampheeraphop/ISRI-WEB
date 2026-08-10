@@ -27,6 +27,7 @@ import {
   getMyIncidentHistory,
 } from "../features/incidents/incidentsApi";
 import { WorkOrderHistoryTimeline } from "../features/workOrders/WorkOrderHistoryTimeline";
+import { workOrderStatusLabels } from "../features/workOrders/workOrderWorkflowUi";
 import { useAuth } from "../hooks/useAuth";
 import { formatBangkokDate } from "../utils/incident";
 
@@ -65,6 +66,7 @@ export function IncidentDetailPage() {
       </Alert>
     );
   const incident = detail.data;
+  const workOrder = history.data?.workOrder;
 
   return (
     <Stack spacing={3}>
@@ -242,11 +244,54 @@ export function IncidentDetailPage() {
               fields={[
                 {
                   label: "ใบสั่งงาน",
-                  value: <Typography>รอรับเรื่อง</Typography>,
+                  value: history.isLoading ? (
+                    <Typography color="text.secondary">
+                      กำลังโหลดข้อมูล
+                    </Typography>
+                  ) : workOrder ? (
+                    <Typography sx={{ fontWeight: 600 }}>
+                      สร้างใบสั่งงานแล้ว
+                    </Typography>
+                  ) : (
+                    <Typography>รอผู้ประสานงานจัดสรรงาน</Typography>
+                  ),
                 },
                 {
                   label: "สถานะงานซ่อม",
-                  value: <Typography>ยังไม่มีการมอบหมายงาน</Typography>,
+                  value: history.isLoading ? (
+                    <Typography color="text.secondary">
+                      กำลังโหลดข้อมูล
+                    </Typography>
+                  ) : workOrder ? (
+                    <Typography>
+                      {workOrderStatusLabels[workOrder.status] ??
+                        workOrder.status}
+                    </Typography>
+                  ) : (
+                    <Typography>ยังไม่มีการมอบหมายงาน</Typography>
+                  ),
+                },
+                {
+                  label: "ช่างผู้รับผิดชอบ",
+                  value: workOrder ? (
+                    <Typography>
+                      {workOrder.technician_name ?? "ไม่ระบุ"}
+                    </Typography>
+                  ) : (
+                    <Typography color="text.secondary">ยังไม่ระบุ</Typography>
+                  ),
+                },
+                {
+                  label: "มอบหมายเมื่อ",
+                  value: workOrder?.assigned_at ? (
+                    <Typography>
+                      {formatBangkokDate(workOrder.assigned_at)} น.
+                    </Typography>
+                  ) : (
+                    <Typography color="text.secondary">
+                      ยังไม่มีการมอบหมายงาน
+                    </Typography>
+                  ),
                 },
               ]}
             />

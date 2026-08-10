@@ -272,7 +272,7 @@ function ApplicationRoutes() {
           <Route
             path="/work-orders/:id"
             element={
-              <RoleRoute roles={["technician", "dispatcher", "admin"]}>
+              <RoleRoute roles={["technician", "dispatcher"]}>
                 <WorkOrderDetailPage />
               </RoleRoute>
             }
@@ -320,7 +320,7 @@ function ApplicationRoutes() {
           <Route
             path="/dispatch"
             element={
-              <RoleRoute roles={["dispatcher", "admin"]}>
+              <RoleRoute roles={["dispatcher"]}>
                 <DispatchQueuePage />
               </RoleRoute>
             }
@@ -328,7 +328,7 @@ function ApplicationRoutes() {
           <Route
             path="/dispatch/incidents/:id"
             element={
-              <RoleRoute roles={["dispatcher", "admin"]}>
+              <RoleRoute roles={["dispatcher"]}>
                 <DispatchIncidentDetailPage />
               </RoleRoute>
             }
