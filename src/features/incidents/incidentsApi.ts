@@ -28,6 +28,7 @@ type LocationResponse = {
   floor: string;
   zone: string;
   asset_name: string | null;
+  is_reporting_locked?: boolean;
 };
 
 type Attachment = {
@@ -65,6 +66,7 @@ export async function getLocationByCode(
     floor: result.data.floor,
     zone: result.data.zone,
     assetName: result.data.asset_name ?? undefined,
+    isReportingLocked: result.data.is_reporting_locked ?? false,
   };
 }
 
