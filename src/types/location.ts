@@ -5,6 +5,7 @@ export interface ManagedLocation {
   floor: string;
   zone: string;
   assetName?: string;
+  isReportingLocked?: boolean;
 }
 
 export type CreateManagedLocation = Omit<ManagedLocation, "id">;

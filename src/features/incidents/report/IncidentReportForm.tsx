@@ -1,4 +1,4 @@
-import { QrCode2Outlined } from "@mui/icons-material";
+import { LockOutlined, QrCode2Outlined } from "@mui/icons-material";
 import { Alert, Box, CircularProgress, Stack, Typography } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -53,6 +53,22 @@ export function IncidentReportForm({
 
   const location = locationQuery.data;
   const qrAssetName = assetName ?? location.assetName;
+  if (location.isReportingLocked)
+    return (
+      <MainCard contentSx={{ p: { xs: 3, md: 5 }, textAlign: "center" }}>
+        <Stack spacing={1.25} sx={{ alignItems: "center" }}>
+          <LockOutlined color="warning" sx={{ fontSize: 48 }} />
+          <Typography variant="h5">จุดนี้อยู่ระหว่างดำเนินการ</Typography>
+          <Typography color="text.secondary">
+            QR Code นี้มีรายการแจ้งซ่อมที่ยังไม่เสร็จสิ้น จึงไม่สามารถแจ้งซ้ำได้
+          </Typography>
+          <Alert severity="info" sx={{ mt: 1, textAlign: "left" }}>
+            เมื่อเจ้าหน้าที่ดำเนินการเสร็จสิ้นแล้ว จะสามารถสแกน QR Code
+            นี้เพื่อแจ้งปัญหาใหม่ได้
+          </Alert>
+        </Stack>
+      </MainCard>
+    );
   return (
     <MainCard
       title={<Typography variant="h5">รายละเอียดการแจ้งปัญหา</Typography>}
