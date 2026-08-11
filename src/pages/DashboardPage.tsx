@@ -25,6 +25,7 @@ import {
 import { ReportingRateCard } from "../features/dashboard/ReportingRateCard";
 import { TechnicianWorkloadCard } from "../features/dashboard/TechnicianWorkloadCard";
 import { IncentiveOverviewCard } from "../features/dashboard/IncentiveOverviewCard";
+import { PmDueOverviewCard } from "../features/dashboard/PmDueOverviewCard";
 
 const DashboardChart = lazy(() => import("react-apexcharts"));
 
@@ -191,7 +192,8 @@ export function DashboardPage() {
           </Typography>
           <Typography variant="h3">ภาพรวมการดำเนินงาน</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            สรุปข้อมูลเดือน{months[month - 1]} {year + 543} · อัปเดต {thaiDateTime.format(new Date(summary.generatedAt))} น.
+            สรุปข้อมูลเดือน{months[month - 1]} {year + 543} · อัปเดต{" "}
+            {thaiDateTime.format(new Date(summary.generatedAt))} น.
           </Typography>
         </Box>
         <Stack direction="row" spacing={1.25}>
@@ -240,7 +242,8 @@ export function DashboardPage() {
       </Box>
 
       <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
-        สถิติรายงานใช้ช่วงเดือนที่เลือก ส่วนรายการ SLA เป็นงานที่ต้องติดตามในปัจจุบัน
+        สถิติรายงานใช้ช่วงเดือนที่เลือก ส่วน SLA และแผน PM
+        แสดงรายการที่ต้องติดตามในปัจจุบัน
       </Typography>
 
       <Box
@@ -300,7 +303,7 @@ export function DashboardPage() {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
                 gap: 2,
               }}
             >
@@ -312,6 +315,14 @@ export function DashboardPage() {
                   {summary.sla.responseOnTimeRate === null
                     ? "–"
                     : `${summary.sla.responseOnTimeRate}%`}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  เวลาเฉลี่ยในการตอบรับ
+                </Typography>
+                <Typography variant="h5" sx={{ mt: 0.35 }}>
+                  {minutesLabel(summary.sla.averageResponseMinutes)}
                 </Typography>
               </Box>
               <Box>
@@ -329,7 +340,11 @@ export function DashboardPage() {
                   เวลาเฉลี่ยในการปิดงาน
                 </Typography>
                 <Typography variant="h5" sx={{ mt: 0.35 }}>
-                  {minutesLabel(summary.sla.averageResolutionMinutes)}
+                  {minutesLabel(
+                    summary.sla.averageClosureMinutes ??
+                      summary.sla.averageResolutionMinutes ??
+                      null,
+                  )}
                 </Typography>
               </Box>
             </Box>
@@ -379,7 +394,7 @@ export function DashboardPage() {
               ))
             ) : (
               <Typography color="text.secondary" sx={{ p: 3 }}>
-                ยังไม่มีข้อมูลในช่วงเวลาที่เลือก
+                ยังไม่พบจุดที่มีการแจ้งซ้ำในช่วงเวลาที่เลือก
               </Typography>
             )}
           </MainCard>
@@ -387,6 +402,7 @@ export function DashboardPage() {
 
         <Stack spacing={3}>
           <TechnicianWorkloadCard data={summary.technicianWorkload} />
+          <PmDueOverviewCard data={summary.pm} />
           <IncentiveOverviewCard data={summary.incentives} />
 
           <MainCard

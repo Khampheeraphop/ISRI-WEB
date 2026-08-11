@@ -10,8 +10,11 @@ export type DashboardSummary = {
   };
   sla: {
     responseOnTimeRate: number | null;
+    averageResponseMinutes: number | null;
     resolutionOnTimeRate: number | null;
-    averageResolutionMinutes: number | null;
+    averageClosureMinutes: number | null;
+    /** Kept temporarily so a locally running frontend remains compatible during deployment. */
+    averageResolutionMinutes?: number | null;
   };
   statusCounts: Array<{ status: string; count: number }>;
   hotspots: Array<{
@@ -25,6 +28,17 @@ export type DashboardSummary = {
     technicianName: string;
     assignedCount: number;
   }>;
+  pm?: {
+    overdueCount: number;
+    dueSoonCount: number;
+    items: Array<{
+      id: string;
+      locationLabel: string;
+      assetName: string;
+      nextDueAt: string;
+      state: "overdue" | "due_soon";
+    }>;
+  };
   incentives: {
     totalWalletPoints: number;
     pointsIssued: number;
