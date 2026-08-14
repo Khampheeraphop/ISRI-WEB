@@ -59,6 +59,11 @@ const RewardCatalogFormPage = lazy(() =>
     default: module.RewardCatalogFormPage,
   })),
 );
+const RewardRedemptionAdminPage = lazy(() =>
+  import("./features/rewards/RewardRedemptionAdminPage").then((module) => ({
+    default: module.RewardRedemptionAdminPage,
+  })),
+);
 const CampaignAdminPage = lazy(() =>
   import("./features/campaigns/CampaignAdminPage").then((module) => ({
     default: module.CampaignAdminPage,
@@ -202,6 +207,14 @@ function ApplicationRoutes() {
             element={
               <RoleRoute roles={["admin"]}>
                 <RewardCatalogFormPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/rewards/redemptions"
+            element={
+              <RoleRoute roles={["admin"]}>
+                <RewardRedemptionAdminPage />
               </RoleRoute>
             }
           />

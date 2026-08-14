@@ -40,7 +40,7 @@ export function ReportingRateCard({
 
   return (
     <MainCard
-      title={<Typography variant="h6">อัตราการแจ้งเหตุรายเดือน</Typography>}
+      title={<Typography variant="h6">จำนวนการแจ้งเหตุรายเดือน</Typography>}
       subheader="จำนวนเหตุที่มีการแจ้งผ่านระบบใน 6 เดือนย้อนหลัง"
       contentSx={{ pt: { xs: 2.5, md: 2.75 } }}
     >

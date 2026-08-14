@@ -1,32 +1,44 @@
-# React + TypeScript + Vite
+# ISRI Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+เว็บ React + TypeScript + Material UI สำหรับระบบแจ้งปัญหาโครงสร้างพื้นฐานในสถานพยาบาล ใช้ Google OAuth ผ่าน Supabase Auth และเรียก Edge Function ผ่าน React Query
 
-Currently, two official plugins are available:
+คู่มือเปิด Local, ใช้ Seed, ตั้ง Google OAuth และ Deploy Production แบบละเอียดอยู่ที่ [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## เริ่มใช้งาน
 
-## React Compiler
+สร้าง `.env.local`:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```env
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_PUBLISHABLE_KEY=<publishable หรือ anon key จาก npx supabase status>
+VITE_ENABLE_LOCAL_DEMO_LOGIN=true
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+จากนั้น:
+
+```powershell
+npm install
+npm run dev
+```
+
+เมื่อตั้งค่า Local ตามนี้ หน้าเข้าสู่ระบบจะแสดงแบบฟอร์มสำหรับบัญชีใน `seed.sql` และใช้รหัสผ่าน `IsriDemo123!` ได้ทันที สำหรับ Supabase Cloud เปลี่ยน URL และ publishable key เป็นค่าของโครงการ และตั้ง `VITE_ENABLE_LOCAL_DEMO_LOGIN=false` เพื่อซ่อนแบบฟอร์มทดสอบ ห้ามนำ `service_role` มาใส่ในเว็บ
+
+## หน้าจอและสิทธิ์
+
+- Reporter: รายการของฉัน แจ้งเหตุจาก QR แต้มและรางวัล
+- Technician: งานของฉันและแผน PM
+- Dispatcher: คิวรอจัดสรร ตรวจสอบความเร่งด่วน มอบหมาย และตรวจรับ
+- Admin: Dashboard, SLA, PM, ของรางวัล, การส่งมอบ, แคมเปญ, ผู้ใช้ และ QR
+
+Reporter ไม่เห็น Leaderboard และ Admin ไม่สามารถเข้าหน้า Dispatcher ตามขอบเขตที่กำหนด
+
+Notification ใช้ Supabase Realtime เฉพาะตารางที่เกี่ยวข้อง หากการเชื่อมต่อ Realtime หลุด ผู้ใช้ยังเปิดเมนูหรือโหลดหน้าใหม่เพื่อดึงข้อมูลล่าสุดผ่าน API ได้
+
+## ตรวจคุณภาพ
+
+```powershell
+npm run lint
+npm run build
+```
+
+หน้าเว็บใช้ภาษาไทย (`lang=th`) และชื่อแท็บ ISRI รูปแบบ UI ยึดสีม่วง-ขาว สถานะใช้สีเฉพาะความหมาย ไม่มี gradient/เงาหนัก/องค์ประกอบตกแต่งที่ไม่สื่อข้อมูล ตาม `ai-playbook/project-prompt.md`

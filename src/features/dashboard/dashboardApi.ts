@@ -59,6 +59,8 @@ export type MonthlyReportingCount = { month: string; count: number };
 
 export async function getMonthlyReportingCounts(month: string) {
   const response = await apiFetch<{ data: MonthlyReportingCount[] }>(
+    // Keep the deployed API route during the rollout. The backend accepts
+    // both names, while older Cloud deployments only know reporting-rate.
     `/dashboard/reporting-rate?month=${encodeURIComponent(month)}`,
   );
   return response.data;

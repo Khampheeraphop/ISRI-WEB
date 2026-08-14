@@ -16,6 +16,7 @@ import {
   statusLabels,
 } from "./userManagement.constants";
 import {
+  bulkApproveReporters,
   decideUserApproval,
   getManagedUsers,
   type ManagedUser,
@@ -28,11 +29,19 @@ export function UserManagementPage() {
     queryFn: getManagedUsers,
   });
   const [selectedUser, setSelectedUser] = useState<ManagedUser>();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const approval = useMutation({
     mutationFn: decideUserApproval,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["managed-users"] });
       setSelectedUser(undefined);
+    },
+  });
+  const bulkApproval = useMutation({
+    mutationFn: bulkApproveReporters,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["managed-users"] });
+      setSelectedIds([]);
     },
   });
   const columns: GridColDef<ManagedUser>[] = [
@@ -110,11 +119,47 @@ export function UserManagementPage() {
               : "ไม่สามารถโหลดรายชื่อผู้ใช้ได้"}
           </Alert>
         )}
+        <Alert severity="info" sx={{ mb: 2 }}>
+          สำหรับบุคลากรจำนวนมาก ให้เลือกบัญชีที่รออนุมัติแล้วอนุมัติเป็น
+          “ผู้แจ้งเหตุ” พร้อมกัน ส่วนสิทธิ์ช่าง ผู้จัดสรรงาน และผู้ดูแลระบบ
+          ควรตรวจสอบรายบุคคล
+        </Alert>
+        {bulkApproval.error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {bulkApproval.error instanceof Error
+              ? bulkApproval.error.message
+              : "ไม่สามารถอนุมัติหลายบัญชีได้"}
+          </Alert>
+        )}
+        {selectedIds.length > 0 && (
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            sx={{ mb: 2, alignItems: { sm: "center" } }}
+          >
+            <Typography color="text.secondary">
+              เลือกบัญชีที่รออนุมัติ {selectedIds.length} รายการ
+            </Typography>
+            <Button
+              variant="contained"
+              disabled={bulkApproval.isPending}
+              onClick={() => bulkApproval.mutate(selectedIds)}
+            >
+              อนุมัติเป็นผู้แจ้งเหตุ
+            </Button>
+          </Stack>
+        )}
         <GenericDataTable
           rows={users.data ?? []}
           columns={columns}
           loading={users.isLoading}
           emptyMessage="ยังไม่มีผู้สมัครใช้งาน"
+          checkboxSelection
+          isRowSelectable={(params) => params.row.approvalStatus === "pending"}
+          rowSelectionModel={{ type: "include", ids: new Set(selectedIds) }}
+          onRowSelectionModelChange={(model) =>
+            setSelectedIds(Array.from(model.ids).map(String))
+          }
         />
       </MainCard>
       <UserApprovalDialog

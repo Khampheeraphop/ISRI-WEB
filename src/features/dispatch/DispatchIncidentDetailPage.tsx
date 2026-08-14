@@ -39,6 +39,9 @@ export function DispatchIncidentDetailPage() {
   const navigate = useNavigate();
   const client = useQueryClient();
   const [technicianId, setTechnicianId] = useState("");
+  const [urgencyVerified, setUrgencyVerified] = useState<
+    "critical" | "urgent" | "normal"
+  >("normal");
   const detail = useQuery({
     queryKey: ["dispatch-incident", id],
     queryFn: () => getDispatchIncidentDetail(id ?? ""),
@@ -238,6 +241,27 @@ export function DispatchIncidentDetailPage() {
               </MenuItem>
             ))}
           </Select>
+          <Box sx={{ maxWidth: 560 }}>
+            <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+              ระดับความเร่งด่วนที่ผู้จัดสรรยืนยัน
+            </Typography>
+            <Select
+              fullWidth
+              value={urgencyVerified}
+              onChange={(event) =>
+                setUrgencyVerified(
+                  event.target.value as "critical" | "urgent" | "normal",
+                )
+              }
+            >
+              <MenuItem value="critical">วิกฤต</MenuItem>
+              <MenuItem value="urgent">เร่งด่วน</MenuItem>
+              <MenuItem value="normal">ปกติ</MenuItem>
+            </Select>
+            <Typography variant="caption" color="text.secondary">
+              SLA และแต้มจะยึดค่าที่ตรวจสอบแล้ว ไม่ยึดค่าที่ผู้แจ้งเลือกเอง
+            </Typography>
+          </Box>
           {assign.error && (
             <Alert severity="error">
               {assign.error instanceof Error
@@ -250,7 +274,11 @@ export function DispatchIncidentDetailPage() {
               variant="contained"
               disabled={!technicianId || assign.isPending}
               onClick={() =>
-                assign.mutate({ incidentId: incident.id, technicianId })
+                assign.mutate({
+                  incidentId: incident.id,
+                  technicianId,
+                  urgencyVerified,
+                })
               }
             >
               มอบหมายงาน

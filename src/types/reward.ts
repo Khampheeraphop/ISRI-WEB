@@ -4,7 +4,7 @@ export interface PointWallet {
   balance: number;
 }
 
-export type PointTransactionType = "earn" | "redeem";
+export type PointTransactionType = "earn" | "redeem" | "refund";
 
 export interface PointTransaction {
   id: string;
@@ -33,6 +33,11 @@ export interface RewardRedemption {
   userId: string;
   rewardItemId: string;
   redeemedAt: string;
+  status: "pending" | "fulfilled" | "cancelled";
+  fulfillmentMethod: "pickup" | "delivery";
+  recipientName: string;
+  phone: string;
+  deliveryAddress?: string;
 }
 
 export type CreateRewardItem = Omit<RewardItem, "id">;
