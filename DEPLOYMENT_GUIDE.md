@@ -173,7 +173,106 @@ Demo/Staging ที่ตั้งใจล้างได้:
 - ใช้ Seed ได้เฉพาะโครงการแยกจาก Production
 - บัญชี Seed มีรหัสผ่านที่อยู่ใน repository จึงไม่ควรเปิดอินเทอร์เน็ตเป็นระบบจริง
 
-### 3.2 สำรองและตรวจโครงการก่อนเปลี่ยนฐานข้อมูล Cloud
+### 3.2 ล้าง Cloud Demo และลง Seed ใหม่ผ่าน SQL Editor
+
+ใช้ขั้นตอนนี้เฉพาะ Cloud สำหรับสาธิตหรือทดสอบที่ยอมรับการลบข้อมูลทั้งหมดได้ ห้ามใช้กับ Production ที่มีข้อมูลผู้ใช้จริง ข้อมูลเหตุแจ้งจริง หรือไฟล์ที่ยังไม่ได้สำรอง
+
+Seed ปัจจุบันครอบด้วย transaction แล้ว หากคำสั่งใดผิด PostgreSQL จะย้อนกลับข้อมูลทั้งชุดโดยอัตโนมัติ แต่การรัน Seed ซ้ำบนข้อมูลเดิมอาจชนรหัส UUID เดิม จึงควรล้าง Demo ให้ครบก่อนทุกครั้ง
+
+#### 3.2.1 ออกจากระบบและลบ Auth users เดิม
+
+1. ออกจากระบบ ISRI ในทุกบัญชีที่กำลังทดสอบ
+2. ไปที่ Supabase Dashboard → Authentication → Users
+3. ลบบัญชี Demo เดิมทั้งหมด โดยเฉพาะอีเมลที่ลงท้ายด้วย `@isri.local`
+4. หากมี Gmail ที่ใช้ทดสอบและต้องการเริ่มขั้นตอนอนุมัติใหม่ ให้ลบบัญชีนั้นด้วย
+
+การลบ Auth user ไม่ควรทำกับบัญชีจริงโดยไม่มี backup และ session/token เดิมอาจยังมีอายุอยู่ช่วงหนึ่ง จึงควรออกจากระบบก่อนลบเสมอ
+
+#### 3.2.2 ล้างตารางของระบบ
+
+เปิด SQL Editor → New query แล้วรันคำสั่งต่อไปนี้ คำสั่งนี้ล้างเฉพาะข้อมูลตารางระบบ ISRI ไม่ลบ schema, migration, Edge Function หรือการตั้งค่า Google OAuth:
+
+```sql
+begin;
+
+truncate table
+  public.work_order_history_files,
+  public.work_order_files,
+  public.incident_files,
+  public.work_order_history,
+  public.notifications,
+  public.pm_logs,
+  public.reward_redemptions,
+  public.point_transactions,
+  public.campaign_scores,
+  public.work_orders,
+  public.pm_schedules,
+  public.incidents,
+  public.point_wallets,
+  public.user_approval_history,
+  public.reward_campaigns,
+  public.reward_items,
+  public.files,
+  public.managed_locations,
+  public.sla_rules,
+  public.bootstrap_admins,
+  public.profiles
+restart identity cascade;
+
+commit;
+```
+
+หากต้องการให้ Storage เป็นศูนย์ด้วย ให้ไปที่ Storage แล้วลบไฟล์ใน bucket `incident-attachments` และ `reward-images` แยกต่างหาก การล้างตาราง `public.files` ไม่ได้ลบ object ใน Storage ให้อัตโนมัติ
+
+#### 3.2.3 ลง Seed ชุดล่าสุด
+
+1. เปิดไฟล์ `api/supabase/seed.sql` จากโครงการล่าสุด
+2. คัดลอกทั้งไฟล์ ห้ามใช้ข้อความ Seed ที่เคยคัดลอกเก็บไว้ก่อนหน้า
+3. ไปที่ SQL Editor → New query
+4. วางทั้งหมดแล้วกด Run
+5. เมื่อสำเร็จควรแสดง `Success. No rows returned`
+
+Seed จะสร้างบัญชี Demo 9 บัญชี สถานที่ QR เหตุแจ้ง ใบงาน PM แต้ม รางวัล การแลกรางวัล แคมเปญ และ Notification โดยไม่สร้างรูปภาพ ส่วน `poplowplay1@gmail.com` จะถูกบันทึกเป็น Bootstrap Admin แต่ยังไม่สร้าง Auth user จนกว่าจะเข้าสู่ระบบด้วย Google
+
+ตรวจจำนวนข้อมูลหลัง Seed:
+
+```sql
+select 'auth.users' as item, count(*)::bigint as total from auth.users
+union all select 'profiles', count(*) from public.profiles
+union all select 'managed_locations', count(*) from public.managed_locations
+union all select 'incidents', count(*) from public.incidents
+union all select 'work_orders', count(*) from public.work_orders
+union all select 'pm_schedules', count(*) from public.pm_schedules
+union all select 'reward_items', count(*) from public.reward_items
+union all select 'reward_redemptions', count(*) from public.reward_redemptions
+union all select 'notifications', count(*) from public.notifications
+order by item;
+```
+
+ค่าที่ควรได้ก่อน Login ด้วย Gmail จริง:
+
+| รายการ | จำนวน |
+|---|---:|
+| Auth users / Profiles | 9 |
+| Managed locations | 15 |
+| Incidents | 12 |
+| Work orders | 10 |
+| PM schedules | 5 |
+| Reward items | 5 |
+| Reward redemptions | 3 |
+| Notifications | 6 |
+
+หากต้องการใช้แบบฟอร์มอีเมล/รหัสผ่านบนเว็บ Cloud สำหรับการนำเสนอ ให้ตั้ง Netlify environment variable `VITE_ENABLE_LOCAL_DEMO_LOGIN=true` แล้ว deploy ใหม่ เมื่อเปลี่ยนเป็น Production จริงให้ตั้งกลับเป็น `false` และลบบัญชี `@isri.local` ทั้งหมด
+
+#### 3.2.4 แก้ปัญหา Seed ที่พบบ่อย
+
+- `technician_specialties is of type technician_specialty[] but expression is of type text[]` หมายถึงกำลังใช้ Seed สำเนาเก่า ให้คัดลอก `api/supabase/seed.sql` ล่าสุดทั้งไฟล์ ซึ่งมี `::public.technician_specialty[]` แล้ว
+- `reward_redemptions_status_check` หรือสถานะ `pending` ถูกปฏิเสธ หมายถึง Cloud ยังไม่มี migration `normalize_reward_redemption_status`
+- `point_transactions_type_amount_check` ปฏิเสธ `refund` หมายถึง Cloud ยังไม่มี migration `allow_refund_point_transactions`
+- หาก Seed แสดง error หลังมี `begin;` ห้ามเติม `commit;` เพื่อฝืนรัน ให้แก้สาเหตุแล้วเริ่มรันทั้งไฟล์ใหม่ เพราะ transaction ที่ผิดจะถูก rollback
+- หาก Seed ผ่านแต่ล็อกอิน Demo ไม่ได้ ให้ตรวจว่า Netlify เปิด `VITE_ENABLE_LOCAL_DEMO_LOGIN=true` และ deploy หลังเปลี่ยน environment variable แล้ว
+
+### 3.3 สำรองและตรวจโครงการก่อนเปลี่ยนฐานข้อมูล Cloud
 
 ก่อน deploy migration ให้ตรวจว่าเชื่อมโครงการถูกตัว:
 
@@ -187,11 +286,11 @@ npx supabase migration list
 
 หาก Cloud มีข้อมูลสำคัญ ให้สำรองจาก Supabase Dashboard ก่อน อย่าสั่ง `db reset --linked` กับ Production เพราะเป็นการลบข้อมูล Remote
 
-> สถานะโครงการปัจจุบัน: Cloud ชุดแรกถูกสร้างด้วย migration timestamp คนละชุดกับ Local baseline แม้ schema จะมาจากระบบเดียวกัน หาก `migration list` แสดงไฟล์ baseline เก่าทั้งชุดเป็น pending ให้หยุดและอย่า `db push` ฝืน เพราะอาจสร้าง schema ซ้ำ Migration ล่าสุดถึง `grant_isri_api_service_role_privileges` และ Edge Function version 36 ถูกอัปบน Cloud แล้วเมื่อ 14 สิงหาคม 2026 การ deploy ครั้งถัดไปควรสร้าง migration ใหม่ต่อจากไฟล์ล่าสุดและตรวจประวัติกับ Cloud ก่อนทุกครั้ง ส่วนการทำ `migration repair` ควรทำโดยผู้ดูแลที่มี backup เท่านั้น
+> สถานะโครงการปัจจุบัน: Cloud ชุดแรกถูกสร้างด้วย migration timestamp คนละชุดกับ Local baseline แม้ schema จะมาจากระบบเดียวกัน หาก `migration list` แสดงไฟล์ baseline เก่าทั้งชุดเป็น pending ให้หยุดและอย่า `db push` ฝืน เพราะอาจสร้าง schema ซ้ำ Migration `normalize_reward_redemption_status` และ `allow_refund_point_transactions` ถูกอัปบน Cloud แล้วเมื่อ 14 สิงหาคม 2026 ส่วน Edge Function ปัจจุบันเป็น version 36 การ deploy ครั้งถัดไปควรสร้าง migration ใหม่ต่อจากไฟล์ล่าสุดและตรวจประวัติกับ Cloud ก่อนทุกครั้ง ส่วนการทำ `migration repair` ควรทำโดยผู้ดูแลที่มี backup เท่านั้น
 
-### 3.3 Deploy migrations โดยไม่ล้างข้อมูล
+### 3.4 Deploy migrations โดยไม่ล้างข้อมูล
 
-ขั้นตอนนี้ใช้เมื่อ `migration list` ยืนยันว่า Local และ Remote history ตรงกัน หากเห็น baseline เก่าเป็น pending ให้ทำตามคำเตือนในข้อ 3.2 ก่อน
+ขั้นตอนนี้ใช้เมื่อ `migration list` ยืนยันว่า Local และ Remote history ตรงกัน หากเห็น baseline เก่าเป็น pending ให้ทำตามคำเตือนในข้อ 3.3 ก่อน
 
 ดูรายการที่จะเปลี่ยนก่อน:
 
@@ -207,7 +306,7 @@ npx supabase db push
 
 คำสั่งนี้รันเฉพาะ migration ที่ Cloud ยังไม่มี ไม่ล้างข้อมูลเดิม และจะเพิ่ม `poplowplay1@gmail.com` เป็น Bootstrap Admin
 
-### 3.4 Deploy Edge Function
+### 3.5 Deploy Edge Function
 
 ```powershell
 cd C:\Users\poplo\Desktop\ISRI\api
@@ -218,15 +317,15 @@ npx supabase functions deploy isri-api --project-ref nzwtybjijnreeylbmjlp
 
 Supabase Cloud เตรียม `SUPABASE_URL` และ `SUPABASE_SERVICE_ROLE_KEY` ให้ Edge Function โดยอัตโนมัติ ตัวแปรที่ต้องตั้งเพิ่มหลังทราบ URL หน้าเว็บจริงคือ `WEB_ORIGIN`
 
-ตัวอย่างเมื่อเว็บจริงคือ `https://isri.example.com`:
+สำหรับเว็บจริงปัจจุบัน `https://isri.netlify.app`:
 
 ```powershell
-npx supabase secrets set WEB_ORIGIN=https://isri.example.com --project-ref nzwtybjijnreeylbmjlp
+npx supabase secrets set WEB_ORIGIN=https://isri.netlify.app --project-ref nzwtybjijnreeylbmjlp
 ```
 
 ค่า `WEB_ORIGIN` ต้องเป็น origin เท่านั้น ไม่มี `/` ต่อท้ายและไม่มี path เช่น `/auth/callback`
 
-### 3.5 ตั้ง Google OAuth
+### 3.6 ตั้ง Google OAuth
 
 ใน Google Cloud OAuth Client เพิ่ม Authorized redirect URI:
 
@@ -239,13 +338,15 @@ https://nzwtybjijnreeylbmjlp.supabase.co/auth/v1/callback
 1. ไป Authentication → Sign In / Providers → Google
 2. เปิด Google provider และใส่ Client ID/Client Secret
 3. ไป Authentication → URL Configuration
-4. ตั้ง Site URL เป็น origin ของเว็บจริง เช่น `https://isri.example.com`
-5. เพิ่ม Redirect URL `https://isri.example.com/auth/callback`
+4. ตั้ง Site URL เป็น `https://isri.netlify.app`
+5. เพิ่ม Redirect URL `https://isri.netlify.app/auth/callback`
 6. หากยังพัฒนา Local ให้คง `http://127.0.0.1:5173/auth/callback` ไว้ด้วย
 
 เมื่อ `poplowplay1@gmail.com` เข้าด้วย Google ครั้งแรก trigger จะสร้าง/ปรับ profile เป็น `approved + admin` อัตโนมัติ ผู้ใช้ Gmail อื่นจะเป็น `pending` และยังทำงานไม่ได้จน Admin อนุมัติ
 
-### 3.6 Deploy หน้าเว็บด้วย Netlify
+### 3.7 Deploy หน้าเว็บด้วย Netlify
+
+เว็บไซต์ Production ปัจจุบันคือ `https://isri.netlify.app`
 
 นำ repository `web` ขึ้น Git provider แล้วเลือก Add new site → Import an existing project ใน Netlify:
 
@@ -260,8 +361,10 @@ https://nzwtybjijnreeylbmjlp.supabase.co/auth/v1/callback
 ```env
 VITE_SUPABASE_URL=https://nzwtybjijnreeylbmjlp.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<Publishable Key จาก Supabase Dashboard → Settings → API>
-VITE_ENABLE_LOCAL_DEMO_LOGIN=false
+VITE_ENABLE_LOCAL_DEMO_LOGIN=true
 ```
+
+ค่าปัจจุบันใช้ `true` เพราะเว็บไซต์นี้เป็นระบบสาธิตที่ลงบัญชีจาก Seed และต้องแสดงช่องอีเมล/รหัสผ่าน เมื่อนำไปใช้งานจริงกับบุคลากร ให้เปลี่ยนเป็น `false` ลบบัญชี `@isri.local` และใช้ Google OAuth เท่านั้น
 
 จากนั้น Deploy หน้าเว็บ เมื่อได้ URL จริงให้ย้อนกลับไปทำ 2 จุด:
 
@@ -270,7 +373,16 @@ VITE_ENABLE_LOCAL_DEMO_LOGIN=false
 
 ไฟล์ `netlify.toml` จะตั้ง SPA fallback ให้อัตโนมัติ หลัง deploy ให้ทดสอบ refresh URL ย่อย เช่น `/incidents/new?loc=OPD-F1-REG` ต้องยังเปิดหน้าเว็บได้ ไม่เป็น 404
 
-### 3.7 หากใช้ Server/Nginx ของตนเอง
+หากต้องการ deploy แบบ Manual จาก production build ที่ตรวจแล้ว ให้ใช้ Netlify CLI จากโฟลเดอร์ `web`:
+
+```bash
+npm run build
+npx netlify deploy --dir=dist --prod --site=9af39124-8d30-4c70-868d-1bc2fbc562e4 --no-build
+```
+
+ต้องอัปโหลดโฟลเดอร์ `dist` โดยตรง ไม่ควรเลือก ZIP เป็นไฟล์เดียวในหน้า Production deploy เพราะ Netlify อาจเก็บ ZIP เป็นไฟล์แทนการคลายโครงสร้าง `assets/`
+
+### 3.8 หากใช้ Server/Nginx ของตนเอง
 
 สร้างไฟล์ Production:
 
