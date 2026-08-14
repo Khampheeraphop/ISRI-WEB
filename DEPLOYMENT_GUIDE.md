@@ -218,10 +218,10 @@ npx supabase functions deploy isri-api --project-ref nzwtybjijnreeylbmjlp
 
 Supabase Cloud เตรียม `SUPABASE_URL` และ `SUPABASE_SERVICE_ROLE_KEY` ให้ Edge Function โดยอัตโนมัติ ตัวแปรที่ต้องตั้งเพิ่มหลังทราบ URL หน้าเว็บจริงคือ `WEB_ORIGIN`
 
-ตัวอย่างเมื่อเว็บจริงคือ `https://isri.example.com`:
+สำหรับเว็บจริงปัจจุบัน `https://isri.netlify.app`:
 
 ```powershell
-npx supabase secrets set WEB_ORIGIN=https://isri.example.com --project-ref nzwtybjijnreeylbmjlp
+npx supabase secrets set WEB_ORIGIN=https://isri.netlify.app --project-ref nzwtybjijnreeylbmjlp
 ```
 
 ค่า `WEB_ORIGIN` ต้องเป็น origin เท่านั้น ไม่มี `/` ต่อท้ายและไม่มี path เช่น `/auth/callback`
@@ -239,13 +239,15 @@ https://nzwtybjijnreeylbmjlp.supabase.co/auth/v1/callback
 1. ไป Authentication → Sign In / Providers → Google
 2. เปิด Google provider และใส่ Client ID/Client Secret
 3. ไป Authentication → URL Configuration
-4. ตั้ง Site URL เป็น origin ของเว็บจริง เช่น `https://isri.example.com`
-5. เพิ่ม Redirect URL `https://isri.example.com/auth/callback`
+4. ตั้ง Site URL เป็น `https://isri.netlify.app`
+5. เพิ่ม Redirect URL `https://isri.netlify.app/auth/callback`
 6. หากยังพัฒนา Local ให้คง `http://127.0.0.1:5173/auth/callback` ไว้ด้วย
 
 เมื่อ `poplowplay1@gmail.com` เข้าด้วย Google ครั้งแรก trigger จะสร้าง/ปรับ profile เป็น `approved + admin` อัตโนมัติ ผู้ใช้ Gmail อื่นจะเป็น `pending` และยังทำงานไม่ได้จน Admin อนุมัติ
 
 ### 3.6 Deploy หน้าเว็บด้วย Netlify
+
+เว็บไซต์ Production ปัจจุบันคือ `https://isri.netlify.app`
 
 นำ repository `web` ขึ้น Git provider แล้วเลือก Add new site → Import an existing project ใน Netlify:
 
@@ -269,6 +271,15 @@ VITE_ENABLE_LOCAL_DEMO_LOGIN=false
 2. ตั้ง Supabase Site URL และ Redirect URL ให้ตรงกับ URL
 
 ไฟล์ `netlify.toml` จะตั้ง SPA fallback ให้อัตโนมัติ หลัง deploy ให้ทดสอบ refresh URL ย่อย เช่น `/incidents/new?loc=OPD-F1-REG` ต้องยังเปิดหน้าเว็บได้ ไม่เป็น 404
+
+หากต้องการ deploy แบบ Manual จาก production build ที่ตรวจแล้ว ให้ใช้ Netlify CLI จากโฟลเดอร์ `web`:
+
+```bash
+npm run build
+npx netlify deploy --dir=dist --prod --site=9af39124-8d30-4c70-868d-1bc2fbc562e4 --no-build
+```
+
+ต้องอัปโหลดโฟลเดอร์ `dist` โดยตรง ไม่ควรเลือก ZIP เป็นไฟล์เดียวในหน้า Production deploy เพราะ Netlify อาจเก็บ ZIP เป็นไฟล์แทนการคลายโครงสร้าง `assets/`
 
 ### 3.7 หากใช้ Server/Nginx ของตนเอง
 
