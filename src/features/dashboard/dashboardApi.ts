@@ -2,19 +2,20 @@ import { apiFetch } from "../api/apiClient";
 
 export type DashboardSummary = {
   generatedAt: string;
-  periodDays: number;
+  periodMonth: string;
   attention: {
     overdue: number;
     nearDue: number;
     pendingAssignment: number;
-    pendingReview: number;
   };
   sla: {
     responseOnTimeRate: number | null;
+    averageResponseMinutes: number | null;
     resolutionOnTimeRate: number | null;
-    averageResolutionMinutes: number | null;
+    averageClosureMinutes: number | null;
+    /** Kept temporarily so a locally running frontend remains compatible during deployment. */
+    averageResolutionMinutes?: number | null;
   };
-  trend: Array<{ month: string; reported: number; completed: number }>;
   statusCounts: Array<{ status: string; count: number }>;
   hotspots: Array<{
     locationLabel: string;
@@ -25,29 +26,42 @@ export type DashboardSummary = {
   technicianWorkload: Array<{
     technicianId: string;
     technicianName: string;
-    activeCount: number;
+    assignedCount: number;
   }>;
-  attentionItems: {
-    unassigned: Array<{
-      incidentId: string;
-      ticketNumber: string;
+  pm?: {
+    overdueCount: number;
+    dueSoonCount: number;
+    items: Array<{
+      id: string;
       locationLabel: string;
-      status: string;
-      createdAt: string;
+      assetName: string;
+      nextDueAt: string;
+      state: "overdue" | "due_soon";
     }>;
-    review: Array<{
-      workOrderId: string;
-      ticketNumber: string;
-      locationLabel: string;
-      status: string;
-      resolveDueAt: string;
-    }>;
+  };
+  incentives: {
+    totalWalletPoints: number;
+    pointsIssued: number;
+    redemptionCount: number;
+    activeRewardCount: number;
+    activeCampaignCount: number;
   };
 };
 
-export async function getDashboardSummary(days: number) {
+export async function getDashboardSummary(month: string) {
   const response = await apiFetch<{ data: DashboardSummary }>(
-    `/dashboard/summary?days=${days}`,
+    `/dashboard/summary?month=${month}`,
+  );
+  return response.data;
+}
+
+export type MonthlyReportingCount = { month: string; count: number };
+
+export async function getMonthlyReportingCounts(month: string) {
+  const response = await apiFetch<{ data: MonthlyReportingCount[] }>(
+    // Keep the deployed API route during the rollout. The backend accepts
+    // both names, while older Cloud deployments only know reporting-rate.
+    `/dashboard/reporting-rate?month=${encodeURIComponent(month)}`,
   );
   return response.data;
 }

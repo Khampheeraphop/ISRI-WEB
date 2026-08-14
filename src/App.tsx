@@ -59,6 +59,11 @@ const RewardCatalogFormPage = lazy(() =>
     default: module.RewardCatalogFormPage,
   })),
 );
+const RewardRedemptionAdminPage = lazy(() =>
+  import("./features/rewards/RewardRedemptionAdminPage").then((module) => ({
+    default: module.RewardRedemptionAdminPage,
+  })),
+);
 const CampaignAdminPage = lazy(() =>
   import("./features/campaigns/CampaignAdminPage").then((module) => ({
     default: module.CampaignAdminPage,
@@ -206,6 +211,14 @@ function ApplicationRoutes() {
             }
           />
           <Route
+            path="/rewards/redemptions"
+            element={
+              <RoleRoute roles={["admin"]}>
+                <RewardRedemptionAdminPage />
+              </RoleRoute>
+            }
+          />
+          <Route
             path="/campaigns"
             element={
               <RoleRoute roles={["admin"]}>
@@ -272,7 +285,7 @@ function ApplicationRoutes() {
           <Route
             path="/work-orders/:id"
             element={
-              <RoleRoute roles={["technician", "dispatcher", "admin"]}>
+              <RoleRoute roles={["technician", "dispatcher"]}>
                 <WorkOrderDetailPage />
               </RoleRoute>
             }
@@ -320,7 +333,7 @@ function ApplicationRoutes() {
           <Route
             path="/dispatch"
             element={
-              <RoleRoute roles={["dispatcher", "admin"]}>
+              <RoleRoute roles={["dispatcher"]}>
                 <DispatchQueuePage />
               </RoleRoute>
             }
@@ -328,7 +341,7 @@ function ApplicationRoutes() {
           <Route
             path="/dispatch/incidents/:id"
             element={
-              <RoleRoute roles={["dispatcher", "admin"]}>
+              <RoleRoute roles={["dispatcher"]}>
                 <DispatchIncidentDetailPage />
               </RoleRoute>
             }

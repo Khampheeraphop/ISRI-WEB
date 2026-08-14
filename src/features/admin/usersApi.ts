@@ -36,7 +36,9 @@ const toManagedUser = (user: ManagedUserResponse): ManagedUser => ({
 });
 
 export async function getManagedUsers() {
-  const result = await apiFetch<{ data: ManagedUserResponse[] }>("/admin/users");
+  const result = await apiFetch<{ data: ManagedUserResponse[] }>(
+    "/admin/users",
+  );
   return result.data.map(toManagedUser);
 }
 
@@ -47,9 +49,19 @@ export async function decideUserApproval(input: {
   technicianSpecialties?: TechnicianSpecialty[];
   note?: string;
 }) {
-  const result = await apiFetch<{ data: ManagedUserResponse }>(`/admin/users/${input.id}/approval`, {
-    method: "PATCH",
-    body: JSON.stringify(input),
-  });
+  const result = await apiFetch<{ data: ManagedUserResponse }>(
+    `/admin/users/${input.id}/approval`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    },
+  );
   return toManagedUser(result.data);
+}
+
+export async function bulkApproveReporters(userIds: string[]) {
+  return apiFetch<{ data: { approvedCount: number } }>(
+    "/admin/users/bulk-approve-reporters",
+    { method: "POST", body: JSON.stringify({ userIds }) },
+  );
 }

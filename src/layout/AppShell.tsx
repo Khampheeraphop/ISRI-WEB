@@ -29,7 +29,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import type { Role } from "../types/user";
@@ -37,6 +37,7 @@ import {
   getNotifications,
   markNotificationRead,
 } from "../features/notifications/notificationsApi";
+import { supabase } from "../lib/supabase/client";
 
 const drawerWidth = 252;
 const roleLabels: Record<Role, string> = {
@@ -75,6 +76,11 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       icon: <CardGiftcardOutlined />,
     },
     {
+      label: "การส่งมอบรางวัล",
+      to: "/rewards/redemptions",
+      icon: <CardGiftcardOutlined />,
+    },
+    {
       label: "จัดการแคมเปญ",
       to: "/campaigns/manage",
       icon: <EmojiEventsOutlined />,
@@ -102,6 +108,28 @@ export function AppShell({ children }: { children: ReactNode }) {
     queryKey: ["notifications"],
     queryFn: getNotifications,
   });
+  useEffect(() => {
+    const realtimeClient = supabase;
+    if (!realtimeClient || !user) return;
+    const channel = realtimeClient
+      .channel(`notifications:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      void realtimeClient.removeChannel(channel);
+    };
+  }, [queryClient, user]);
   const markRead = useMutation({
     mutationFn: markNotificationRead,
     onSuccess: () =>

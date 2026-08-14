@@ -6,4 +6,5 @@ export const pointTransactionDetail: Record<
 > = {
   earn: { label: "ได้รับแต้ม", color: "success" },
   redeem: { label: "ใช้แลก", color: "primary" },
+  refund: { label: "คืนแต้ม", color: "success" },
 };

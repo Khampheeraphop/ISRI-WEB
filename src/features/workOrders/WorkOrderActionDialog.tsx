@@ -35,6 +35,7 @@ export function WorkOrderActionDialog({
   const [files, setFiles] = useState<File[]>([]);
   const requiresNote = Boolean(action && actionNeedsNote.has(action));
   const allowsFiles = action === "request_parts" || action === "submit_repair";
+  const canSubmit = !busy && (!requiresNote || note.trim().length > 0);
   useEffect(() => {
     if (open) {
       setNote("");
@@ -52,17 +53,28 @@ export function WorkOrderActionDialog({
       <DialogContent dividers>
         <Stack spacing={2}>
           {error && <Alert severity="error">{error}</Alert>}
-          <Typography color="text.secondary">
-            บันทึกรายละเอียดไว้ในประวัติการดำเนินงาน
-            เพื่อให้ผู้เกี่ยวข้องตรวจสอบย้อนหลังได้
-          </Typography>
           <TextField
-            label={requiresNote ? "รายละเอียด *" : "หมายเหตุ (ถ้ามี)"}
+            label={
+              requiresNote ? "รายละเอียดการดำเนินงาน *" : "หมายเหตุ (ถ้ามี)"
+            }
             required={requiresNote}
             multiline
             minRows={4}
             value={note}
             onChange={(event) => setNote(event.target.value)}
+            placeholder={
+              action === "submit_repair"
+                ? "ระบุสิ่งที่ซ่อมและผลการทดสอบ"
+                : action === "request_parts"
+                  ? "ระบุรายการอะไหล่และเหตุผลที่ต้องใช้"
+                  : undefined
+            }
+            error={requiresNote && note.length > 0 && note.trim().length === 0}
+            helperText={
+              requiresNote
+                ? "กรอกรายละเอียดก่อนส่งผลการดำเนินงาน"
+                : "สามารถเว้นว่างได้"
+            }
           />
           {allowsFiles && (
             <Button component="label" variant="outlined">
@@ -79,9 +91,20 @@ export function WorkOrderActionDialog({
             </Button>
           )}
           {files.length > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              {files.map((file) => file.name).join(", ")}
-            </Typography>
+            <Stack spacing={0.25}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                แนบแล้ว {files.length} ภาพ
+              </Typography>
+              {files.map((file) => (
+                <Typography
+                  key={`${file.name}-${file.lastModified}`}
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  {file.name}
+                </Typography>
+              ))}
+            </Stack>
           )}
         </Stack>
       </DialogContent>
@@ -92,7 +115,7 @@ export function WorkOrderActionDialog({
         <Button
           variant="contained"
           onClick={() => onSubmit(note, files)}
-          disabled={busy || (requiresNote && note.trim().length < 5)}
+          disabled={!canSubmit}
         >
           {title}
         </Button>
