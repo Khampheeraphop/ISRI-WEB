@@ -1,5 +1,11 @@
-import { Alert, CircularProgress, Stack, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import {
+  Alert,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthPageFrame } from "./AuthPageFrame";
 import { supabase } from "../../lib/supabase/client";
@@ -9,23 +15,35 @@ export function AuthCallbackPage() {
   const navigate = useNavigate();
   const { refreshProfile } = useAuth();
   const [error, setError] = useState<string>();
+  const exchangeStarted = useRef(false);
+
   useEffect(() => {
+    if (exchangeStarted.current) return;
+    exchangeStarted.current = true;
+
     const complete = async () => {
       try {
         if (!supabase) throw new Error("ยังไม่ได้ตั้งค่าการเชื่อมต่อระบบ");
         const code = new URLSearchParams(window.location.search).get("code");
-        if (code) {
-          const { error: exchangeError } =
-            await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) throw exchangeError;
-        }
+        if (!code) throw new Error("ไม่พบรหัสยืนยันการเข้าสู่ระบบ");
+
+        const { error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) throw exchangeError;
+
+        // Do not leave a single-use OAuth code in the address bar.
+        window.history.replaceState(null, "", window.location.pathname);
         await refreshProfile();
         navigate("/onboarding", { replace: true });
       } catch (cause) {
-        setError(
+        const message =
           cause instanceof Error
             ? cause.message
-            : "ไม่สามารถยืนยันการเข้าสู่ระบบได้",
+            : "ไม่สามารถยืนยันการเข้าสู่ระบบได้";
+        setError(
+          message.includes("PKCE code verifier")
+            ? "คำขอเข้าสู่ระบบหมดอายุหรือถูกเปิดคนละเบราว์เซอร์ กรุณากลับไปเริ่มเข้าสู่ระบบด้วย Google ใหม่"
+            : message,
         );
       }
     };
@@ -44,6 +62,14 @@ export function AuthCallbackPage() {
         <Typography>
           {error ? "กรุณาลองเข้าสู่ระบบอีกครั้ง" : "กำลังยืนยันการเข้าสู่ระบบ"}
         </Typography>
+        {error ? (
+          <Button
+            variant="contained"
+            onClick={() => navigate("/login", { replace: true })}
+          >
+            กลับไปหน้าเข้าสู่ระบบ
+          </Button>
+        ) : null}
       </Stack>
     </AuthPageFrame>
   );
