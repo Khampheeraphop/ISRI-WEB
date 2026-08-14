@@ -62,10 +62,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
     saveAuthReturnTo(returnTo);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) throw error;
   }, []);
+  const signInWithPassword = useCallback(
+    async (email: string, password: string) => {
+      if (!supabase) throw new Error("ยังไม่ได้ตั้งค่าการเชื่อมต่อ Supabase");
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+    },
+    [],
+  );
   const signOut = useCallback(async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
@@ -86,6 +97,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       user,
       isLoading,
       signInWithGoogle,
+      signInWithPassword,
       signOut,
       refreshProfile,
     }),
@@ -95,6 +107,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       user,
       isLoading,
       signInWithGoogle,
+      signInWithPassword,
       signOut,
       refreshProfile,
     ],

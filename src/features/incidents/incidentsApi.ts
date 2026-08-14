@@ -94,7 +94,12 @@ export async function getMyIncidentDetail(id: string): Promise<IncidentDetail> {
 }
 
 export type IncidentHistory = {
-  workOrder: { id: string; status: string; assigned_at: string | null } | null;
+  workOrder: {
+    id: string;
+    status: string;
+    assigned_at: string | null;
+    technician_name: string | null;
+  } | null;
   events: Array<{
     id: string;
     status: string;

@@ -51,6 +51,7 @@ export async function getDispatchTechnicians() {
 export async function assignWorkOrder(input: {
   incidentId: string;
   technicianId: string;
+  urgencyVerified: "critical" | "urgent" | "normal";
 }) {
   return (
     await apiFetch<{ data: { id: string } }>("/dispatch/work-orders", {

@@ -9,6 +9,7 @@ export interface AuthValue {
   user: User | null;
   isLoading: boolean;
   signInWithGoogle: (returnTo?: string) => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<AuthProfile | null>;
 }

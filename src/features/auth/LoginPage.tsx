@@ -3,7 +3,9 @@ import {
   Alert,
   Button,
   CircularProgress,
+  Divider,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import { Navigate, useLocation } from "react-router-dom";
@@ -13,11 +15,16 @@ import { useAuth } from "../../hooks/useAuth";
 import { isSupabaseConfigured } from "../../lib/supabase/client";
 
 export function LoginPage() {
-  const { authUser, isLoading, signInWithGoogle } = useAuth();
+  const { authUser, isLoading, signInWithGoogle, signInWithPassword } =
+    useAuth();
   const location = useLocation();
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
+  const [email, setEmail] = useState("reporter@isri.local");
+  const [password, setPassword] = useState("IsriDemo123!");
   const returnTo = new URLSearchParams(location.search).get("returnTo") ?? "/";
+  const localDemoEnabled =
+    import.meta.env.VITE_ENABLE_LOCAL_DEMO_LOGIN === "true";
 
   if (isLoading)
     return (
@@ -31,6 +38,18 @@ export function LoginPage() {
       setError(undefined);
       setSubmitting(true);
       await signInWithGoogle(returnTo);
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "ไม่สามารถเข้าสู่ระบบได้",
+      );
+      setSubmitting(false);
+    }
+  };
+  const handlePasswordSignIn = async () => {
+    try {
+      setError(undefined);
+      setSubmitting(true);
+      await signInWithPassword(email.trim(), password);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "ไม่สามารถเข้าสู่ระบบได้",
@@ -61,6 +80,45 @@ export function LoginPage() {
       >
         เข้าสู่ระบบด้วย Google
       </Button>
+      {localDemoEnabled && (
+        <>
+          <Divider>สำหรับทดสอบระบบ Local</Divider>
+          <Stack spacing={2}>
+            <Alert severity="info">
+              ใช้บัญชีจาก seed.sql เช่น reporter@isri.local หรือ
+              admin@isri.local
+            </Alert>
+            <TextField
+              label="อีเมลบัญชีทดสอบ"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+            <TextField
+              label="รหัสผ่าน"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              disabled={
+                !isSupabaseConfigured ||
+                submitting ||
+                !email.trim() ||
+                !password
+              }
+              onClick={() => void handlePasswordSignIn()}
+            >
+              เข้าสู่ระบบด้วยบัญชีทดสอบ
+            </Button>
+          </Stack>
+        </>
+      )}
     </AuthPageFrame>
   );
 }

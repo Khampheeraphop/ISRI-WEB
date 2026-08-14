@@ -2,10 +2,14 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import {
   DataGrid,
   type GridColDef,
+  type DataGridProps,
   type GridValidRowModel,
 } from "@mui/x-data-grid";
 
-interface GenericDataTableProps<T extends GridValidRowModel> {
+interface GenericDataTableProps<T extends GridValidRowModel> extends Omit<
+  DataGridProps<T>,
+  "rows" | "columns" | "loading" | "autoHeight" | "hideFooter"
+> {
   rows: T[];
   columns: GridColDef<T>[];
   loading?: boolean;
@@ -17,6 +21,7 @@ export function GenericDataTable<T extends GridValidRowModel>({
   columns,
   loading = false,
   emptyMessage = "ยังไม่มีข้อมูล",
+  ...dataGridProps
 }: GenericDataTableProps<T>) {
   if (loading)
     return (
@@ -37,6 +42,7 @@ export function GenericDataTable<T extends GridValidRowModel>({
       disableRowSelectionOnClick
       autoHeight
       hideFooter
+      {...dataGridProps}
       sx={{
         border: 0,
         fontSize: "0.95rem",

@@ -213,35 +213,62 @@ export function WorkOrderDetailPage() {
             ]}
           />
           {primary || workOrder.status === "in_progress" ? (
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1}
-              sx={{ justifyContent: "flex-end" }}
+            <Box
+              sx={{
+                border: 1,
+                borderColor: "primary.light",
+                borderRadius: 2,
+                bgcolor: "action.hover",
+                px: { xs: 2, sm: 2.5 },
+                py: 2,
+              }}
             >
-              {workOrder.status === "in_progress" && (
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setActionError(undefined);
-                    setActionName("request_parts");
-                  }}
-                >
-                  เบิกอะไหล่
-                </Button>
-              )}
-              {primary && (
-                <Button
-                  variant="contained"
-                  startIcon={<BuildOutlined />}
-                  onClick={() => {
-                    setActionError(undefined);
-                    setActionName(primary.action);
-                  }}
-                >
-                  {primary.label}
-                </Button>
-              )}
-            </Stack>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                sx={{
+                  alignItems: { sm: "center" },
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box>
+                  <Typography sx={{ fontWeight: 700 }}>ขั้นตอนถัดไป</Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 0.25 }}
+                  >
+                    บันทึกข้อมูลการดำเนินงานในใบงานนี้
+                    ระบบจะแจ้งสถานะให้ผู้เกี่ยวข้องทราบ
+                  </Typography>
+                </Box>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                  {workOrder.status === "in_progress" && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setActionError(undefined);
+                        setActionName("request_parts");
+                      }}
+                    >
+                      เบิกอะไหล่
+                    </Button>
+                  )}
+                  {primary && (
+                    <Button
+                      variant="contained"
+                      startIcon={<BuildOutlined />}
+                      onClick={() => {
+                        setActionError(undefined);
+                        setActionName(primary.action);
+                      }}
+                    >
+                      {primary.label}
+                    </Button>
+                  )}
+                </Stack>
+              </Stack>
+            </Box>
           ) : null}
         </Stack>
       )}
