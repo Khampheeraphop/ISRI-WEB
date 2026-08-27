@@ -400,6 +400,7 @@ export function DashboardPage() {
               </Typography>
             )}
           </MainCard>
+          <IncentiveOverviewCard data={summary.incentives} />
         </Stack>
 
         <Stack spacing={3}>
@@ -463,7 +464,6 @@ export function DashboardPage() {
           </MainCard>
           <TechnicianWorkloadCard data={summary.technicianWorkload} />
           <PmDueOverviewCard data={summary.pm} />
-          <IncentiveOverviewCard data={summary.incentives} />
         </Stack>
       </Box>
     </Stack>

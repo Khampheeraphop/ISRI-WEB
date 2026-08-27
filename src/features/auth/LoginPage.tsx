@@ -20,7 +20,7 @@ export function LoginPage() {
   const location = useLocation();
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
-  const [email, setEmail] = useState("reporter@isri.local");
+  const [email, setEmail] = useState("nattaya.nurse@isri.local");
   const [password, setPassword] = useState("IsriDemo123!");
   const returnTo = new URLSearchParams(location.search).get("returnTo") ?? "/";
   const localDemoEnabled =
@@ -85,7 +85,7 @@ export function LoginPage() {
           <Divider>สำหรับทดสอบระบบ Local</Divider>
           <Stack spacing={2}>
             <Alert severity="info">
-              ใช้บัญชีจาก seed.sql เช่น reporter@isri.local หรือ
+              ใช้บัญชีจาก seed.sql เช่น nattaya.nurse@isri.local หรือ
               admin@isri.local
             </Alert>
             <TextField
