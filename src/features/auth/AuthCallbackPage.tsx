@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthPageFrame } from "./AuthPageFrame";
 import { supabase } from "../../lib/supabase/client";
 import { useAuth } from "../../hooks/useAuth";
+import { clearAuthReturnTo, getAuthReturnTo } from "./authReturnTo";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -33,7 +34,13 @@ export function AuthCallbackPage() {
 
         // Do not leave a single-use OAuth code in the address bar.
         window.history.replaceState(null, "", window.location.pathname);
-        await refreshProfile();
+        const profile = await refreshProfile();
+        if (profile?.approvalStatus === "approved" && profile.role) {
+          const returnTo = getAuthReturnTo() ?? "/";
+          clearAuthReturnTo();
+          navigate(returnTo, { replace: true });
+          return;
+        }
         navigate("/onboarding", { replace: true });
       } catch (cause) {
         const message =

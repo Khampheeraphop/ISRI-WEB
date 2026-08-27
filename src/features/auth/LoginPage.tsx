@@ -13,6 +13,7 @@ import { useState } from "react";
 import { AuthPageFrame } from "./AuthPageFrame";
 import { useAuth } from "../../hooks/useAuth";
 import { isSupabaseConfigured } from "../../lib/supabase/client";
+import { saveAuthReturnTo } from "./authReturnTo";
 
 export function LoginPage() {
   const { authUser, isLoading, signInWithGoogle, signInWithPassword } =
@@ -49,6 +50,7 @@ export function LoginPage() {
     try {
       setError(undefined);
       setSubmitting(true);
+      saveAuthReturnTo(returnTo);
       await signInWithPassword(email.trim(), password);
     } catch (cause) {
       setError(
