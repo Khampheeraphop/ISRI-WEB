@@ -151,7 +151,6 @@ export async function createIncident(input: {
   locationId: string;
   assetName: string;
   category: string;
-  urgencyReported: UrgencyLevel;
   description: string;
   photos: File[];
 }) {

@@ -1,7 +1,4 @@
-import type {
-  IncidentCategoryCode,
-  UrgencyLevel,
-} from "../../../types/incident";
+import type { IncidentCategoryCode } from "../../../types/incident";
 
 export type IncidentReportFormValues = {
   building: string;
@@ -9,7 +6,6 @@ export type IncidentReportFormValues = {
   zone: string;
   assetName: string;
   category: IncidentCategoryCode;
-  urgencyReported: UrgencyLevel;
   description: string;
   photos?: File[];
 };

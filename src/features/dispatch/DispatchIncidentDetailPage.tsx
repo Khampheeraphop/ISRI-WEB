@@ -15,13 +15,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
 import { DetailSection } from "../../components/detail/DetailSection";
 import { IncidentStatusChip } from "../../components/IncidentStatusChip";
-import { PriorityRibbon } from "../../components/PriorityRibbon";
-import { formatBangkokDate, urgencyPresentation } from "../../utils/incident";
+import { formatBangkokDate } from "../../utils/incident";
 import {
   assignWorkOrder,
   getDispatchIncidentDetail,
@@ -50,10 +49,6 @@ export function DispatchIncidentDetailPage() {
     queryKey: ["dispatch-sla-rules"],
     queryFn: getDispatchSlaRules,
   });
-  useEffect(() => {
-    if (detail.data?.urgencyReported)
-      setUrgencyVerified(detail.data.urgencyReported);
-  }, [detail.data?.id, detail.data?.urgencyReported]);
   const assign = useMutation({
     mutationFn: assignWorkOrder,
     onSuccess: async (workOrder) => {
@@ -97,8 +92,7 @@ export function DispatchIncidentDetailPage() {
         </Typography>
       </Box>
 
-      <Box sx={{ position: "relative" }}>
-        <PriorityRibbon urgency={incident.urgencyReported} />
+      <Box>
         <DetailSection
           title="ข้อมูลคำขอ"
           icon={<DescriptionOutlined />}
@@ -120,10 +114,10 @@ export function DispatchIncidentDetailPage() {
               value: <Typography>{incident.category}</Typography>,
             },
             {
-              label: "ระดับความเร่งด่วน",
+              label: "การประเมิน SLA",
               value: (
                 <Typography>
-                  {urgencyPresentation[incident.urgencyReported].label}
+                  รอผู้จัดสรรงานตรวจสอบและกำหนดระดับ
                 </Typography>
               ),
             },

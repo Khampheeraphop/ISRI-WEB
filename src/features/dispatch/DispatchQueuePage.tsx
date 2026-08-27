@@ -26,7 +26,6 @@ import {
   workOrderStatusLabels,
 } from "../workOrders/workOrderWorkflowUi";
 import { getDispatchIncidents, getDispatchReviews } from "./dispatchApi";
-import { urgencyPresentation } from "../../utils/incident";
 
 export function DispatchQueuePage() {
   const client = useQueryClient();
@@ -108,8 +107,8 @@ export function DispatchQueuePage() {
                   </Box>
                   <Chip
                     size="small"
-                    color={urgencyPresentation[incident.urgency_reported].color}
-                    label={urgencyPresentation[incident.urgency_reported].label}
+                    color="default"
+                    label="รอผู้จัดสรรประเมิน SLA"
                   />
                 </Stack>
                 <Typography>

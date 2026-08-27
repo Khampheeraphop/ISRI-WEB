@@ -2,7 +2,6 @@ import * as yup from "yup";
 import {
   incidentCategoryOptions,
   type IncidentCategoryCode,
-  type UrgencyLevel,
 } from "../../../types/incident";
 import type { IncidentReportFormValues } from "./incidentReport.types";
 
@@ -16,10 +15,6 @@ export const incidentReportSchema: yup.ObjectSchema<IncidentReportFormValues> =
       .mixed<IncidentCategoryCode>()
       .oneOf(incidentCategoryOptions.map((option) => option.value))
       .required("กรุณาเลือกประเภทปัญหา"),
-    urgencyReported: yup
-      .mixed<UrgencyLevel>()
-      .oneOf(["critical", "urgent", "normal"])
-      .required("กรุณาเลือกระดับความเร่งด่วน"),
     description: yup
       .string()
       .trim()

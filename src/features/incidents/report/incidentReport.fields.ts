@@ -24,17 +24,6 @@ export const incidentReportFields: FormField<IncidentReportFormValues>[] = [
     })),
   },
   {
-    name: "urgencyReported",
-    label: "ระดับความเร่งด่วน",
-    type: "select",
-    required: true,
-    options: [
-      { value: "critical", label: "วิกฤต — กระทบความปลอดภัยหรือการรักษา" },
-      { value: "urgent", label: "เร่งด่วน — ควรดำเนินการภายในวันนี้" },
-      { value: "normal", label: "ปกติ — ยังใช้งานพื้นที่ได้" },
-    ],
-  },
-  {
     name: "description",
     label: "รายละเอียดปัญหา",
     type: "textarea",

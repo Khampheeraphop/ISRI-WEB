@@ -113,7 +113,6 @@ export function IncidentReportForm({
           zone: location.zone,
           assetName: qrAssetName ?? "",
           category: "electrical",
-          urgencyReported: "normal",
           description: "",
           photos: [],
         }}
@@ -127,7 +126,6 @@ export function IncidentReportForm({
             locationId: location.id,
             assetName: values.assetName,
             category: values.category,
-            urgencyReported: values.urgencyReported,
             description: values.description,
             photos: values.photos ?? [],
           });
