@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
+import { tableColumnAlignment } from "../../components/dataTable.constants";
 import { UserApprovalDialog } from "./UserApprovalDialog";
 import {
   roleLabels,
@@ -58,6 +59,7 @@ export function UserManagementPage() {
       field: "approvalStatus",
       headerName: "สถานะ",
       width: 132,
+      ...tableColumnAlignment.center,
       renderCell: ({ row }) => (
         <Chip
           size="small"
@@ -71,13 +73,14 @@ export function UserManagementPage() {
       field: "role",
       headerName: "สิทธิ์",
       width: 145,
+      ...tableColumnAlignment.center,
       valueGetter: (_value, row) => (row.role ? roleLabels[row.role] : "–"),
     },
     {
       field: "actions",
-      headerName: "",
-      width: 108,
-      sortable: false,
+      headerName: "จัดการ",
+      width: 124,
+      ...tableColumnAlignment.actions,
       renderCell: ({ row }) => (
         <Button
           size="small"

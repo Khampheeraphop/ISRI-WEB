@@ -6,6 +6,7 @@ type SlaRuleResponse = {
   urgency_level: SLARule["urgencyLevel"];
   response_minutes: number;
   resolve_minutes: number;
+  point_value: number;
 };
 
 const toRule = (item: SlaRuleResponse): SLARule => ({
@@ -13,6 +14,7 @@ const toRule = (item: SlaRuleResponse): SLARule => ({
   urgencyLevel: item.urgency_level,
   responseMinutes: item.response_minutes,
   resolveMinutes: item.resolve_minutes,
+  pointValue: item.point_value,
 });
 
 export async function getSlaRules() {
@@ -24,6 +26,7 @@ export async function updateSlaRule(input: {
   id: string;
   responseMinutes: number;
   resolveMinutes: number;
+  pointValue: number;
 }) {
   const result = await apiFetch<{ data: SlaRuleResponse }>(
     `/sla/rules/${input.id}`,

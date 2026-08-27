@@ -5,14 +5,14 @@ const statuses: Record<
   IncidentStatus,
   { label: string; color: "default" | "info" | "warning" | "success" }
 > = {
-  submitted: { label: "รับเรื่องแล้ว", color: "info" },
-  pending_assignment: { label: "รอจัดสรรงาน", color: "info" },
-  assigned: { label: "มอบหมายงานแล้ว", color: "warning" },
+  submitted: { label: "รอตรวจสอบ", color: "info" },
+  pending_assignment: { label: "รอตรวจสอบ", color: "info" },
+  assigned: { label: "รอจัดงาน", color: "warning" },
   in_progress: { label: "กำลังดำเนินการ", color: "warning" },
   pending_parts_approval: { label: "รออนุมัติเบิกอะไหล่", color: "warning" },
   waiting_parts: { label: "รออะไหล่", color: "default" },
   pending_repair_approval: { label: "รอตรวจรับงานซ่อม", color: "warning" },
-  done: { label: "เสร็จสิ้น", color: "success" },
+  done: { label: "ปิดงานและให้คะแนน", color: "success" },
 };
 
 export function IncidentStatusChip({ status }: { status: IncidentStatus }) {

@@ -22,15 +22,11 @@ import {
 import {
   actionTitles,
   reviewPrimaryAction,
+  reviewSecondaryAction,
   workOrderStatusLabels,
 } from "../workOrders/workOrderWorkflowUi";
 import { getDispatchIncidents, getDispatchReviews } from "./dispatchApi";
-
-const urgencyLabels = {
-  critical: "วิกฤต",
-  urgent: "เร่งด่วน",
-  normal: "ปกติ",
-} as const;
+import { urgencyPresentation } from "../../utils/incident";
 
 export function DispatchQueuePage() {
   const client = useQueryClient();
@@ -112,14 +108,8 @@ export function DispatchQueuePage() {
                   </Box>
                   <Chip
                     size="small"
-                    color={
-                      incident.urgency_reported === "critical"
-                        ? "error"
-                        : incident.urgency_reported === "urgent"
-                          ? "warning"
-                          : "info"
-                    }
-                    label={urgencyLabels[incident.urgency_reported]}
+                    color={urgencyPresentation[incident.urgency_reported].color}
+                    label={urgencyPresentation[incident.urgency_reported].label}
                   />
                 </Stack>
                 <Typography>
@@ -212,6 +202,7 @@ function ReviewItem({
 }) {
   const incident = getIncident(order);
   const primary = reviewPrimaryAction[order.status];
+  const secondary = reviewSecondaryAction[order.status];
   if (!incident || !primary) return null;
   return (
     <Paper variant="outlined" sx={{ p: 2.5 }}>
@@ -251,14 +242,14 @@ function ReviewItem({
           >
             ดูรายละเอียด
           </Button>
-          {order.status === "pending_repair_approval" && (
+          {secondary && (
             <Button
               variant="outlined"
               color="warning"
-              onClick={() => onAction("return_for_rework")}
+              onClick={() => onAction(secondary.action)}
               disabled={busy}
             >
-              ส่งกลับให้แก้ไข
+              {secondary.label}
             </Button>
           )}
           <Button

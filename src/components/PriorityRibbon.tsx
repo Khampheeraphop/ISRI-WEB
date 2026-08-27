@@ -1,14 +1,9 @@
 import { Box } from "@mui/material";
 import type { UrgencyLevel } from "../types/incident";
-
-const priority = {
-  critical: { label: "วิกฤต", color: "#C1443A" },
-  urgent: { label: "เร่งด่วน", color: "#C68A2E" },
-  normal: { label: "ปกติ", color: "#3E6FA6" },
-} as const;
+import { urgencyPresentation } from "../utils/incident";
 
 export function PriorityRibbon({ urgency }: { urgency: UrgencyLevel }) {
-  const detail = priority[urgency];
+  const detail = urgencyPresentation[urgency];
   return (
     <Box
       sx={{
@@ -19,7 +14,7 @@ export function PriorityRibbon({ urgency }: { urgency: UrgencyLevel }) {
         px: 1.5,
         py: 0.55,
         color: "common.white",
-        bgcolor: detail.color,
+        bgcolor: detail.hex,
         fontSize: "0.8rem",
         fontWeight: 600,
         textAlign: "center",

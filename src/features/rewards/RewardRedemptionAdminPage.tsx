@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
+import { tableColumnAlignment } from "../../components/dataTable.constants";
 import {
   getAdminRewardRedemptions,
   updateAdminRewardRedemption,
@@ -54,6 +55,7 @@ export function RewardRedemptionAdminPage() {
       field: "fulfillment_method",
       headerName: "วิธีรับ",
       width: 120,
+      ...tableColumnAlignment.center,
       valueGetter: (_value, row) =>
         row.fulfillment_method === "delivery" ? "จัดส่ง" : "รับด้วยตนเอง",
     },
@@ -68,6 +70,7 @@ export function RewardRedemptionAdminPage() {
       field: "status",
       headerName: "สถานะ",
       width: 130,
+      ...tableColumnAlignment.center,
       renderCell: ({ row }) => (
         <Chip
           size="small"
@@ -85,9 +88,9 @@ export function RewardRedemptionAdminPage() {
     },
     {
       field: "actions",
-      headerName: "",
+      headerName: "จัดการ",
       minWidth: 210,
-      sortable: false,
+      ...tableColumnAlignment.actions,
       renderCell: ({ row }) =>
         row.status === "pending" ? (
           <Stack direction="row" spacing={0.5}>

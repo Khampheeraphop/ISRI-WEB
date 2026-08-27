@@ -25,6 +25,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
+import { tableColumnAlignment } from "../../components/dataTable.constants";
 import type { ManagedLocation } from "../../types/location";
 import { deleteManagedLocation, getManagedLocations } from "./locationsApi";
 
@@ -76,11 +77,14 @@ export function LocationManagementPage() {
     { field: "assetName", headerName: "ชิ้นงาน", minWidth: 220, flex: 1 },
     {
       field: "actions",
-      headerName: "",
+      headerName: "จัดการ",
       width: 176,
-      sortable: false,
+      ...tableColumnAlignment.actions,
       renderCell: ({ row }) => (
-        <Stack direction="row">
+        <Stack
+          direction="row"
+          sx={{ width: "100%", justifyContent: "center" }}
+        >
           <IconButton
             aria-label="ดู QR"
             onClick={async () =>
@@ -89,13 +93,18 @@ export function LocationManagementPage() {
           >
             <VisibilityOutlined fontSize="small" />
           </IconButton>
-          <IconButton onClick={() => downloadQr(row)}>
+          <IconButton aria-label="ดาวน์โหลด QR" onClick={() => downloadQr(row)}>
             <DownloadOutlined fontSize="small" />
           </IconButton>
-          <IconButton component={Link} to={`/locations/${row.id}`}>
+          <IconButton
+            component={Link}
+            to={`/locations/${row.id}`}
+            aria-label="แก้ไขตำแหน่ง"
+          >
             <EditOutlined fontSize="small" />
           </IconButton>
           <IconButton
+            aria-label="ลบตำแหน่ง"
             color="error"
             onClick={() => {
               if (
