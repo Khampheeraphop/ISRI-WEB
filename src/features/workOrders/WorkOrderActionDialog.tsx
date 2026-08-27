@@ -67,14 +67,19 @@ export function WorkOrderActionDialog({
                 ? "ระบุสิ่งที่ซ่อมและผลการทดสอบ"
                 : action === "request_parts"
                   ? "ระบุรายการอะไหล่และเหตุผลที่ต้องใช้"
+                  : action === "reject_parts"
+                    ? "ระบุเหตุผลและรายการที่ต้องแก้ไขก่อนส่งคำขอใหม่"
+                    : action === "return_for_rework"
+                      ? "ระบุสิ่งที่ต้องแก้ไขหรือหลักฐานที่ต้องส่งเพิ่ม"
                   : undefined
             }
             error={requiresNote && note.length > 0 && note.trim().length === 0}
             helperText={
               requiresNote
-                ? "กรอกรายละเอียดก่อนส่งผลการดำเนินงาน"
+                ? "กรอกรายละเอียดก่อนยืนยันการดำเนินการ"
                 : "สามารถเว้นว่างได้"
             }
+            fullWidth
           />
           {allowsFiles && (
             <Button component="label" variant="outlined">

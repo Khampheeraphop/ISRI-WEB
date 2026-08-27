@@ -15,24 +15,19 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
 import { DetailSection } from "../../components/detail/DetailSection";
 import { IncidentStatusChip } from "../../components/IncidentStatusChip";
 import { PriorityRibbon } from "../../components/PriorityRibbon";
-import { formatBangkokDate } from "../../utils/incident";
+import { formatBangkokDate, urgencyPresentation } from "../../utils/incident";
 import {
   assignWorkOrder,
   getDispatchIncidentDetail,
+  getDispatchSlaRules,
   getDispatchTechnicians,
 } from "./dispatchApi";
-
-const urgencyLabels = {
-  critical: "วิกฤต",
-  urgent: "เร่งด่วน",
-  normal: "ปกติ",
-} as const;
 
 export function DispatchIncidentDetailPage() {
   const { id } = useParams();
@@ -51,6 +46,14 @@ export function DispatchIncidentDetailPage() {
     queryKey: ["dispatch-technicians"],
     queryFn: getDispatchTechnicians,
   });
+  const slaRules = useQuery({
+    queryKey: ["dispatch-sla-rules"],
+    queryFn: getDispatchSlaRules,
+  });
+  useEffect(() => {
+    if (detail.data?.urgencyReported)
+      setUrgencyVerified(detail.data.urgencyReported);
+  }, [detail.data?.id, detail.data?.urgencyReported]);
   const assign = useMutation({
     mutationFn: assignWorkOrder,
     onSuccess: async (workOrder) => {
@@ -59,7 +62,7 @@ export function DispatchIncidentDetailPage() {
     },
   });
 
-  if (detail.isLoading || technicians.isLoading) {
+  if (detail.isLoading || technicians.isLoading || slaRules.isLoading) {
     return (
       <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
         <CircularProgress />
@@ -120,7 +123,7 @@ export function DispatchIncidentDetailPage() {
               label: "ระดับความเร่งด่วน",
               value: (
                 <Typography>
-                  {urgencyLabels[incident.urgencyReported]}
+                  {urgencyPresentation[incident.urgencyReported].label}
                 </Typography>
               ),
             },
@@ -262,6 +265,25 @@ export function DispatchIncidentDetailPage() {
               SLA และแต้มจะยึดค่าที่ตรวจสอบแล้ว ไม่ยึดค่าที่ผู้แจ้งเลือกเอง
             </Typography>
           </Box>
+          {slaRules.error && (
+            <Alert severity="error">
+              {slaRules.error instanceof Error
+                ? slaRules.error.message
+                : "ไม่สามารถโหลดกติกา SLA ได้"}
+            </Alert>
+          )}
+          {!slaRules.error && (
+            <Alert severity="info" sx={{ maxWidth: 560 }}>
+              {(() => {
+                const rule = (slaRules.data ?? []).find(
+                  (item) => item.urgencyLevel === urgencyVerified,
+                );
+                return rule
+                  ? `SLA ที่จะล็อกเมื่อมอบหมาย: ตอบรับภายใน ${rule.responseMinutes} นาที · ปิดงานภายใน ${rule.resolveMinutes} นาที · คะแนน ${rule.pointValue} คะแนน`
+                  : "ไม่พบกติกา SLA สำหรับระดับความเร่งด่วนนี้";
+              })()}
+            </Alert>
+          )}
           {assign.error && (
             <Alert severity="error">
               {assign.error instanceof Error
@@ -272,7 +294,14 @@ export function DispatchIncidentDetailPage() {
           <Box>
             <Button
               variant="contained"
-              disabled={!technicianId || assign.isPending}
+              disabled={
+                !technicianId ||
+                assign.isPending ||
+                slaRules.isError ||
+                !(slaRules.data ?? []).some(
+                  (rule) => rule.urgencyLevel === urgencyVerified,
+                )
+              }
               onClick={() =>
                 assign.mutate({
                   incidentId: incident.id,

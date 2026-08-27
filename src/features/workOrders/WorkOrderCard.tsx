@@ -1,8 +1,4 @@
-import {
-  BuildOutlined,
-  LocationOnOutlined,
-  VisibilityOutlined,
-} from "@mui/icons-material";
+import { LocationOnOutlined, VisibilityOutlined } from "@mui/icons-material";
 import {
   Alert,
   Box,
@@ -17,22 +13,18 @@ import { MainCard } from "../../components/base/MainCard";
 import { PriorityRibbon } from "../../components/PriorityRibbon";
 import { SlaCountdown } from "../../components/SlaCountdown";
 import type { Incident } from "../../types/incident";
-import type { WorkOrder, WorkOrderStatus } from "../../types/workOrder";
+import type { WorkOrder } from "../../types/workOrder";
 import { formatBangkokDate } from "../../utils/incident";
 import { workOrderStatusDetail } from "./workOrder.constants";
 
 interface WorkOrderCardProps {
   workOrder: WorkOrder;
   incident: Incident;
-  onStatusChange: (nextStatus: WorkOrderStatus) => void;
-  isUpdating: boolean;
 }
 
 export function WorkOrderCard({
   workOrder,
   incident,
-  onStatusChange,
-  isUpdating,
 }: WorkOrderCardProps) {
   const status = workOrderStatusDetail[workOrder.status];
   const overdue = new Date(workOrder.resolveDueAt).getTime() < Date.now();
@@ -97,16 +89,6 @@ export function WorkOrderCard({
           >
             ดูรายละเอียด
           </Button>
-          {status.next && (
-            <Button
-              variant="contained"
-              startIcon={<BuildOutlined />}
-              disabled={isUpdating}
-              onClick={() => onStatusChange(status.next!)}
-            >
-              {status.nextLabel}
-            </Button>
-          )}
         </Stack>
       </Stack>
     </MainCard>

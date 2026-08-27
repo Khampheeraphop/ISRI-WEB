@@ -10,11 +10,18 @@ import type { FormField } from "../../components/form/types";
 import { getManagedLocations } from "../admin/locationsApi";
 import { createPMSchedule, getPMSchedules, updatePMSchedule, type PMScheduleInput } from "./pmApi";
 
-type PMForm = { locationId: string; assetName: string; intervalMonths: number; lastDoneAt: string };
+type PMForm = {
+  locationId: string;
+  assetName: string;
+  planDetails: string;
+  intervalMonths: number;
+  lastDoneAt: string;
+};
 
 const schema: yup.ObjectSchema<PMForm> = yup.object({
   locationId: yup.string().required(),
   assetName: yup.string().trim().required("กรุณาระบุชื่อครุภัณฑ์"),
+  planDetails: yup.string().trim().min(10, "กรุณาระบุรายละเอียดอย่างน้อย 10 ตัวอักษร").max(2000).required("กรุณาระบุรายละเอียดแผน"),
   intervalMonths: yup.number().integer().min(1).max(60).required(),
   lastDoneAt: yup.string().required(),
 });
@@ -50,17 +57,20 @@ export function PMScheduleFormPage() {
       options: (locations.data ?? []).map((location) => ({ value: location.id, label: `${location.building} · ${location.floor} · ${location.zone}` })),
     },
     { name: "assetName", label: "ชื่อครุภัณฑ์", required: true },
+    { name: "planDetails", label: "รายละเอียดแผน PM", type: "textarea", required: true, fullWidth: true },
     { name: "intervalMonths", label: "รอบตรวจ (เดือน)", type: "number", required: true },
     { name: "lastDoneAt", label: "วันที่ทำ PM ล่าสุด", type: "date", required: true },
   ], [locations.data]);
   const defaults = useMemo<PMForm>(() => editing ? {
     locationId: editing.locationId,
     assetName: editing.assetName,
+    planDetails: editing.planDetails,
     intervalMonths: editing.intervalMonths,
     lastDoneAt: editing.lastDoneAt.slice(0, 10),
   } : {
     locationId: locations.data?.[0]?.id ?? "",
     assetName: locations.data?.[0]?.assetName ?? "",
+    planDetails: "ตรวจสอบสภาพการใช้งาน ทำความสะอาด และบันทึกผลการตรวจตามรอบ",
     intervalMonths: 3,
     lastDoneAt: new Date().toISOString().slice(0, 10),
   }, [editing, locations.data]);

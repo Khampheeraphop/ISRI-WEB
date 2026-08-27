@@ -8,16 +8,28 @@ import type { FormField } from "../../components/form/types";
 import type { SLARule } from "../../types/workOrder";
 import { getSlaRules, getSlaSummary, updateSlaRule } from "./slaApi";
 
-type SlaFormValues = { responseMinutes: number; resolveMinutes: number };
+type SlaFormValues = {
+  responseMinutes: number;
+  resolveMinutes: number;
+  pointValue: number;
+};
 
 const schema: yup.ObjectSchema<SlaFormValues> = yup.object({
   responseMinutes: yup.number().typeError("กรุณาระบุเป็นตัวเลข").integer().min(1, "ต้องมากกว่า 0").required(),
-  resolveMinutes: yup.number().typeError("กรุณาระบุเป็นตัวเลข").integer().min(1, "ต้องมากกว่า 0").required(),
+  resolveMinutes: yup.number().typeError("กรุณาระบุเป็นตัวเลข").integer().min(yup.ref("responseMinutes"), "ต้องไม่น้อยกว่าเวลาตอบรับ").required(),
+  pointValue: yup.number().typeError("กรุณาระบุเป็นตัวเลข").integer().min(1, "ต้องมากกว่า 0").max(1_000_000, "คะแนนสูงเกินกำหนด").required(),
 });
 
 const fields: FormField<SlaFormValues>[] = [
   { name: "responseMinutes", label: "เวลาตอบรับ (นาที)", type: "number", required: true },
-  { name: "resolveMinutes", label: "เวลาแก้ไข (นาที)", type: "number", required: true },
+  { name: "resolveMinutes", label: "เวลาปิดงาน (นาที)", type: "number", required: true },
+  {
+    name: "pointValue",
+    label: "คะแนนเมื่อปิดงาน",
+    type: "number",
+    description: "ระบบให้คะแนนนี้แก่ผู้แจ้งเมื่อปิดงานสำเร็จ",
+    required: true,
+  },
 ];
 
 const urgencyDetails = {
@@ -45,7 +57,7 @@ function SlaRuleEditor({
         key={rule.id}
         fields={fields}
         schema={schema}
-        defaultValues={{ responseMinutes: rule.responseMinutes, resolveMinutes: rule.resolveMinutes }}
+        defaultValues={{ responseMinutes: rule.responseMinutes, resolveMinutes: rule.resolveMinutes, pointValue: rule.pointValue }}
         submitLabel="บันทึก"
         isSubmitting={isSubmitting}
         onSubmit={onSubmit}
@@ -77,7 +89,7 @@ export function SlaConfigPage() {
       <Box>
         <Typography variant="h3">ตั้งค่า SLA</Typography>
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          กำหนดเวลาตอบรับและเวลาแก้ไขตามระดับความเร่งด่วน
+          กำหนดเวลาตอบรับ เวลาปิดงาน และคะแนนตามระดับความเร่งด่วน
         </Typography>
       </Box>
       {rules.isError && <Alert severity="error">ไม่สามารถโหลดการตั้งค่า SLA ได้</Alert>}

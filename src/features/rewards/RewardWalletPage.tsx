@@ -13,6 +13,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
+import { tableColumnAlignment } from "../../components/dataTable.constants";
 import { useAuth } from "../../hooks/useAuth";
 import type { PointTransaction } from "../../types/reward";
 import {
@@ -29,6 +30,7 @@ const columns: GridColDef<PointTransaction>[] = [
     field: "amount",
     headerName: "แต้ม",
     width: 110,
+    ...tableColumnAlignment.numeric,
     valueFormatter: (value: number) =>
       `${value > 0 ? "+" : ""}${value.toLocaleString("th-TH")}`,
   },
@@ -56,6 +58,7 @@ const redemptionColumns: GridColDef<WalletRedemption>[] = [
     field: "fulfillment_method",
     headerName: "วิธีรับ",
     width: 130,
+    ...tableColumnAlignment.center,
     valueGetter: (_value, row) =>
       row.fulfillment_method === "delivery" ? "จัดส่ง" : "รับด้วยตนเอง",
   },
@@ -63,6 +66,7 @@ const redemptionColumns: GridColDef<WalletRedemption>[] = [
     field: "status",
     headerName: "สถานะ",
     width: 140,
+    ...tableColumnAlignment.center,
     renderCell: ({ row }) => (
       <Chip
         size="small"

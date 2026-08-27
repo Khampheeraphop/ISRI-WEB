@@ -6,6 +6,8 @@ export const getPMDueDetail = (schedule: PMSchedule) => {
   );
   if (days < 0)
     return { label: `เกินกำหนด ${Math.abs(days)} วัน`, color: "error" as const };
+  if (days === 0)
+    return { label: "ครบกำหนดวันนี้", color: "warning" as const };
   if (days <= 14)
     return { label: `ครบกำหนดใน ${days} วัน`, color: "warning" as const };
   return { label: `ครบกำหนดใน ${days} วัน`, color: "success" as const };

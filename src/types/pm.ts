@@ -3,6 +3,7 @@ export interface PMSchedule {
   locationId: string;
   locationLabel: string;
   assetName: string;
+  planDetails: string;
   intervalMonths: number;
   lastDoneAt: string;
   nextDueAt: string;
@@ -13,6 +14,7 @@ export interface PMLog {
   scheduleId: string;
   completedAt: string;
   technicianId: string;
+  technicianName: string | null;
   notes: string;
 }
 
