@@ -67,8 +67,10 @@ export function GenericDataTable<T extends GridValidRowModel>({
         },
         "& .MuiDataGrid-cell[data-field='actions'] .MuiStack-root": {
           width: "100%",
+          height: "100%",
           justifyContent: "center",
           alignItems: "center",
+          whiteSpace: "nowrap",
         },
       }}
     />

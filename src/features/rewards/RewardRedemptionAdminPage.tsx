@@ -1,4 +1,4 @@
-import { Alert, Button, Chip, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, Stack, Typography } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -69,31 +69,50 @@ export function RewardRedemptionAdminPage() {
     {
       field: "status",
       headerName: "สถานะ",
-      width: 130,
+      width: 140,
       ...tableColumnAlignment.center,
       renderCell: ({ row }) => (
-        <Chip
-          size="small"
-          label={statusLabels[row.status]}
-          color={
-            row.status === "fulfilled"
-              ? "success"
-              : row.status === "cancelled"
-                ? "default"
-                : "warning"
-          }
-          variant="outlined"
-        />
+        <Box
+          sx={{
+            display: "flex",
+            width: "100%",
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Chip
+            size="small"
+            label={statusLabels[row.status]}
+            color={
+              row.status === "fulfilled"
+                ? "success"
+                : row.status === "cancelled"
+                  ? "default"
+                  : "warning"
+            }
+            variant="outlined"
+          />
+        </Box>
       ),
     },
     {
       field: "actions",
       headerName: "จัดการ",
-      minWidth: 210,
+      width: 230,
       ...tableColumnAlignment.actions,
       renderCell: ({ row }) =>
         row.status === "pending" ? (
-          <Stack direction="row" spacing={0.5}>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{
+              width: "100%",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Button
               size="small"
               variant="contained"
@@ -111,7 +130,21 @@ export function RewardRedemptionAdminPage() {
               ยกเลิก
             </Button>
           </Stack>
-        ) : null,
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              width: "100%",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              –
+            </Typography>
+          </Box>
+        ),
     },
   ];
 
