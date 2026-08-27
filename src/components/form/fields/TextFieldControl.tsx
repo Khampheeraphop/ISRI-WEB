@@ -31,7 +31,7 @@ export function TextFieldControl<T extends FieldValues>({
           minRows={field.type === "textarea" ? 4 : undefined}
           required={field.required}
           error={Boolean(fieldState.error)}
-          helperText={fieldState.error?.message}
+          helperText={fieldState.error?.message ?? field.description}
           fullWidth
           slotProps={{
             input: { readOnly: field.readOnly },

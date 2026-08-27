@@ -8,6 +8,7 @@ export type FormField<T extends FieldValues> = {
   type?: "text" | "number" | "date" | "textarea" | "select" | "file";
   options?: FormOption[];
   placeholder?: string;
+  description?: string;
   readOnly?: boolean;
   fullWidth?: boolean;
   required?: boolean;

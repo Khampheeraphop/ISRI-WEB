@@ -269,7 +269,7 @@ function ApplicationRoutes() {
           <Route
             path="/pm/:id/complete"
             element={
-              <RoleRoute roles={["technician"]}>
+              <RoleRoute roles={["technician", "admin"]}>
                 <PMCompletePage />
               </RoleRoute>
             }

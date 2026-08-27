@@ -1,4 +1,4 @@
-import { AddOutlined, BuildOutlined, CalendarMonthOutlined } from "@mui/icons-material";
+import { AddOutlined, BuildOutlined, CalendarMonthOutlined, HistoryOutlined } from "@mui/icons-material";
 import { Alert, Box, Button, Chip, CircularProgress, Stack, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -38,6 +38,7 @@ export function PMSchedulesPage() {
               action={<Chip size="small" color={due.color} variant="outlined" label={due.label} />}
               footer={<Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ width: "100%", justifyContent: "flex-end" }}>
                 {isTechnician && <Button component={Link} to={`/pm/${schedule.id}/complete`} variant="contained" startIcon={<BuildOutlined />}>บันทึกผล PM</Button>}
+                {isAdmin && <Button component={Link} to={`/pm/${schedule.id}/complete`} variant="outlined" startIcon={<HistoryOutlined />}>ดูประวัติ</Button>}
                 {isAdmin && <Button component={Link} to={`/pm/${schedule.id}/edit`} variant="outlined">แก้ไขรอบ</Button>}
               </Stack>}
             >
@@ -46,6 +47,9 @@ export function PMSchedulesPage() {
                 <Typography color="text.secondary">ทำล่าสุด {formatPMDate(schedule.lastDoneAt)}</Typography>
                 <Typography color="text.secondary">ครบกำหนด {formatPMDate(schedule.nextDueAt)}</Typography>
               </Stack>
+              <Typography color="text.secondary" sx={{ mt: 1.5 }}>
+                แผนงาน: {schedule.planDetails || "ยังไม่ได้ระบุรายละเอียดแผน"}
+              </Typography>
             </MainCard>
           );
         })}

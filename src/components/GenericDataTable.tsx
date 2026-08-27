@@ -42,6 +42,8 @@ export function GenericDataTable<T extends GridValidRowModel>({
       disableRowSelectionOnClick
       autoHeight
       hideFooter
+      rowHeight={56}
+      columnHeaderHeight={52}
       {...dataGridProps}
       sx={{
         border: 0,
@@ -51,7 +53,23 @@ export function GenericDataTable<T extends GridValidRowModel>({
           fontSize: "0.95rem",
           fontWeight: 600,
         },
+        "& .MuiDataGrid-columnHeader, & .MuiDataGrid-cell": {
+          alignItems: "center",
+        },
+        "& .MuiDataGrid-columnHeaderTitle": {
+          fontWeight: 600,
+          lineHeight: 1.25,
+          whiteSpace: "normal",
+        },
         "& .MuiDataGrid-cell": { fontSize: "0.95rem" },
+        "& .MuiDataGrid-cell[data-field='actions']": {
+          justifyContent: "center",
+        },
+        "& .MuiDataGrid-cell[data-field='actions'] .MuiStack-root": {
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+        },
       }}
     />
   );

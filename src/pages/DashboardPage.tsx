@@ -30,14 +30,14 @@ import { PmDueOverviewCard } from "../features/dashboard/PmDueOverviewCard";
 const DashboardChart = lazy(() => import("react-apexcharts"));
 
 const statusLabels: Record<string, string> = {
-  submitted: "รับแจ้งแล้ว",
-  pending_assignment: "รอจัดสรรงาน",
-  assigned: "มอบหมายแล้ว",
+  submitted: "รอตรวจสอบ",
+  pending_assignment: "รอตรวจสอบ",
+  assigned: "รอจัดงาน",
   in_progress: "กำลังดำเนินการ",
   pending_parts_approval: "รออนุมัติเบิกอะไหล่",
   waiting_parts: "รออะไหล่",
   pending_repair_approval: "รอตรวจรับงานซ่อม",
-  done: "เสร็จสิ้น",
+  done: "ปิดงานและให้คะแนน",
 };
 
 const statusColors: Record<string, string> = {
@@ -56,6 +56,7 @@ const thaiDateTime = new Intl.DateTimeFormat("th-TH", {
   month: "short",
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: "Asia/Bangkok",
 });
 const months = [
   "มกราคม",
@@ -251,6 +252,36 @@ export function DashboardPage() {
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
+            sm: "repeat(3, minmax(0, 1fr))",
+          },
+          gap: 2,
+        }}
+      >
+        <AttentionCard
+          icon={<AssignmentLateOutlined />}
+          label="เกิน SLA"
+          value={summary.attention.overdue}
+          tone="error"
+        />
+        <AttentionCard
+          icon={<HourglassTopOutlined />}
+          label="ใกล้เกิน SLA ภายใน 24 ชม."
+          value={summary.attention.nearDue}
+          tone="warning"
+        />
+        <AttentionCard
+          icon={<PersonAddAltOutlined />}
+          label="รอมอบหมายงาน"
+          value={summary.attention.pendingAssignment}
+          tone="info"
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
             lg: "minmax(0, 1.45fr) minmax(340px, .85fr)",
           },
           gap: 3,
@@ -266,35 +297,6 @@ export function DashboardPage() {
                 : null
             }
           />
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(3, minmax(0, 1fr))",
-              },
-              gap: 2,
-            }}
-          >
-            <AttentionCard
-              icon={<AssignmentLateOutlined />}
-              label="เกิน SLA"
-              value={summary.attention.overdue}
-              tone="error"
-            />
-            <AttentionCard
-              icon={<HourglassTopOutlined />}
-              label="ใกล้เกิน SLA ภายใน 24 ชม."
-              value={summary.attention.nearDue}
-              tone="warning"
-            />
-            <AttentionCard
-              icon={<PersonAddAltOutlined />}
-              label="รอมอบหมายงาน"
-              value={summary.attention.pendingAssignment}
-              tone="info"
-            />
-          </Box>
           <MainCard
             title={
               <Typography variant="h6">ประสิทธิภาพการดำเนินงาน</Typography>
@@ -401,10 +403,6 @@ export function DashboardPage() {
         </Stack>
 
         <Stack spacing={3}>
-          <TechnicianWorkloadCard data={summary.technicianWorkload} />
-          <PmDueOverviewCard data={summary.pm} />
-          <IncentiveOverviewCard data={summary.incentives} />
-
           <MainCard
             title={
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
@@ -412,6 +410,7 @@ export function DashboardPage() {
                 <Typography variant="h6">สถานะงานในช่วงเวลา</Typography>
               </Stack>
             }
+            subheader="ภาพรวมสถานะของรายการที่แจ้งในเดือนที่เลือก"
           >
             <Box
               sx={{
@@ -462,6 +461,9 @@ export function DashboardPage() {
               </Stack>
             </Box>
           </MainCard>
+          <TechnicianWorkloadCard data={summary.technicianWorkload} />
+          <PmDueOverviewCard data={summary.pm} />
+          <IncentiveOverviewCard data={summary.incentives} />
         </Stack>
       </Box>
     </Stack>

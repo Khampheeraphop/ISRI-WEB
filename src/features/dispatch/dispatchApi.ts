@@ -1,6 +1,7 @@
 import { apiFetch } from "../api/apiClient";
 import { toIncident, type IncidentDetail } from "../incidents/incidentsApi";
 import type { MyWorkOrder } from "../workOrders/workOrdersApi";
+import type { UrgencyLevel } from "../../types/incident";
 
 export type DispatchIncident = {
   id: string;
@@ -17,6 +18,12 @@ export type DispatchTechnician = {
   full_name: string;
   email: string;
   technician_specialties: string[];
+};
+export type DispatchSlaRule = {
+  urgencyLevel: UrgencyLevel;
+  responseMinutes: number;
+  resolveMinutes: number;
+  pointValue: number;
 };
 
 export async function getDispatchIncidents() {
@@ -47,6 +54,22 @@ export async function getDispatchTechnicians() {
   return (
     await apiFetch<{ data: DispatchTechnician[] }>("/dispatch/technicians")
   ).data;
+}
+export async function getDispatchSlaRules(): Promise<DispatchSlaRule[]> {
+  const result = await apiFetch<{
+    data: Array<{
+      urgency_level: UrgencyLevel;
+      response_minutes: number;
+      resolve_minutes: number;
+      point_value: number;
+    }>;
+  }>("/dispatch/sla-rules");
+  return result.data.map((rule) => ({
+    urgencyLevel: rule.urgency_level,
+    responseMinutes: rule.response_minutes,
+    resolveMinutes: rule.resolve_minutes,
+    pointValue: rule.point_value,
+  }));
 }
 export async function assignWorkOrder(input: {
   incidentId: string;
