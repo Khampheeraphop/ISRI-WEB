@@ -32,12 +32,12 @@ const DashboardChart = lazy(() => import("react-apexcharts"));
 const statusLabels: Record<string, string> = {
   submitted: "รอตรวจสอบ",
   pending_assignment: "รอตรวจสอบ",
-  assigned: "รอจัดงาน",
+  assigned: "รอช่างรับงาน",
   in_progress: "กำลังดำเนินการ",
   pending_parts_approval: "รออนุมัติเบิกอะไหล่",
   waiting_parts: "รออะไหล่",
   pending_repair_approval: "รอตรวจรับงานซ่อม",
-  done: "ปิดงานและให้คะแนน",
+  done: "ปิดงาน",
 };
 
 const statusColors: Record<string, string> = {
@@ -305,7 +305,11 @@ export function DashboardPage() {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  lg: "repeat(4, 1fr)",
+                },
                 gap: 2,
               }}
             >

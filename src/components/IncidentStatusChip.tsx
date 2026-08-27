@@ -7,12 +7,12 @@ const statuses: Record<
 > = {
   submitted: { label: "รอตรวจสอบ", color: "info" },
   pending_assignment: { label: "รอตรวจสอบ", color: "info" },
-  assigned: { label: "รอจัดงาน", color: "warning" },
+  assigned: { label: "รอช่างรับงาน", color: "warning" },
   in_progress: { label: "กำลังดำเนินการ", color: "warning" },
   pending_parts_approval: { label: "รออนุมัติเบิกอะไหล่", color: "warning" },
   waiting_parts: { label: "รออะไหล่", color: "default" },
   pending_repair_approval: { label: "รอตรวจรับงานซ่อม", color: "warning" },
-  done: { label: "ปิดงานและให้คะแนน", color: "success" },
+  done: { label: "ปิดงาน", color: "success" },
 };
 
 export function IncidentStatusChip({ status }: { status: IncidentStatus }) {

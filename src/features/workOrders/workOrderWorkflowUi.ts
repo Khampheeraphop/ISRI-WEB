@@ -27,7 +27,7 @@ export const workOrderStatusLabels: Record<string, string> = {
   pending_parts_approval: "รออนุมัติเบิกอะไหล่",
   waiting_parts: "รอรับอะไหล่",
   pending_repair_approval: "รอตรวจรับงานซ่อม",
-  done: "ปิดงานและให้คะแนน",
+  done: "ปิดงาน",
 };
 
 export const technicianPrimaryAction: Record<
