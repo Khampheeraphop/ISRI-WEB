@@ -6,7 +6,7 @@ import {
 import { Alert, Box, Button, Chip, Stack, Typography } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
 import { tableColumnAlignment } from "../../components/dataTable.constants";
@@ -31,6 +31,18 @@ export function UserManagementPage() {
   });
   const [selectedUser, setSelectedUser] = useState<ManagedUser>();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const orderedUsers = useMemo(() => {
+    const statusOrder = { pending: 0, rejected: 1, approved: 2 } as const;
+    return [...(users.data ?? [])].sort((left, right) => {
+      const statusDifference =
+        statusOrder[left.approvalStatus] - statusOrder[right.approvalStatus];
+      if (statusDifference !== 0) return statusDifference;
+      return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+    });
+  }, [users.data]);
+  const pendingCount = orderedUsers.filter(
+    (user) => user.approvalStatus === "pending",
+  ).length;
   const approval = useMutation({
     mutationFn: decideUserApproval,
     onSuccess: async () => {
@@ -123,6 +135,9 @@ export function UserManagementPage() {
           </Alert>
         )}
         <Alert severity="info" sx={{ mb: 2 }}>
+          {pendingCount > 0
+            ? `มีคำขอรออนุมัติ ${pendingCount} รายการ ซึ่งแสดงไว้ด้านบนของตาราง `
+            : "ไม่มีคำขอรออนุมัติในขณะนี้ "}
           สำหรับบุคลากรจำนวนมาก ให้เลือกบัญชีที่รออนุมัติแล้วอนุมัติเป็น
           “ผู้แจ้งเหตุ” พร้อมกัน ส่วนสิทธิ์ช่าง ผู้จัดสรรงาน และผู้ดูแลระบบ
           ควรตรวจสอบรายบุคคล
@@ -153,10 +168,11 @@ export function UserManagementPage() {
           </Stack>
         )}
         <GenericDataTable
-          rows={users.data ?? []}
+          rows={orderedUsers}
           columns={columns}
           loading={users.isLoading}
           emptyMessage="ยังไม่มีผู้สมัครใช้งาน"
+          showPagination
           checkboxSelection
           isRowSelectable={(params) => params.row.approvalStatus === "pending"}
           rowSelectionModel={{ type: "include", ids: new Set(selectedIds) }}

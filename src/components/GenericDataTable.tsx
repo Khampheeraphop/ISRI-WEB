@@ -8,12 +8,21 @@ import {
 
 interface GenericDataTableProps<T extends GridValidRowModel> extends Omit<
   DataGridProps<T>,
-  "rows" | "columns" | "loading" | "autoHeight" | "hideFooter"
+  | "rows"
+  | "columns"
+  | "loading"
+  | "autoHeight"
+  | "hideFooter"
+  | "pagination"
+  | "pageSizeOptions"
+  | "initialState"
 > {
   rows: T[];
   columns: GridColDef<T>[];
   loading?: boolean;
   emptyMessage?: string;
+  showPagination?: boolean;
+  pageSizeOptions?: number[];
 }
 
 export function GenericDataTable<T extends GridValidRowModel>({
@@ -21,6 +30,8 @@ export function GenericDataTable<T extends GridValidRowModel>({
   columns,
   loading = false,
   emptyMessage = "ยังไม่มีข้อมูล",
+  showPagination = false,
+  pageSizeOptions = [10, 25, 50],
   ...dataGridProps
 }: GenericDataTableProps<T>) {
   if (loading)
@@ -41,7 +52,14 @@ export function GenericDataTable<T extends GridValidRowModel>({
       columns={columns}
       disableRowSelectionOnClick
       autoHeight
-      hideFooter
+      hideFooter={!showPagination}
+      pagination={showPagination ? true : undefined}
+      pageSizeOptions={pageSizeOptions}
+      initialState={
+        showPagination
+          ? { pagination: { paginationModel: { page: 0, pageSize: pageSizeOptions[0] ?? 10 } } }
+          : undefined
+      }
       rowHeight={56}
       columnHeaderHeight={52}
       {...dataGridProps}

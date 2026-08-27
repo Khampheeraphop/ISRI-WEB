@@ -2,6 +2,10 @@ import type { UrgencyLevel } from "../types/incident";
 
 const locationCodePattern = /^BLD-([A-Z]+)-F(\d+)-Z(\d+)$/i;
 const managedLocationCodePattern = /^LOC-[A-Z0-9]{12}$/i;
+// QR codes created before the managed-location format use codes such as
+// OPD-F1-REG.  The server remains the source of truth for whether a code
+// exists; this only confirms that the value came from a plausible QR URL.
+const qrLocationCodePattern = /^[A-Z0-9]+(?:-[A-Z0-9]+)+$/i;
 
 export const urgencyPresentation: Record<
   UrgencyLevel,
@@ -18,7 +22,8 @@ export function isLocationCode(
   return (
     typeof locationCode === "string" &&
     (managedLocationCodePattern.test(locationCode) ||
-      locationCodePattern.test(locationCode))
+      locationCodePattern.test(locationCode) ||
+      qrLocationCodePattern.test(locationCode))
   );
 }
 
