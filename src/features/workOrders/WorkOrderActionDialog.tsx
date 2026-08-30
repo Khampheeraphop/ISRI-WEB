@@ -71,13 +71,11 @@ export function WorkOrderActionDialog({
                     ? "ระบุเหตุผลและรายการที่ต้องแก้ไขก่อนส่งคำขอใหม่"
                     : action === "return_for_rework"
                       ? "ระบุสิ่งที่ต้องแก้ไขหรือหลักฐานที่ต้องส่งเพิ่ม"
-                  : undefined
+                      : undefined
             }
             error={requiresNote && note.length > 0 && note.trim().length === 0}
             helperText={
-              requiresNote
-                ? "กรอกรายละเอียดก่อนยืนยันการดำเนินการ"
-                : "สามารถเว้นว่างได้"
+              requiresNote ? "กรอกรายละเอียดก่อนยืนยันการดำเนินการ" : ""
             }
             fullWidth
           />

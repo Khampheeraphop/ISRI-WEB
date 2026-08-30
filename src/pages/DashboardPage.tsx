@@ -33,7 +33,7 @@ const statusLabels: Record<string, string> = {
   submitted: "รอตรวจสอบ",
   pending_assignment: "รอตรวจสอบ",
   assigned: "รอช่างรับงาน",
-  in_progress: "กำลังดำเนินการ",
+  in_progress: "กำลังดำเนินการซ่อม",
   pending_parts_approval: "รออนุมัติเบิกอะไหล่",
   waiting_parts: "รออะไหล่",
   pending_repair_approval: "รอตรวจรับงานซ่อม",

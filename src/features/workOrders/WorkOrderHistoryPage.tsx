@@ -42,10 +42,6 @@ export function WorkOrderHistoryPage() {
     <Stack spacing={3}>
       <Box>
         <Typography variant="h3">ประวัติการดำเนินงาน</Typography>
-        <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          รายการงานที่เสร็จสิ้นแล้ว
-          ดูรายละเอียดและลำดับการดำเนินงานได้โดยไม่แก้ไขข้อมูล
-        </Typography>
       </Box>
       {history.error && (
         <Alert severity="error">

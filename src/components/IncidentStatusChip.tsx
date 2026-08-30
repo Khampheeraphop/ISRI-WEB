@@ -11,7 +11,7 @@ const statuses: Record<
   submitted: { label: "รอตรวจสอบ", color: "info" },
   pending_assignment: { label: "รอตรวจสอบ", color: "info" },
   assigned: { label: "รอช่างรับงาน", color: "warning" },
-  in_progress: { label: "กำลังดำเนินการ", color: "warning" },
+  in_progress: { label: "กำลังดำเนินการซ่อม", color: "warning" },
   pending_parts_approval: { label: "รออนุมัติเบิกอะไหล่", color: "warning" },
   waiting_parts: { label: "รออะไหล่", color: "default" },
   pending_repair_approval: { label: "รอตรวจรับงานซ่อม", color: "warning" },
