@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { DetailSection } from "../../components/detail/DetailSection";
 import { useAuth } from "../../hooks/useAuth";
 import { formatBangkokDate } from "../../utils/incident";
@@ -39,6 +39,7 @@ import {
 export function WorkOrderDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const location = useLocation();
   const client = useQueryClient();
   const [tab, setTab] = useState(0);
   const [actionName, setActionName] = useState<string | null>(null);
@@ -96,8 +97,16 @@ export function WorkOrderDetailPage() {
   const incident = getIncident(workOrder);
   if (!incident)
     return <Alert severity="error">ไม่พบข้อมูลรายการแจ้งซ่อม</Alert>;
+  const readOnly = location.pathname.includes("/history/");
+  const backTo = readOnly
+    ? user?.role === "dispatcher"
+      ? "/dispatch/history"
+      : "/work-orders/history"
+    : user?.role === "dispatcher"
+      ? "/dispatch"
+      : "/work-orders";
   const primary =
-    user?.role === "technician"
+    !readOnly && user?.role === "technician"
       ? technicianPrimaryAction[workOrder.status]
       : undefined;
   return (
@@ -105,7 +114,7 @@ export function WorkOrderDetailPage() {
       <Box>
         <Button
           component={Link}
-          to="/work-orders"
+          to={backTo}
           startIcon={<ArrowBackOutlined />}
           sx={{ mb: 1 }}
         >
@@ -212,7 +221,36 @@ export function WorkOrderDetailPage() {
               },
             ]}
           />
-          {primary || workOrder.status === "in_progress" ? (
+          <DetailSection
+            title="ทีมช่างที่ได้รับมอบหมาย"
+            icon={<BuildOutlined />}
+            fields={[
+              {
+                label: "ช่างหลัก",
+                value: (
+                  <Typography>
+                    {workOrder.assignees?.find(
+                      (assignee) => assignee.assignment_role === "primary",
+                    )?.full_name ?? "ไม่ระบุ"}
+                  </Typography>
+                ),
+              },
+              {
+                label: "ช่างสนับสนุน",
+                value: (
+                  <Typography>
+                    {workOrder.assignees
+                      ?.filter(
+                        (assignee) => assignee.assignment_role === "support",
+                      )
+                      .map((assignee) => assignee.full_name)
+                      .join(", ") || "ไม่มี"}
+                  </Typography>
+                ),
+              },
+            ]}
+          />
+          {!readOnly && (primary || workOrder.status === "in_progress") ? (
             <Box
               sx={{
                 border: 1,

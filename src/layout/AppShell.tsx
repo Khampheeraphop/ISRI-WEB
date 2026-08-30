@@ -7,6 +7,8 @@ import {
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
+  FactCheckOutlined,
+  HistoryOutlined,
   AssignmentIndOutlined,
   LogoutOutlined,
   Menu as MenuIcon,
@@ -57,6 +59,11 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   ],
   technician: [
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
+    {
+      label: "ประวัติการดำเนินงาน",
+      to: "/work-orders/history",
+      icon: <HistoryOutlined />,
+    },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
   ],
   dispatcher: [
@@ -64,6 +71,16 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       label: "คิวรอจัดสรรงาน",
       to: "/dispatch",
       icon: <AssignmentIndOutlined />,
+    },
+    {
+      label: "รายการรอพิจารณา",
+      to: "/dispatch/reviews",
+      icon: <FactCheckOutlined />,
+    },
+    {
+      label: "ประวัติการดำเนินงาน",
+      to: "/dispatch/history",
+      icon: <HistoryOutlined />,
     },
   ],
   admin: [

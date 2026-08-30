@@ -39,6 +39,11 @@ const TechnicianWorkOrdersPage = lazy(() =>
     default: module.TechnicianWorkOrdersPage,
   })),
 );
+const WorkOrderHistoryPage = lazy(() =>
+  import("./features/workOrders/WorkOrderHistoryPage").then((module) => ({
+    default: module.WorkOrderHistoryPage,
+  })),
+);
 const WorkOrderDetailPage = lazy(() =>
   import("./features/workOrders/WorkOrderDetailPage").then((module) => ({
     default: module.WorkOrderDetailPage,
@@ -112,6 +117,11 @@ const LocationFormPage = lazy(() =>
 const DispatchQueuePage = lazy(() =>
   import("./features/dispatch/DispatchQueuePage").then((module) => ({
     default: module.DispatchQueuePage,
+  })),
+);
+const DispatchReviewQueuePage = lazy(() =>
+  import("./features/dispatch/DispatchReviewQueuePage").then((module) => ({
+    default: module.DispatchReviewQueuePage,
   })),
 );
 const DispatchIncidentDetailPage = lazy(() =>
@@ -283,6 +293,22 @@ function ApplicationRoutes() {
             }
           />
           <Route
+            path="/work-orders/history"
+            element={
+              <RoleRoute roles={["technician"]}>
+                <WorkOrderHistoryPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/work-orders/history/:id"
+            element={
+              <RoleRoute roles={["technician"]}>
+                <WorkOrderDetailPage />
+              </RoleRoute>
+            }
+          />
+          <Route
             path="/work-orders/:id"
             element={
               <RoleRoute roles={["technician", "dispatcher"]}>
@@ -335,6 +361,30 @@ function ApplicationRoutes() {
             element={
               <RoleRoute roles={["dispatcher"]}>
                 <DispatchQueuePage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/dispatch/reviews"
+            element={
+              <RoleRoute roles={["dispatcher"]}>
+                <DispatchReviewQueuePage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/dispatch/history"
+            element={
+              <RoleRoute roles={["dispatcher"]}>
+                <WorkOrderHistoryPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/dispatch/history/:id"
+            element={
+              <RoleRoute roles={["dispatcher"]}>
+                <WorkOrderDetailPage />
               </RoleRoute>
             }
           />

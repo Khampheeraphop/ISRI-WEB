@@ -8,7 +8,9 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
+  ListItemText,
   MenuItem,
   Select,
   Stack,
@@ -32,7 +34,10 @@ export function DispatchIncidentDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const client = useQueryClient();
-  const [technicianId, setTechnicianId] = useState("");
+  const [primaryTechnicianId, setPrimaryTechnicianId] = useState("");
+  const [supportTechnicianIds, setSupportTechnicianIds] = useState<string[]>(
+    [],
+  );
   const [urgencyVerified, setUrgencyVerified] = useState<
     "critical" | "urgent" | "normal"
   >("normal");
@@ -75,6 +80,32 @@ export function DispatchIncidentDetailPage() {
   }
 
   const incident = detail.data;
+  const specialtyForCategory: Record<string, string | undefined> = {
+    ไฟฟ้า: "electrical",
+    ประปา: "plumbing",
+    เครื่องปรับอากาศ: "air_conditioning",
+    ลิฟต์: "elevator",
+    "โครงสร้าง/พื้นผิวอาคาร (ผนัง พื้น เพดาน ประตู)": "building",
+  };
+  const specialtyLabels: Record<string, string> = {
+    electrical: "ช่างไฟฟ้า",
+    plumbing: "ช่างประปา",
+    air_conditioning: "ช่างเครื่องปรับอากาศ",
+    elevator: "ช่างลิฟต์",
+    building: "ช่างโครงสร้างและอาคาร",
+  };
+  const requiredSpecialty = specialtyForCategory[incident.category];
+  const eligibleTechnicians = (technicians.data ?? []).filter(
+    (technician) =>
+      !requiredSpecialty ||
+      technician.technician_specialties.includes(requiredSpecialty),
+  );
+  const technicianLabel = (technician: (typeof eligibleTechnicians)[number]) =>
+    `${technician.full_name} (${
+      technician.technician_specialties
+        .map((specialty) => specialtyLabels[specialty] ?? specialty)
+        .join(", ") || "ยังไม่ได้ระบุความเชี่ยวชาญ"
+    })`;
   return (
     <Stack spacing={3}>
       <Box>
@@ -116,9 +147,7 @@ export function DispatchIncidentDetailPage() {
             {
               label: "การประเมิน SLA",
               value: (
-                <Typography>
-                  รอผู้จัดสรรงานตรวจสอบและกำหนดระดับ
-                </Typography>
+                <Typography>รอผู้จัดสรรงานตรวจสอบและกำหนดระดับ</Typography>
               ),
             },
             {
@@ -211,7 +240,7 @@ export function DispatchIncidentDetailPage() {
             <Typography variant="h5">มอบหมายผู้รับผิดชอบ</Typography>
           </Stack>
         }
-        subheader="ตรวจสอบข้อมูลข้างต้น แล้วเลือกช่างที่ตรงกับลักษณะงาน"
+        subheader="กำหนดช่างหลักและช่างสนับสนุนตามประเภทของใบแจ้งซ่อม"
       >
         <Stack spacing={2}>
           {technicians.error && (
@@ -221,23 +250,90 @@ export function DispatchIncidentDetailPage() {
                 : "ไม่สามารถโหลดรายชื่อช่างได้"}
             </Alert>
           )}
-          <Select
-            displayEmpty
-            value={technicianId}
-            onChange={(event) => setTechnicianId(event.target.value)}
-            sx={{ maxWidth: 560 }}
+          <Alert
+            severity={requiredSpecialty ? "info" : "warning"}
+            sx={{ maxWidth: 720 }}
           >
-            <MenuItem value="" disabled>
-              เลือกช่างผู้รับผิดชอบ
-            </MenuItem>
-            {(technicians.data ?? []).map((technician) => (
-              <MenuItem key={technician.id} value={technician.id}>
-                {technician.full_name} —{" "}
-                {technician.technician_specialties.join(", ") ||
-                  "ยังไม่ได้ระบุความเชี่ยวชาญ"}
+            {requiredSpecialty
+              ? `งานประเภท ${incident.category} เลือกได้เฉพาะ ${specialtyLabels[requiredSpecialty]} เท่านั้น`
+              : "งานประเภทอื่น ๆ สามารถเลือกช่างได้ทุกความเชี่ยวชาญ"}
+          </Alert>
+          <Box sx={{ maxWidth: 720 }}>
+            <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+              ช่างหลัก
+            </Typography>
+            <Select
+              fullWidth
+              displayEmpty
+              value={primaryTechnicianId}
+              onChange={(event) => {
+                const nextPrimary = event.target.value;
+                setPrimaryTechnicianId(nextPrimary);
+                setSupportTechnicianIds((current) =>
+                  current.filter(
+                    (technicianId) => technicianId !== nextPrimary,
+                  ),
+                );
+              }}
+            >
+              <MenuItem value="" disabled>
+                เลือกช่างหลัก
               </MenuItem>
-            ))}
-          </Select>
+              {eligibleTechnicians.map((technician) => (
+                <MenuItem key={technician.id} value={technician.id}>
+                  {technicianLabel(technician)}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Box sx={{ maxWidth: 720 }}>
+            <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+              ช่างสนับสนุน{" "}
+              <Typography
+                component="span"
+                variant="caption"
+                color="text.secondary"
+              >
+                (เลือกได้หลายคน)
+              </Typography>
+            </Typography>
+            <Select
+              fullWidth
+              multiple
+              displayEmpty
+              value={supportTechnicianIds}
+              renderValue={(selected) =>
+                selected.length
+                  ? selected
+                      .map(
+                        (id) =>
+                          eligibleTechnicians.find(
+                            (technician) => technician.id === id,
+                          )?.full_name ?? id,
+                      )
+                      .join(", ")
+                  : "ยังไม่เลือกช่างสนับสนุน"
+              }
+              onChange={(event) =>
+                setSupportTechnicianIds(
+                  (event.target.value as string[]).filter(
+                    (technicianId) => technicianId !== primaryTechnicianId,
+                  ),
+                )
+              }
+            >
+              {eligibleTechnicians
+                .filter((technician) => technician.id !== primaryTechnicianId)
+                .map((technician) => (
+                  <MenuItem key={technician.id} value={technician.id}>
+                    <Checkbox
+                      checked={supportTechnicianIds.includes(technician.id)}
+                    />
+                    <ListItemText primary={technicianLabel(technician)} />
+                  </MenuItem>
+                ))}
+            </Select>
+          </Box>
           <Box sx={{ maxWidth: 560 }}>
             <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
               ระดับความเร่งด่วนที่ผู้จัดสรรยืนยัน
@@ -255,27 +351,12 @@ export function DispatchIncidentDetailPage() {
               <MenuItem value="urgent">เร่งด่วน</MenuItem>
               <MenuItem value="normal">ปกติ</MenuItem>
             </Select>
-            <Typography variant="caption" color="text.secondary">
-              SLA และแต้มจะยึดค่าที่ตรวจสอบแล้ว ไม่ยึดค่าที่ผู้แจ้งเลือกเอง
-            </Typography>
           </Box>
           {slaRules.error && (
             <Alert severity="error">
               {slaRules.error instanceof Error
                 ? slaRules.error.message
                 : "ไม่สามารถโหลดกติกา SLA ได้"}
-            </Alert>
-          )}
-          {!slaRules.error && (
-            <Alert severity="info" sx={{ maxWidth: 560 }}>
-              {(() => {
-                const rule = (slaRules.data ?? []).find(
-                  (item) => item.urgencyLevel === urgencyVerified,
-                );
-                return rule
-                  ? `SLA ที่จะล็อกเมื่อมอบหมาย: ตอบรับภายใน ${rule.responseMinutes} นาที · ปิดงานภายใน ${rule.resolveMinutes} นาที · คะแนน ${rule.pointValue} คะแนน`
-                  : "ไม่พบกติกา SLA สำหรับระดับความเร่งด่วนนี้";
-              })()}
             </Alert>
           )}
           {assign.error && (
@@ -289,7 +370,7 @@ export function DispatchIncidentDetailPage() {
             <Button
               variant="contained"
               disabled={
-                !technicianId ||
+                !primaryTechnicianId ||
                 assign.isPending ||
                 slaRules.isError ||
                 !(slaRules.data ?? []).some(
@@ -299,7 +380,8 @@ export function DispatchIncidentDetailPage() {
               onClick={() =>
                 assign.mutate({
                   incidentId: incident.id,
-                  technicianId,
+                  primaryTechnicianId,
+                  supportTechnicianIds,
                   urgencyVerified,
                 })
               }

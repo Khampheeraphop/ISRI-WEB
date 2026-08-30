@@ -43,6 +43,13 @@ export type MyWorkOrder = {
   respond_due_at: string;
   resolve_due_at: string;
   assigned_at: string | null;
+  updated_at?: string;
+  assignment_role?: "primary" | "support";
+  assignees?: Array<{
+    technician_id: string;
+    assignment_role: "primary" | "support";
+    full_name: string;
+  }>;
   incidents: WorkOrderIncident | WorkOrderIncident[] | null;
 };
 
@@ -57,6 +64,16 @@ export function getIncident(order: MyWorkOrder) {
 
 export async function getMyWorkOrders() {
   return (await apiFetch<{ data: MyWorkOrder[] }>("/work-orders/mine")).data;
+}
+
+export async function getMyWorkOrderHistory() {
+  return (await apiFetch<{ data: MyWorkOrder[] }>("/work-orders/history")).data;
+}
+
+export async function getDispatcherWorkOrderHistory() {
+  return (
+    await apiFetch<{ data: MyWorkOrder[] }>("/dispatch/work-orders/history")
+  ).data;
 }
 
 export async function getWorkOrderDetail(id: string) {

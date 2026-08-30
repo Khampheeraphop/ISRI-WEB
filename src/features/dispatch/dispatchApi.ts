@@ -41,6 +41,7 @@ export async function getDispatchIncidentDetail(
       location_label: string;
       asset_name: string | null;
       category: IncidentDetail["category"];
+      other_category: string | null;
       urgency_reported: IncidentDetail["urgencyReported"];
       description: string;
       status: IncidentDetail["status"];
@@ -73,7 +74,8 @@ export async function getDispatchSlaRules(): Promise<DispatchSlaRule[]> {
 }
 export async function assignWorkOrder(input: {
   incidentId: string;
-  technicianId: string;
+  primaryTechnicianId: string;
+  supportTechnicianIds: string[];
   urgencyVerified: "critical" | "urgent" | "normal";
 }) {
   return (

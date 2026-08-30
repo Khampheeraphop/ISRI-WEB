@@ -24,6 +24,14 @@ export const incidentReportFields: FormField<IncidentReportFormValues>[] = [
     })),
   },
   {
+    name: "otherCategory",
+    label: "ระบุประเภทปัญหาอื่น ๆ",
+    required: true,
+    fullWidth: true,
+    placeholder: "เช่น ระบบสื่อสาร หรืออุปกรณ์เฉพาะทาง",
+    visibleWhen: (values) => values.category === "other",
+  },
+  {
     name: "description",
     label: "รายละเอียดปัญหา",
     type: "textarea",

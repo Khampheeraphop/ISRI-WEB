@@ -4,6 +4,7 @@ export const incidentCategories = [
   "เครื่องปรับอากาศ",
   "ลิฟต์",
   "โครงสร้าง/พื้นผิวอาคาร (ผนัง พื้น เพดาน ประตู)",
+  "อื่น ๆ",
 ] as const;
 
 export const urgencyLevels = ["critical", "urgent", "normal"] as const;
@@ -24,6 +25,7 @@ export const incidentCategoryOptions = [
   { value: "air_conditioning", label: incidentCategories[2] },
   { value: "elevator", label: incidentCategories[3] },
   { value: "building", label: incidentCategories[4] },
+  { value: "other", label: incidentCategories[5] },
 ] as const;
 
 export type IncidentCategory = (typeof incidentCategories)[number];

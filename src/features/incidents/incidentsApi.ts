@@ -15,6 +15,7 @@ type IncidentResponse = {
   location_label: string;
   asset_name: string | null;
   category: IncidentCategory;
+  other_category: string | null;
   urgency_reported: UrgencyLevel;
   description: string;
   status: IncidentStatus;
@@ -45,6 +46,7 @@ export const toIncident = (incident: IncidentResponse): Incident => ({
   locationLabel: incident.location_label,
   assetName: incident.asset_name ?? undefined,
   category: incident.category,
+  otherCategory: incident.other_category ?? undefined,
   urgencyReported: incident.urgency_reported,
   description: incident.description,
   photoUrls: [],
@@ -99,6 +101,7 @@ export type IncidentHistory = {
     status: string;
     assigned_at: string | null;
     technician_name: string | null;
+    support_technician_names?: string[];
   } | null;
   events: Array<{
     id: string;
@@ -151,6 +154,7 @@ export async function createIncident(input: {
   locationId: string;
   assetName: string;
   category: string;
+  otherCategory?: string;
   description: string;
   photos: File[];
 }) {

@@ -274,9 +274,17 @@ export function IncidentDetailPage() {
                 {
                   label: "ช่างผู้รับผิดชอบ",
                   value: workOrder ? (
-                    <Typography>
-                      {workOrder.technician_name ?? "ไม่ระบุ"}
-                    </Typography>
+                    <Stack spacing={0.25}>
+                      <Typography>
+                        ช่างหลัก: {workOrder.technician_name ?? "ไม่ระบุ"}
+                      </Typography>
+                      {workOrder.support_technician_names?.length ? (
+                        <Typography variant="body2" color="text.secondary">
+                          ช่างสนับสนุน:{" "}
+                          {workOrder.support_technician_names.join(", ")}
+                        </Typography>
+                      ) : null}
+                    </Stack>
                   ) : (
                     <Typography color="text.secondary">ยังไม่ระบุ</Typography>
                   ),

@@ -84,6 +84,11 @@ function WorkOrderItem({
             }
           />
         </Stack>
+        {order.assignment_role === "support" && (
+          <Typography variant="body2" color="text.secondary">
+            บทบาทของคุณ: ช่างสนับสนุน
+          </Typography>
+        )}
         <Typography>{incident.description}</Typography>
         <Stack
           direction={{ xs: "column", sm: "row" }}

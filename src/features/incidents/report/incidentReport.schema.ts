@@ -15,6 +15,18 @@ export const incidentReportSchema: yup.ObjectSchema<IncidentReportFormValues> =
       .mixed<IncidentCategoryCode>()
       .oneOf(incidentCategoryOptions.map((option) => option.value))
       .required("กรุณาเลือกประเภทปัญหา"),
+    otherCategory: yup
+      .string()
+      .trim()
+      .when("category", {
+        is: "other",
+        then: (schema) =>
+          schema
+            .required("กรุณาระบุประเภทปัญหาอื่น ๆ")
+            .min(2, "กรุณาระบุอย่างน้อย 2 ตัวอักษร")
+            .max(120, "ระบุได้ไม่เกิน 120 ตัวอักษร"),
+        otherwise: (schema) => schema.optional().strip(),
+      }),
     description: yup
       .string()
       .trim()
