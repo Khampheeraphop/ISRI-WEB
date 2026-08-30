@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthPageFrame } from "./AuthPageFrame";
 import { supabase } from "../../lib/supabase/client";
 import { useAuth } from "../../hooks/useAuth";
-import { clearAuthReturnTo, getAuthReturnTo } from "./authReturnTo";
+import { clearAuthReturnTo, getQrReportReturnTo } from "./authReturnTo";
 
 export function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ export function AuthCallbackPage() {
         window.history.replaceState(null, "", window.location.pathname);
         const profile = await refreshProfile();
         if (profile?.approvalStatus === "approved" && profile.role) {
-          const returnTo = getAuthReturnTo() ?? "/";
+          const returnTo = getQrReportReturnTo() ?? "/";
           clearAuthReturnTo();
           navigate(returnTo, { replace: true });
           return;

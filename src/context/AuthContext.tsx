@@ -11,7 +11,10 @@ import { getMyProfile } from "../features/auth/authApi";
 import { isSupabaseConfigured, supabase } from "../lib/supabase/client";
 import type { AuthProfile } from "../types/auth";
 import type { User } from "../types/user";
-import { saveAuthReturnTo } from "../features/auth/authReturnTo";
+import {
+  clearAuthReturnTo,
+  saveAuthReturnTo,
+} from "../features/auth/authReturnTo";
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
@@ -80,6 +83,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const signOut = useCallback(async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
+    clearAuthReturnTo();
     setAuthUser(null);
     setProfile(null);
   }, []);

@@ -6,7 +6,7 @@ import { useAuth } from "./hooks/useAuth";
 import { RoleRoute } from "./components/auth/RoleRoute";
 import {
   clearAuthReturnTo,
-  getAuthReturnTo,
+  getQrReportReturnTo,
 } from "./features/auth/authReturnTo";
 
 const DashboardPage = lazy(() =>
@@ -408,14 +408,24 @@ function ProtectedApplication() {
   const location = useLocation();
   if (isLoading) return <PageLoading />;
   if (!authUser)
-    return (
-      <Navigate
-        to={`/login?returnTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`}
-        replace
-      />
-    );
+    {
+      const currentPath = `${location.pathname}${location.search}`;
+      const isQrReportLink =
+        location.pathname === "/incidents/new" &&
+        new URLSearchParams(location.search).has("loc");
+      return (
+        <Navigate
+          to={
+            isQrReportLink
+              ? `/login?returnTo=${encodeURIComponent(currentPath)}`
+              : "/login"
+          }
+          replace
+        />
+      );
+    }
   if (!profile || !user) return <Navigate to="/onboarding" replace />;
-  const returnTo = getAuthReturnTo();
+  const returnTo = getQrReportReturnTo();
   const currentPath = `${location.pathname}${location.search}`;
   if (returnTo && returnTo !== currentPath)
     return <Navigate to={returnTo} replace />;
