@@ -19,6 +19,8 @@ type IncidentResponse = {
   urgency_reported: UrgencyLevel;
   description: string;
   status: IncidentStatus;
+  rejection_reason?: string | null;
+  rejected_at?: string | null;
   created_at: string;
 };
 
@@ -52,6 +54,8 @@ export const toIncident = (incident: IncidentResponse): Incident => ({
   photoUrls: [],
   reporterId: "",
   status: incident.status,
+  rejectionReason: incident.rejection_reason ?? undefined,
+  rejectedAt: incident.rejected_at ?? undefined,
   createdAt: incident.created_at,
 });
 

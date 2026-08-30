@@ -38,6 +38,7 @@ const statusLabels: Record<string, string> = {
   waiting_parts: "รออะไหล่",
   pending_repair_approval: "รอตรวจรับงานซ่อม",
   done: "ปิดงาน",
+  rejected: "ไม่รับรายการ",
 };
 
 const statusColors: Record<string, string> = {
@@ -49,6 +50,7 @@ const statusColors: Record<string, string> = {
   waiting_parts: "#9A80A8",
   pending_repair_approval: "#C68A2E",
   done: "#3B8F6D",
+  rejected: "#C1443A",
 };
 
 const thaiDateTime = new Intl.DateTimeFormat("th-TH", {

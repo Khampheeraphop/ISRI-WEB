@@ -17,6 +17,7 @@ export const incidentStatuses = [
   "waiting_parts",
   "pending_repair_approval",
   "done",
+  "rejected",
 ] as const;
 
 export const incidentCategoryOptions = [
@@ -54,6 +55,8 @@ export interface Incident {
   photoUrls: string[];
   reporterId: string;
   status: IncidentStatus;
+  rejectionReason?: string;
+  rejectedAt?: string;
   createdAt: string;
 }
 

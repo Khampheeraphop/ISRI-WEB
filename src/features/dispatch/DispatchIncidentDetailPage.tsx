@@ -10,10 +10,15 @@ import {
   Button,
   Checkbox,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   ListItemText,
   MenuItem,
   Select,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +33,7 @@ import {
   getDispatchIncidentDetail,
   getDispatchSlaRules,
   getDispatchTechnicians,
+  rejectDispatchIncident,
 } from "./dispatchApi";
 
 export function DispatchIncidentDetailPage() {
@@ -41,6 +47,8 @@ export function DispatchIncidentDetailPage() {
   const [urgencyVerified, setUrgencyVerified] = useState<
     "critical" | "urgent" | "normal"
   >("normal");
+  const [rejectionOpen, setRejectionOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
   const detail = useQuery({
     queryKey: ["dispatch-incident", id],
     queryFn: () => getDispatchIncidentDetail(id ?? ""),
@@ -59,6 +67,16 @@ export function DispatchIncidentDetailPage() {
     onSuccess: async (workOrder) => {
       await client.invalidateQueries({ queryKey: ["dispatch-incidents"] });
       navigate(`/work-orders/${workOrder.id}`, { replace: true });
+    },
+  });
+  const reject = useMutation({
+    mutationFn: rejectDispatchIncident,
+    onSuccess: async () => {
+      await Promise.all([
+        client.invalidateQueries({ queryKey: ["dispatch-incidents"] }),
+        client.invalidateQueries({ queryKey: ["notifications"] }),
+      ]);
+      navigate("/dispatch", { replace: true });
     },
   });
 
@@ -366,12 +384,35 @@ export function DispatchIncidentDetailPage() {
                 : "ไม่สามารถมอบหมายงานได้"}
             </Alert>
           )}
-          <Box>
+          {reject.error && (
+            <Alert severity="error">
+              {reject.error instanceof Error
+                ? reject.error.message
+                : "ไม่สามารถบันทึกผลการพิจารณาได้"}
+            </Alert>
+          )}
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ justifyContent: "flex-end" }}
+          >
+            <Button
+              color="error"
+              variant="outlined"
+              disabled={assign.isPending || reject.isPending}
+              onClick={() => {
+                setRejectionReason("");
+                setRejectionOpen(true);
+              }}
+            >
+              ไม่รับรายการ
+            </Button>
             <Button
               variant="contained"
               disabled={
                 !primaryTechnicianId ||
                 assign.isPending ||
+                reject.isPending ||
                 slaRules.isError ||
                 !(slaRules.data ?? []).some(
                   (rule) => rule.urgencyLevel === urgencyVerified,
@@ -388,9 +429,54 @@ export function DispatchIncidentDetailPage() {
             >
               มอบหมายงาน
             </Button>
-          </Box>
+          </Stack>
         </Stack>
       </MainCard>
+      <Dialog
+        open={rejectionOpen}
+        onClose={() => !reject.isPending && setRejectionOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>ไม่รับรายการแจ้งซ่อม</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <TextField
+              autoFocus
+              fullWidth
+              required
+              multiline
+              minRows={4}
+              label="เหตุผลที่ไม่รับรายการ"
+              value={rejectionReason}
+              onChange={(event) => setRejectionReason(event.target.value)}
+              helperText={`${rejectionReason.trim().length}/2,000 ตัวอักษร (อย่างน้อย 5 ตัวอักษร)`}
+              slotProps={{ htmlInput: { maxLength: 2000 } }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button
+            onClick={() => setRejectionOpen(false)}
+            disabled={reject.isPending}
+          >
+            กลับ
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            disabled={rejectionReason.trim().length < 5 || reject.isPending}
+            onClick={() =>
+              reject.mutate({
+                incidentId: incident.id,
+                reason: rejectionReason.trim(),
+              })
+            }
+          >
+            ยืนยันไม่รับรายการ
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

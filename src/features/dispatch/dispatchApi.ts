@@ -86,6 +86,21 @@ export async function assignWorkOrder(input: {
   ).data;
 }
 
+export async function rejectDispatchIncident(input: {
+  incidentId: string;
+  reason: string;
+}) {
+  return (
+    await apiFetch<{ data: { id: string; status: "rejected" } }>(
+      `/dispatch/incidents/${input.incidentId}/reject`,
+      {
+        method: "POST",
+        body: JSON.stringify({ reason: input.reason }),
+      },
+    )
+  ).data;
+}
+
 export async function getDispatchReviews() {
   return (await apiFetch<{ data: MyWorkOrder[] }>("/dispatch/reviews")).data;
 }

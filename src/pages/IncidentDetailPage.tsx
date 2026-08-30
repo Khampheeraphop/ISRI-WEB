@@ -194,6 +194,37 @@ export function IncidentDetailPage() {
               },
             ]}
           />
+          {incident.status === "rejected" && (
+            <DetailSection
+              title="ผลการพิจารณา"
+              icon={<TimelineOutlined />}
+              fields={[
+                {
+                  label: "ผลการพิจารณา",
+                  value: <IncidentStatusChip status={incident.status} />,
+                },
+                {
+                  label: "เหตุผล",
+                  value: (
+                    <Typography sx={{ whiteSpace: "pre-wrap" }}>
+                      {incident.rejectionReason ?? "ไม่ได้ระบุเหตุผล"}
+                    </Typography>
+                  ),
+                  fullWidth: true,
+                },
+                {
+                  label: "พิจารณาเมื่อ",
+                  value: (
+                    <Typography>
+                      {incident.rejectedAt
+                        ? `${formatBangkokDate(incident.rejectedAt)} น.`
+                        : "ไม่ได้ระบุ"}
+                    </Typography>
+                  ),
+                },
+              ]}
+            />
+          )}
           <DetailSection
             title="จุดแจ้งซ่อม"
             icon={<LocationOnOutlined />}
