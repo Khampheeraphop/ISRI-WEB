@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   CircularProgress,
   Paper,
   Stack,
@@ -60,11 +59,6 @@ export function DispatchQueuePage() {
                       {incident.location_label}
                     </Typography>
                   </Box>
-                  <Chip
-                    size="small"
-                    color="default"
-                    label="รอผู้จัดสรรประเมิน SLA"
-                  />
                 </Stack>
                 <Typography>
                   {incident.category} ·{" "}

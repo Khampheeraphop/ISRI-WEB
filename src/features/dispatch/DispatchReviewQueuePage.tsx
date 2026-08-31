@@ -11,13 +11,14 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
 import { WorkOrderActionDialog } from "../workOrders/WorkOrderActionDialog";
 import {
   getIncident,
   performWorkOrderAction,
   type MyWorkOrder,
+  uploadWorkOrderAttachments,
 } from "../workOrders/workOrdersApi";
 import {
   actionTitles,
@@ -29,6 +30,8 @@ import { getDispatchReviews } from "./dispatchApi";
 
 export function DispatchReviewQueuePage() {
   const client = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const selectedWorkOrderId = searchParams.get("workOrderId");
   const reviews = useQuery({
     queryKey: ["dispatch-reviews"],
     queryFn: getDispatchReviews,
@@ -39,15 +42,23 @@ export function DispatchReviewQueuePage() {
   } | null>(null);
   const [actionError, setActionError] = useState<string>();
   const reviewAction = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       id,
       action,
       note,
+      files,
     }: {
       id: string;
       action: string;
       note: string;
-    }) => performWorkOrderAction({ id, action, note }),
+      files: File[];
+    }) =>
+      performWorkOrderAction({
+        id,
+        action,
+        note,
+        attachments: await uploadWorkOrderAttachments(files),
+      }),
     onSuccess: async () => {
       await Promise.all([
         client.invalidateQueries({ queryKey: ["dispatch-reviews"] }),
@@ -94,20 +105,25 @@ export function DispatchReviewQueuePage() {
         }
       >
         <Stack spacing={2}>
-          {(reviews.data ?? []).map((order) => (
-            <ReviewItem
-              key={order.id}
-              order={order}
-              busy={reviewAction.isPending}
-              onAction={(action) => {
-                setActionError(undefined);
-                setPendingAction({ order, action });
-              }}
-            />
-          ))}
-          {!reviews.data?.length && (
-            <Alert severity="success">ไม่มีรายการที่รอพิจารณา</Alert>
-          )}
+          {(reviews.data ?? [])
+            .filter(
+              (order) =>
+                !selectedWorkOrderId || order.id === selectedWorkOrderId,
+            )
+            .map((order) => (
+              <ReviewItem
+                key={order.id}
+                order={order}
+                busy={reviewAction.isPending}
+                onAction={(action) => {
+                  setActionError(undefined);
+                  setPendingAction({ order, action });
+                }}
+              />
+            ))}
+          {!(reviews.data ?? []).filter(
+            (order) => !selectedWorkOrderId || order.id === selectedWorkOrderId,
+          ).length && <Alert severity="success">ไม่มีรายการที่รอพิจารณา</Alert>}
         </Stack>
       </MainCard>
       <WorkOrderActionDialog
@@ -117,12 +133,13 @@ export function DispatchReviewQueuePage() {
         busy={reviewAction.isPending}
         error={actionError}
         onClose={() => setPendingAction(null)}
-        onSubmit={(note) =>
+        onSubmit={(note, files) =>
           pendingAction &&
           reviewAction.mutate({
             id: pendingAction.order.id,
             action: pendingAction.action,
             note,
+            files,
           })
         }
       />

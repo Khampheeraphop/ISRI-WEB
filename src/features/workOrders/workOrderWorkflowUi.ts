@@ -22,12 +22,14 @@ type WorkflowActionButton = {
 };
 
 export const workOrderStatusLabels: Record<string, string> = {
+  pending_assignment: "รับแจ้งรายการ",
   pending: "รอรับงาน",
   in_progress: "กำลังดำเนินการซ่อม",
   pending_parts_approval: "รออนุมัติเบิกอะไหล่",
   waiting_parts: "รอรับอะไหล่",
   pending_repair_approval: "รอตรวจรับงานซ่อม",
   done: "ปิดงาน",
+  rejected: "ไม่รับรายการ",
 };
 
 export const technicianPrimaryAction: Record<

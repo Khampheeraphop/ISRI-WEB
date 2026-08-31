@@ -105,8 +105,15 @@ export function WorkOrderDetailPage() {
     : user?.role === "dispatcher"
       ? "/dispatch"
       : "/work-orders";
+  const isPrimaryTechnician =
+    user?.role === "technician" &&
+    workOrder.assignees?.some(
+      (assignee) =>
+        assignee.technician_id === user.id &&
+        assignee.assignment_role === "primary",
+    );
   const primary =
-    !readOnly && user?.role === "technician"
+    !readOnly && user?.role === "technician" && isPrimaryTechnician
       ? technicianPrimaryAction[workOrder.status]
       : undefined;
   return (
@@ -250,7 +257,7 @@ export function WorkOrderDetailPage() {
               },
             ]}
           />
-          {!readOnly && (primary || workOrder.status === "in_progress") ? (
+          {!readOnly && isPrimaryTechnician && primary ? (
             <Stack
               direction={{ xs: "column", sm: "row" }}
               spacing={1}

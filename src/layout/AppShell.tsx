@@ -27,6 +27,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Stack,
   Toolbar,
   Typography,
 } from "@mui/material";
@@ -37,6 +38,7 @@ import { useAuth } from "../hooks/useAuth";
 import type { Role } from "../types/user";
 import {
   getNotifications,
+  markAllNotificationsRead,
   markNotificationRead,
 } from "../features/notifications/notificationsApi";
 import { supabase } from "../lib/supabase/client";
@@ -152,7 +154,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
+  const markAllRead = useMutation({
+    mutationFn: markAllNotificationsRead,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
   if (!user) return null;
+  const unreadNotifications = (notifications.data ?? []).filter(
+    (item) => !item.is_read,
+  );
   const navigation = (
     <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
       <Box sx={{ px: 3, py: 3, borderBottom: 1, borderColor: "divider" }}>
@@ -220,13 +230,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-label="การแจ้งเตือน"
             onClick={(event) => setNotificationAnchor(event.currentTarget)}
           >
-            <Badge
-              badgeContent={
-                (notifications.data ?? []).filter((item) => !item.is_read)
-                  .length
-              }
-              color="error"
-            >
+            <Badge badgeContent={unreadNotifications.length} color="error">
               <NotificationsOutlined />
             </Badge>
           </IconButton>
@@ -265,37 +269,68 @@ export function AppShell({ children }: { children: ReactNode }) {
             open={Boolean(notificationAnchor)}
             onClose={() => setNotificationAnchor(null)}
             slotProps={{
-              paper: { sx: { width: 360, maxWidth: "calc(100vw - 24px)" } },
+              paper: {
+                sx: {
+                  width: 390,
+                  maxWidth: "calc(100vw - 24px)",
+                  p: 1.25,
+                },
+              },
             }}
           >
-            {(notifications.data ?? []).length ? (
-              (notifications.data ?? []).map((item) => (
-                <MenuItem
-                  key={item.id}
-                  onClick={() => {
-                    if (!item.is_read) markRead.mutate(item.id);
-                    setNotificationAnchor(null);
-                    if (user.role === "reporter" && item.related_incident_id)
-                      navigate(`/incidents/${item.related_incident_id}`);
-                    else if (user.role === "technician")
-                      navigate("/work-orders");
-                    else navigate("/dispatch");
-                  }}
-                  sx={{
-                    whiteSpace: "normal",
-                    alignItems: "flex-start",
-                    py: 1.25,
-                    bgcolor: item.is_read
-                      ? "transparent"
-                      : "rgba(75,59,134,.06)",
-                  }}
+            <Stack spacing={1}>
+              <Stack
+                direction="row"
+                sx={{
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: 0.5,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  การแจ้งเตือน
+                </Typography>
+                <Button
+                  size="small"
+                  disabled={
+                    !unreadNotifications.length || markAllRead.isPending
+                  }
+                  onClick={() => markAllRead.mutate()}
                 >
-                  {item.message}
-                </MenuItem>
-              ))
-            ) : (
-              <MenuItem disabled>ไม่มีการแจ้งเตือนใหม่</MenuItem>
-            )}
+                  อ่านทั้งหมด
+                </Button>
+              </Stack>
+              {unreadNotifications.length ? (
+                unreadNotifications.map((item) => (
+                  <MenuItem
+                    key={item.id}
+                    onClick={async () => {
+                      await markRead.mutateAsync(item.id);
+                      setNotificationAnchor(null);
+                      if (item.target_path) navigate(item.target_path);
+                    }}
+                    sx={{
+                      whiteSpace: "normal",
+                      alignItems: "flex-start",
+                      py: 1.25,
+                      px: 1.5,
+                      border: 1,
+                      borderColor: "divider",
+                      borderRadius: 1.5,
+                      bgcolor: "background.paper",
+                    }}
+                  >
+                    {item.message}
+                  </MenuItem>
+                ))
+              ) : (
+                <Box sx={{ px: 1.5, py: 2, textAlign: "center" }}>
+                  <Typography variant="body2" color="text.secondary">
+                    ไม่มีการแจ้งเตือนใหม่
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
           </Menu>
         </Toolbar>
       </AppBar>

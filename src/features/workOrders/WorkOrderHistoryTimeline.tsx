@@ -55,7 +55,13 @@ export function WorkOrderHistoryTimeline({
             >
               <Chip
                 size="small"
-                color={event.status === "done" ? "success" : "primary"}
+                color={
+                  event.status === "done"
+                    ? "success"
+                    : event.status === "rejected"
+                      ? "error"
+                      : "primary"
+                }
                 label={workOrderStatusLabels[event.status] ?? event.status}
               />
               <Typography variant="body2" color="text.secondary">

@@ -34,7 +34,10 @@ export function WorkOrderActionDialog({
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const requiresNote = Boolean(action && actionNeedsNote.has(action));
-  const allowsFiles = action === "request_parts" || action === "submit_repair";
+  const allowsFiles =
+    action === "request_parts" ||
+    action === "submit_repair" ||
+    action === "return_for_rework";
   const canSubmit = !busy && (!requiresNote || note.trim().length > 0);
   useEffect(() => {
     if (open) {
