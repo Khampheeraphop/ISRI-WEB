@@ -72,7 +72,6 @@ export function IncidentReportForm({
   return (
     <MainCard
       title={<Typography variant="h5">รายละเอียดการแจ้งปัญหา</Typography>}
-      subheader="กรอกข้อมูลที่จำเป็น เพื่อให้เจ้าหน้าที่เข้าดำเนินการได้ตรงจุด"
       contentSx={{ p: { xs: 2.5, md: 3.5 } }}
     >
       <Stack
@@ -93,9 +92,7 @@ export function IncidentReportForm({
           )}
         </Box>
       </Stack>
-      <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
-        ตำแหน่งนี้อ่านจาก QR Code และไม่สามารถแก้ไขในหน้านี้ได้
-      </Alert>
+
       {create.error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {create.error instanceof Error
