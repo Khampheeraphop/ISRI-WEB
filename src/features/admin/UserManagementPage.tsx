@@ -61,13 +61,6 @@ export function UserManagementPage() {
     { field: "fullName", headerName: "ชื่อ–นามสกุล", minWidth: 190, flex: 1 },
     { field: "email", headerName: "อีเมล", minWidth: 240, flex: 1.2 },
     {
-      field: "requestedPosition",
-      headerName: "ตำแหน่งที่ขอใช้งาน",
-      minWidth: 190,
-      flex: 1,
-      valueGetter: (_value, row) => row.requestedPosition ?? "ยังไม่ระบุ",
-    },
-    {
       field: "approvalStatus",
       headerName: "สถานะ",
       width: 132,
