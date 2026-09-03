@@ -18,6 +18,7 @@ import { getManagedLocations } from "../admin/locationsApi";
 import {
   createPMSchedule,
   getPMSchedules,
+  getPMTechnicians,
   updatePMSchedule,
   type PMScheduleInput,
 } from "./pmApi";
@@ -28,6 +29,7 @@ type PMForm = {
   planDetails: string;
   intervalMonths: number;
   lastDoneAt: string;
+  assignedTechnicianId: string;
 };
 
 const schema: yup.ObjectSchema<PMForm> = yup.object({
@@ -36,12 +38,14 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
   planDetails: yup.string().trim().max(2000).required("กรุณาระบุรายละเอียดแผน"),
   intervalMonths: yup.number().integer().min(1).max(60).required(),
   lastDoneAt: yup.string().required(),
+  assignedTechnicianId: yup.string().defined(),
 });
 
 const toInput = (values: PMForm): PMScheduleInput => ({
   ...values,
   intervalMonths: Number(values.intervalMonths),
   lastDoneAt: new Date(`${values.lastDoneAt}T09:00:00+07:00`).toISOString(),
+  assignedTechnicianId: values.assignedTechnicianId ? values.assignedTechnicianId : null,
 });
 
 export function PMScheduleFormPage() {
@@ -55,6 +59,10 @@ export function PMScheduleFormPage() {
   const locations = useQuery({
     queryKey: ["managed-locations"],
     queryFn: getManagedLocations,
+  });
+  const technicians = useQuery({
+    queryKey: ["pm-technicians"],
+    queryFn: getPMTechnicians,
   });
   const editing = id
     ? schedules.data?.find((item) => item.id === id)
@@ -83,11 +91,21 @@ export function PMScheduleFormPage() {
       },
       { name: "assetName", label: "ชื่อครุภัณฑ์", required: true },
       {
-        name: "planDetails",
-        label: "รายละเอียดแผน PM",
-        type: "textarea",
-        required: true,
-        fullWidth: true,
+        name: "assignedTechnicianId",
+        label: "ช่างผู้รับผิดชอบ",
+        type: "select",
+        required: false,
+        options: [
+          { value: "", label: "-- ยังไม่ระบุช่าง (เลือกภายหลังได้) --" },
+          ...(technicians.data ?? []).map((t) => ({
+            value: t.id,
+            label: `${t.full_name} (${t.email})${
+              t.technician_specialties?.length
+                ? ` · ${t.technician_specialties.join(", ")}`
+                : ""
+            }`,
+          })),
+        ],
       },
       {
         name: "intervalMonths",
@@ -101,8 +119,15 @@ export function PMScheduleFormPage() {
         type: "date",
         required: true,
       },
+      {
+        name: "planDetails",
+        label: "รายละเอียดแผน PM",
+        type: "textarea",
+        required: true,
+        fullWidth: true,
+      },
     ],
-    [locations.data],
+    [locations.data, technicians.data],
   );
   const defaults = useMemo<PMForm>(
     () =>
@@ -113,19 +138,21 @@ export function PMScheduleFormPage() {
             planDetails: editing.planDetails,
             intervalMonths: editing.intervalMonths,
             lastDoneAt: editing.lastDoneAt.slice(0, 10),
+            assignedTechnicianId: editing.assignedTechnicianId ?? "",
           }
         : {
             locationId: locations.data?.[0]?.id ?? "",
             assetName: locations.data?.[0]?.assetName ?? "",
             planDetails:
               "ตรวจสอบสภาพการใช้งาน ทำความสะอาด และบันทึกผลการตรวจตามรอบ",
-            intervalMonths: 3,
+            intervalMonths: 1,
             lastDoneAt: new Date().toISOString().slice(0, 10),
+            assignedTechnicianId: "",
           },
     [editing, locations.data],
   );
 
-  if (schedules.isLoading || locations.isLoading)
+  if (schedules.isLoading || locations.isLoading || technicians.isLoading)
     return (
       <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
         <CircularProgress />

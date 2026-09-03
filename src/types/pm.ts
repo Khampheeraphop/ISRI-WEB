@@ -7,6 +7,9 @@ export interface PMSchedule {
   intervalMonths: number;
   lastDoneAt: string;
   nextDueAt: string;
+  assignedTechnicianId?: string | null;
+  assignedTechnicianName?: string | null;
+  assignedTechnicianEmail?: string | null;
 }
 
 export interface PMLog {

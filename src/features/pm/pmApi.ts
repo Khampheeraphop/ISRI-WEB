@@ -10,6 +10,8 @@ type ScheduleResponse = {
   interval_months: number;
   last_done_at: string;
   next_due_at: string;
+  assigned_technician_id?: string | null;
+  profiles?: { full_name: string; email?: string } | null;
 };
 
 type LogResponse = {
@@ -27,6 +29,14 @@ export type PMScheduleInput = {
   planDetails: string;
   intervalMonths: number;
   lastDoneAt: string;
+  assignedTechnicianId?: string | null;
+};
+
+export type PMTechnicianOption = {
+  id: string;
+  full_name: string;
+  email: string;
+  technician_specialties: string[];
 };
 
 const toSchedule = (item: ScheduleResponse): PMSchedule => ({
@@ -38,6 +48,9 @@ const toSchedule = (item: ScheduleResponse): PMSchedule => ({
   intervalMonths: item.interval_months,
   lastDoneAt: item.last_done_at,
   nextDueAt: item.next_due_at,
+  assignedTechnicianId: item.assigned_technician_id ?? null,
+  assignedTechnicianName: item.profiles?.full_name ?? null,
+  assignedTechnicianEmail: item.profiles?.email ?? null,
 });
 
 const toLog = (item: LogResponse): PMLog => ({
@@ -52,6 +65,35 @@ const toLog = (item: LogResponse): PMLog => ({
 export async function getPMSchedules() {
   const result = await apiFetch<{ data: ScheduleResponse[] }>("/pm/schedules");
   return result.data.map(toSchedule);
+}
+
+export async function getPMTechnicians(): Promise<PMTechnicianOption[]> {
+  try {
+    const result = await apiFetch<{ data: PMTechnicianOption[] }>("/pm/technicians");
+    if (result.data?.length) return result.data;
+  } catch {
+    // Fallback to /admin/users if /pm/technicians is not yet deployed to cloud edge functions
+  }
+
+  const usersResult = await apiFetch<{
+    data: Array<{
+      id: string;
+      full_name: string;
+      email: string;
+      approval_status: string;
+      role: string | null;
+      technician_specialties: string[];
+    }>;
+  }>("/admin/users");
+
+  return (usersResult.data ?? [])
+    .filter((u) => u.approval_status === "approved" && u.role === "technician")
+    .map((u) => ({
+      id: u.id,
+      full_name: u.full_name,
+      email: u.email,
+      technician_specialties: u.technician_specialties ?? [],
+    }));
 }
 
 export async function getPMSchedule(id: string) {
