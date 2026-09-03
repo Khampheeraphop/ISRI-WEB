@@ -171,7 +171,11 @@ const getQrPoster = async (location: ManagedLocation) => {
 
   context.fillStyle = "#2A2830";
   context.font = "600 30px Anuphan, sans-serif";
-  context.fillText("สแกน QR เพื่อเปิดแบบฟอร์มแจ้งปัญหา", POSTER_WIDTH / 2, 1435);
+  context.fillText(
+    "สแกน QR เพื่อเปิดแบบฟอร์มแจ้งปัญหา",
+    POSTER_WIDTH / 2,
+    1435,
+  );
   context.fillStyle = "#77717A";
   context.font = "500 25px Anuphan, sans-serif";
   context.fillText("ระบบจะระบุตำแหน่งให้โดยอัตโนมัติ", POSTER_WIDTH / 2, 1485);
@@ -205,9 +209,9 @@ export function LocationManagementPage() {
     image: string;
   }>();
   const columns: GridColDef<ManagedLocation>[] = [
-    { field: "building", headerName: "อาคาร", width: 120 },
+    { field: "building", headerName: "อาคาร", width: 240 },
     { field: "floor", headerName: "ชั้น", width: 100 },
-    { field: "zone", headerName: "โซน", width: 110 },
+    { field: "zone", headerName: "โซน", width: 240 },
     { field: "assetName", headerName: "ชิ้นงาน", minWidth: 220, flex: 1 },
     {
       field: "actions",
@@ -332,7 +336,8 @@ export function LocationManagementPage() {
                     {getLocationTitle(preview.location)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {preview.location.building} · {preview.location.floor} · {preview.location.zone}
+                    {preview.location.building} · {preview.location.floor} ·{" "}
+                    {preview.location.zone}
                   </Typography>
                 </Box>
               </Stack>
