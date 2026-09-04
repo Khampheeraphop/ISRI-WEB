@@ -15,6 +15,7 @@ export interface PMLog {
   id: string;
   scheduleId: string;
   completedAt: string;
+  createdAt: string | null;
   technicianId: string;
   technicianName: string | null;
   notes: string;

@@ -67,7 +67,19 @@ export function PMSchedulesPage() {
       {schedules.isError && (
         <Alert severity="error">ไม่สามารถโหลดแผน PM ได้</Alert>
       )}
-      {isAdmin && schedules.data?.some(schedule => !schedule.assignedTechnicianId) && <Alert severity="warning">มี {schedules.data.filter(schedule => !schedule.assignedTechnicianId).length} แผนที่ยังไม่มอบหมายช่าง กรุณาแก้ไขแผนและเลือกผู้รับผิดชอบ เพื่อให้ช่างเห็นงานและบันทึกผลได้</Alert>}
+      {isAdmin &&
+        schedules.data?.some((schedule) => !schedule.assignedTechnicianId) && (
+          <Alert severity="warning">
+            มี{" "}
+            {
+              schedules.data.filter(
+                (schedule) => !schedule.assignedTechnicianId,
+              ).length
+            }{" "}
+            แผนที่ยังไม่มอบหมายช่าง กรุณาแก้ไขแผนและเลือกผู้รับผิดชอบ
+            เพื่อให้ช่างเห็นงานและบันทึกผลได้
+          </Alert>
+        )}
       {!schedules.data?.length && !schedules.isError && (
         <MainCard>
           <Typography color="text.secondary">ยังไม่มีแผน PM ในระบบ</Typography>
@@ -105,14 +117,14 @@ export function PMSchedulesPage() {
                       บันทึกผล PM
                     </Button>
                   )}
-                  {isAdmin && (
+                  {(isAdmin || isTechnician) && (
                     <Button
                       component={Link}
                       to={`/pm/${schedule.id}/complete`}
                       variant="outlined"
                       startIcon={<HistoryOutlined />}
                     >
-                      ดูประวัติ
+                      รายละเอียด / ประวัติ
                     </Button>
                   )}
                   {(isAdmin || isTechnician) && (

@@ -18,6 +18,7 @@ type LogResponse = {
   id: string;
   schedule_id: string;
   completed_at: string;
+  created_at: string | null;
   technician_id: string;
   profiles: { full_name: string } | null;
   notes: string;
@@ -50,6 +51,7 @@ const toLog = (item: LogResponse): PMLog => ({
   id: item.id,
   scheduleId: item.schedule_id,
   completedAt: item.completed_at,
+  createdAt: item.created_at ?? null,
   technicianId: item.technician_id,
   technicianName: item.profiles?.full_name ?? null,
   notes: item.notes,
