@@ -36,6 +36,7 @@ export function TextFieldControl<T extends FieldValues>({
           slotProps={{
             input: { readOnly: field.readOnly },
             htmlInput: field.type === "number" ? { min: field.min ?? 1, max: field.max } : undefined,
+            formHelperText: { sx: { marginLeft: 0 } },
           }}
         />
       )}

@@ -25,6 +25,7 @@ export function SelectFieldControl<T extends FieldValues>({
           error={Boolean(fieldState.error)}
           helperText={fieldState.error?.message ?? field.description}
           fullWidth
+          FormHelperTextProps={{ sx: { marginLeft: 0 } }}
         >
           {field.options?.map((option) => (
             <MenuItem key={option.value} value={option.value}>
