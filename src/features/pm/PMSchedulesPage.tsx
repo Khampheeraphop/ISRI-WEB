@@ -3,6 +3,7 @@ import {
   BuildOutlined,
   CalendarMonthOutlined,
   HistoryOutlined,
+  PersonOutlined,
 } from "@mui/icons-material";
 import {
   Alert,
@@ -94,12 +95,34 @@ export function PMSchedulesPage() {
               title={<Typography variant="h5">{schedule.assetName}</Typography>}
               subheader={schedule.locationLabel}
               action={
-                <Chip
-                  size="small"
-                  color={due.color}
-                  variant="outlined"
-                  label={due.label}
-                />
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ alignItems: "center" }}
+                >
+                  {schedule.assignedTechnicianName ? (
+                    <Chip
+                      size="small"
+                      icon={<PersonOutlined />}
+                      label={schedule.assignedTechnicianName}
+                      color="primary"
+                      variant="outlined"
+                    />
+                  ) : (
+                    <Chip
+                      size="small"
+                      label="ยังไม่มอบหมายช่าง"
+                      variant="outlined"
+                      color="default"
+                    />
+                  )}
+                  <Chip
+                    size="small"
+                    color={due.color}
+                    variant="outlined"
+                    label={due.label}
+                  />
+                </Stack>
               }
               footer={
                 <Stack

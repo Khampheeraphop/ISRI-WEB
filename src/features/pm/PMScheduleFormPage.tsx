@@ -43,7 +43,7 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
     .min(2)
     .max(200)
     .required("กรุณาระบุชื่อครุภัณฑ์"),
-  planDetails: yup.string().trim().min(10, "กรุณาระบุอย่างน้อย 10 ตัวอักษร").max(2000).required("กรุณาระบุรายละเอียดแผน"),
+  planDetails: yup.string().trim().max(2000).required("กรุณาระบุรายละเอียดแผน"),
   intervalMonths: yup.number().integer().min(1).max(60).required(),
   lastDoneAt: yup.string().defined(),
   nextDueAt: yup.string().required("กรุณาระบุวันครบกำหนดครั้งถัดไป"),
@@ -117,10 +117,14 @@ export function PMScheduleFormPage() {
         type: "select",
         readOnly: !isAdmin,
         options: [
-          { value: "", label: "ยังไม่มอบหมาย" },
-          ...(technicians.data ?? []).map((item) => ({
-            value: item.id,
-            label: item.full_name,
+          { value: "", label: "-- ยังไม่ระบุช่าง (เลือกภายหลังได้) --" },
+          ...(technicians.data ?? []).map((t) => ({
+            value: t.id,
+            label: `${t.full_name} (${t.email})${
+              t.technician_specialties?.length
+                ? ` · ${t.technician_specialties.join(", ")}`
+                : ""
+            }`,
           })),
           ...(!isAdmin && editing?.assignedTechnicianId
             ? [
@@ -131,13 +135,6 @@ export function PMScheduleFormPage() {
               ]
             : []),
         ],
-      },
-      {
-        name: "planDetails",
-        label: "รายละเอียดแผน PM",
-        type: "textarea",
-        required: true,
-        fullWidth: true,
       },
       {
         name: "intervalMonths",
@@ -156,6 +153,13 @@ export function PMScheduleFormPage() {
         label: "วันครบกำหนดครั้งถัดไป",
         type: "date",
         required: true,
+      },
+      {
+        name: "planDetails",
+        label: "รายละเอียดแผน PM",
+        type: "textarea",
+        required: true,
+        fullWidth: true,
       },
     ],
     [locations.data, technicians.data, isAdmin, editing],
@@ -179,7 +183,7 @@ export function PMScheduleFormPage() {
             assetName: locations.data?.[0]?.assetName ?? "",
             planDetails:
               "ตรวจสอบสภาพการใช้งาน ทำความสะอาด และบันทึกผลการตรวจตามรอบ",
-            intervalMonths: 3,
+            intervalMonths: 1,
             lastDoneAt: "",
             nextDueAt: pmDateInput(),
             assignedTechnicianId: "",
