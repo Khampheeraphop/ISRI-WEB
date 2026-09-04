@@ -15,6 +15,8 @@ import { MainCard } from "../../components/base/MainCard";
 import { GenericForm } from "../../components/form/GenericForm";
 import type { FormField } from "../../components/form/types";
 import { getManagedLocations } from "../admin/locationsApi";
+import { useAuth } from "../../hooks/useAuth";
+import { pmDateInput } from "./pm.constants";
 import {
   createPMSchedule,
   getPMSchedules,
@@ -29,23 +31,33 @@ type PMForm = {
   planDetails: string;
   intervalMonths: number;
   lastDoneAt: string;
+  nextDueAt: string;
   assignedTechnicianId: string;
 };
 
 const schema: yup.ObjectSchema<PMForm> = yup.object({
   locationId: yup.string().required(),
-  assetName: yup.string().trim().required("กรุณาระบุชื่อครุภัณฑ์"),
+  assetName: yup
+    .string()
+    .trim()
+    .min(2)
+    .max(200)
+    .required("กรุณาระบุชื่อครุภัณฑ์"),
   planDetails: yup.string().trim().max(2000).required("กรุณาระบุรายละเอียดแผน"),
   intervalMonths: yup.number().integer().min(1).max(60).required(),
-  lastDoneAt: yup.string().required(),
+  lastDoneAt: yup.string().defined(),
+  nextDueAt: yup.string().required("กรุณาระบุวันครบกำหนดครั้งถัดไป"),
   assignedTechnicianId: yup.string().defined(),
 });
 
 const toInput = (values: PMForm): PMScheduleInput => ({
   ...values,
   intervalMonths: Number(values.intervalMonths),
-  lastDoneAt: new Date(`${values.lastDoneAt}T09:00:00+07:00`).toISOString(),
-  assignedTechnicianId: values.assignedTechnicianId ? values.assignedTechnicianId : null,
+  lastDoneAt: values.lastDoneAt
+    ? new Date(`${values.lastDoneAt}T00:00:00+07:00`).toISOString()
+    : null,
+  nextDueAt: new Date(`${values.nextDueAt}T00:00:00+07:00`).toISOString(),
+  assignedTechnicianId: values.assignedTechnicianId || null,
 });
 
 const specialtyLabels: Record<string, string> = {
@@ -65,6 +77,13 @@ export function PMScheduleFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === "admin";
+  const technicians = useQuery({
+    queryKey: ["pm-technicians"],
+    queryFn: getPMTechnicians,
+    enabled: isAdmin,
+  });
   const schedules = useQuery({
     queryKey: ["pm-schedules"],
     queryFn: getPMSchedules,
@@ -72,10 +91,6 @@ export function PMScheduleFormPage() {
   const locations = useQuery({
     queryKey: ["managed-locations"],
     queryFn: getManagedLocations,
-  });
-  const technicians = useQuery({
-    queryKey: ["pm-technicians"],
-    queryFn: getPMTechnicians,
   });
   const editing = id
     ? schedules.data?.find((item) => item.id === id)
@@ -97,30 +112,41 @@ export function PMScheduleFormPage() {
         label: "จุด/ตำแหน่ง",
         type: "select",
         required: true,
+        readOnly: !isAdmin,
         options: (locations.data ?? []).map((location) => ({
           value: location.id,
           label: `${location.building} · ${location.floor} · ${location.zone}`,
         })),
       },
-      { name: "assetName", label: "ชื่อครุภัณฑ์", required: true },
+      {
+        name: "assetName",
+        label: "ชื่อครุภัณฑ์",
+        required: true,
+        readOnly: !isAdmin,
+      },
       {
         name: "assignedTechnicianId",
         label: "ช่างผู้รับผิดชอบ",
         type: "select",
-        required: false,
+        readOnly: !isAdmin,
         options: [
           { value: "", label: "-- ยังไม่ระบุช่าง (เลือกภายหลังได้) --" },
-          ...(technicians.data ?? []).map((t) => {
-            const specialtyText = formatTechnicianSpecialties(
-              t.technician_specialties,
-            );
-            return {
-              value: t.id,
-              label: `${t.full_name} (${t.email})${
-                specialtyText ? ` · ${specialtyText}` : ""
-              }`,
-            };
-          }),
+          ...(technicians.data ?? []).map((t) => ({
+            value: t.id,
+            label: `${t.full_name} (${t.email})${
+              t.technician_specialties?.length
+                ? ` · ${t.technician_specialties.join(", ")}`
+                : ""
+            }`,
+          })),
+          ...(!isAdmin && editing?.assignedTechnicianId
+            ? [
+                {
+                  value: editing.assignedTechnicianId,
+                  label: editing.assignedTechnicianName ?? "ช่างผู้รับผิดชอบ",
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -133,6 +159,12 @@ export function PMScheduleFormPage() {
         name: "lastDoneAt",
         label: "วันที่ทำ PM ล่าสุด",
         type: "date",
+        readOnly: Boolean(editing),
+      },
+      {
+        name: "nextDueAt",
+        label: "วันครบกำหนดครั้งถัดไป",
+        type: "date",
         required: true,
       },
       {
@@ -143,7 +175,7 @@ export function PMScheduleFormPage() {
         fullWidth: true,
       },
     ],
-    [locations.data, technicians.data],
+    [locations.data, technicians.data, isAdmin, editing],
   );
   const defaults = useMemo<PMForm>(
     () =>
@@ -153,7 +185,10 @@ export function PMScheduleFormPage() {
             assetName: editing.assetName,
             planDetails: editing.planDetails,
             intervalMonths: editing.intervalMonths,
-            lastDoneAt: editing.lastDoneAt.slice(0, 10),
+            lastDoneAt: editing.lastDoneAt
+              ? pmDateInput(editing.lastDoneAt)
+              : "",
+            nextDueAt: pmDateInput(editing.nextDueAt),
             assignedTechnicianId: editing.assignedTechnicianId ?? "",
           }
         : {
@@ -162,13 +197,18 @@ export function PMScheduleFormPage() {
             planDetails:
               "ตรวจสอบสภาพการใช้งาน ทำความสะอาด และบันทึกผลการตรวจตามรอบ",
             intervalMonths: 1,
-            lastDoneAt: new Date().toISOString().slice(0, 10),
+            lastDoneAt: "",
+            nextDueAt: pmDateInput(),
             assignedTechnicianId: "",
           },
     [editing, locations.data],
   );
 
-  if (schedules.isLoading || locations.isLoading || technicians.isLoading)
+  if (
+    schedules.isLoading ||
+    locations.isLoading ||
+    (isAdmin && technicians.isLoading)
+  )
     return (
       <Box sx={{ minHeight: 320, display: "grid", placeItems: "center" }}>
         <CircularProgress />
@@ -191,11 +231,19 @@ export function PMScheduleFormPage() {
           {editing ? "แก้ไขรอบ PM" : "ตั้งรอบ PM"}
         </Typography>
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-          ระบบจะคำนวณวันครบกำหนดรอบถัดไปจากวันที่ทำล่าสุดและรอบตรวจที่กำหนด
+          กำหนดรอบตรวจและวันครบกำหนด เมื่อบันทึกผล PM
+          ระบบจะเลื่อนรอบจากวันที่ดำเนินการล่าสุด
         </Typography>
       </Box>
-      {(locations.isError || schedules.isError || save.isError) && (
-        <Alert severity="error">ไม่สามารถบันทึกข้อมูลรอบ PM ได้</Alert>
+      {(locations.isError ||
+        schedules.isError ||
+        technicians.isError ||
+        save.isError) && (
+        <Alert severity="error">
+          {save.error instanceof Error
+            ? save.error.message
+            : "ไม่สามารถโหลดหรือบันทึกข้อมูลรอบ PM ได้"}
+        </Alert>
       )}
       <MainCard title={<Typography variant="h5">ข้อมูลรอบตรวจ</Typography>}>
         <GenericForm<PMForm>

@@ -8,7 +8,7 @@ type ScheduleResponse = {
   asset_name: string;
   plan_details: string;
   interval_months: number;
-  last_done_at: string;
+  last_done_at: string | null;
   next_due_at: string;
   assigned_technician_id?: string | null;
   profiles?: { full_name: string; email?: string } | null;
@@ -18,6 +18,7 @@ type LogResponse = {
   id: string;
   schedule_id: string;
   completed_at: string;
+  created_at: string | null;
   technician_id: string;
   profiles: { full_name: string } | null;
   notes: string;
@@ -28,7 +29,8 @@ export type PMScheduleInput = {
   assetName: string;
   planDetails: string;
   intervalMonths: number;
-  lastDoneAt: string;
+  lastDoneAt: string | null;
+  nextDueAt: string;
   assignedTechnicianId?: string | null;
 };
 
@@ -57,6 +59,7 @@ const toLog = (item: LogResponse): PMLog => ({
   id: item.id,
   scheduleId: item.schedule_id,
   completedAt: item.completed_at,
+  createdAt: item.created_at ?? null,
   technicianId: item.technician_id,
   technicianName: item.profiles?.full_name ?? null,
   notes: item.notes,
@@ -69,7 +72,9 @@ export async function getPMSchedules() {
 
 export async function getPMTechnicians(): Promise<PMTechnicianOption[]> {
   try {
-    const result = await apiFetch<{ data: PMTechnicianOption[] }>("/pm/technicians");
+    const result = await apiFetch<{ data: PMTechnicianOption[] }>(
+      "/pm/technicians",
+    );
     if (result.data?.length) return result.data;
   } catch {
     // Fallback to /admin/users if /pm/technicians is not yet deployed to cloud edge functions
@@ -114,7 +119,9 @@ export async function createPMSchedule(input: PMScheduleInput) {
   return toSchedule(result.data);
 }
 
-export async function updatePMSchedule(input: PMScheduleInput & { id: string }) {
+export async function updatePMSchedule(
+  input: PMScheduleInput & { id: string },
+) {
   const result = await apiFetch<{ data: ScheduleResponse }>(
     `/pm/schedules/${input.id}`,
     { method: "PATCH", body: JSON.stringify(input) },
@@ -131,7 +138,13 @@ export async function completePMSchedule(input: {
     data: { schedule: ScheduleResponse; log: LogResponse };
   }>(`/pm/schedules/${input.id}/complete`, {
     method: "POST",
-    body: JSON.stringify({ completedAt: input.completedAt, notes: input.notes }),
+    body: JSON.stringify({
+      completedAt: input.completedAt,
+      notes: input.notes,
+    }),
   });
-  return { schedule: toSchedule(result.data.schedule), log: toLog(result.data.log) };
+  return {
+    schedule: toSchedule(result.data.schedule),
+    log: toLog(result.data.log),
+  };
 }

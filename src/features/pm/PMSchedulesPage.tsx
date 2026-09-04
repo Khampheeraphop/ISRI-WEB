@@ -68,6 +68,19 @@ export function PMSchedulesPage() {
       {schedules.isError && (
         <Alert severity="error">ไม่สามารถโหลดแผน PM ได้</Alert>
       )}
+      {isAdmin &&
+        schedules.data?.some((schedule) => !schedule.assignedTechnicianId) && (
+          <Alert severity="warning">
+            มี{" "}
+            {
+              schedules.data.filter(
+                (schedule) => !schedule.assignedTechnicianId,
+              ).length
+            }{" "}
+            แผนที่ยังไม่มอบหมายช่าง กรุณาแก้ไขแผนและเลือกผู้รับผิดชอบ
+            เพื่อให้ช่างเห็นงานและบันทึกผลได้
+          </Alert>
+        )}
       {!schedules.data?.length && !schedules.isError && (
         <MainCard>
           <Typography color="text.secondary">ยังไม่มีแผน PM ในระบบ</Typography>
@@ -82,7 +95,11 @@ export function PMSchedulesPage() {
               title={<Typography variant="h5">{schedule.assetName}</Typography>}
               subheader={schedule.locationLabel}
               action={
-                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ alignItems: "center" }}
+                >
                   {schedule.assignedTechnicianName ? (
                     <Chip
                       size="small"
@@ -123,23 +140,23 @@ export function PMSchedulesPage() {
                       บันทึกผล PM
                     </Button>
                   )}
-                  {isAdmin && (
+                  {(isAdmin || isTechnician) && (
                     <Button
                       component={Link}
                       to={`/pm/${schedule.id}/complete`}
                       variant="outlined"
                       startIcon={<HistoryOutlined />}
                     >
-                      ดูประวัติ
+                      รายละเอียด / ประวัติ
                     </Button>
                   )}
-                  {isAdmin && (
+                  {(isAdmin || isTechnician) && (
                     <Button
                       component={Link}
                       to={`/pm/${schedule.id}/edit`}
                       variant="outlined"
                     >
-                      แก้ไขรอบ
+                      แก้ไขแผน
                     </Button>
                   )}
                 </Stack>
@@ -164,6 +181,10 @@ export function PMSchedulesPage() {
                   ครบกำหนด {formatPMDate(schedule.nextDueAt)}
                 </Typography>
               </Stack>
+              <Typography color="text.secondary" sx={{ mt: 1.5 }}>
+                ผู้รับผิดชอบ:{" "}
+                {schedule.assignedTechnicianName ?? "ยังไม่มอบหมาย"}
+              </Typography>
               <Typography color="text.secondary" sx={{ mt: 1.5 }}>
                 แผนงาน: {schedule.planDetails || "ยังไม่ได้ระบุรายละเอียดแผน"}
               </Typography>

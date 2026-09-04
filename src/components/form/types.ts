@@ -10,6 +10,8 @@ export type FormField<T extends FieldValues> = {
   placeholder?: string;
   description?: string;
   readOnly?: boolean;
+  min?: number;
+  max?: number;
   fullWidth?: boolean;
   required?: boolean;
   visibleWhen?: (values: T) => boolean;

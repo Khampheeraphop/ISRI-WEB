@@ -53,6 +53,11 @@ const roleLabels: Record<Role, string> = {
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   reporter: [
     {
+      label: "ประวัติการดำเนินงาน",
+      to: "/activity-history",
+      icon: <HistoryOutlined />,
+    },
+    {
       label: "รายการแจ้งซ่อมของฉัน",
       to: "/incidents/mine",
       icon: <AssignmentOutlined />,
@@ -63,7 +68,7 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
     {
       label: "ประวัติการดำเนินงาน",
-      to: "/work-orders/history",
+      to: "/activity-history",
       icon: <HistoryOutlined />,
     },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
@@ -81,12 +86,17 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
     },
     {
       label: "ประวัติการดำเนินงาน",
-      to: "/dispatch/history",
+      to: "/activity-history",
       icon: <HistoryOutlined />,
     },
   ],
   admin: [
     { label: "ภาพรวม", to: "/", icon: <DashboardOutlined /> },
+    {
+      label: "ประวัติการดำเนินงาน",
+      to: "/activity-history",
+      icon: <HistoryOutlined />,
+    },
     { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
     { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
     {
@@ -142,6 +152,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         },
         () => {
           void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+          void queryClient.invalidateQueries({ queryKey: ["reward-wallet"] });
+          void queryClient.invalidateQueries({ queryKey: ["reward-catalog"] });
         },
       )
       .subscribe();

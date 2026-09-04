@@ -44,6 +44,11 @@ const WorkOrderHistoryPage = lazy(() =>
     default: module.WorkOrderHistoryPage,
   })),
 );
+const ActivityHistoryDetailPage = lazy(() =>
+  import("./features/workOrders/ActivityHistoryDetailPage").then((module) => ({
+    default: module.ActivityHistoryDetailPage,
+  })),
+);
 const WorkOrderDetailPage = lazy(() =>
   import("./features/workOrders/WorkOrderDetailPage").then((module) => ({
     default: module.WorkOrderDetailPage,
@@ -271,7 +276,7 @@ function ApplicationRoutes() {
           <Route
             path="/pm/:id/edit"
             element={
-              <RoleRoute roles={["admin"]}>
+              <RoleRoute roles={["admin", "technician"]}>
                 <PMScheduleFormPage />
               </RoleRoute>
             }
@@ -289,6 +294,26 @@ function ApplicationRoutes() {
             element={
               <RoleRoute roles={["technician"]}>
                 <TechnicianWorkOrdersPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/activity-history"
+            element={
+              <RoleRoute
+                roles={["reporter", "technician", "dispatcher", "admin"]}
+              >
+                <WorkOrderHistoryPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/activity-history/:id"
+            element={
+              <RoleRoute
+                roles={["reporter", "technician", "dispatcher", "admin"]}
+              >
+                <ActivityHistoryDetailPage />
               </RoleRoute>
             }
           />
@@ -407,23 +432,22 @@ function ProtectedApplication() {
   const { authUser, profile, user, isLoading } = useAuth();
   const location = useLocation();
   if (isLoading) return <PageLoading />;
-  if (!authUser)
-    {
-      const currentPath = `${location.pathname}${location.search}`;
-      const isQrReportLink =
-        location.pathname === "/incidents/new" &&
-        new URLSearchParams(location.search).has("loc");
-      return (
-        <Navigate
-          to={
-            isQrReportLink
-              ? `/login?returnTo=${encodeURIComponent(currentPath)}`
-              : "/login"
-          }
-          replace
-        />
-      );
-    }
+  if (!authUser) {
+    const currentPath = `${location.pathname}${location.search}`;
+    const isQrReportLink =
+      location.pathname === "/incidents/new" &&
+      new URLSearchParams(location.search).has("loc");
+    return (
+      <Navigate
+        to={
+          isQrReportLink
+            ? `/login?returnTo=${encodeURIComponent(currentPath)}`
+            : "/login"
+        }
+        replace
+      />
+    );
+  }
   if (!profile || !user) return <Navigate to="/onboarding" replace />;
   const returnTo = getQrReportReturnTo();
   const currentPath = `${location.pathname}${location.search}`;

@@ -29,7 +29,7 @@ export type RewardRedemptionInput = {
 export type AdminRewardRedemption = {
   id: string;
   user_id: string;
-  status: "pending" | "fulfilled" | "cancelled";
+  status: "pending" | "approved" | "fulfilled" | "cancelled";
   fulfillment_method: "pickup" | "delivery";
   recipient_name: string;
   phone: string;
@@ -37,6 +37,8 @@ export type AdminRewardRedemption = {
   requester_note: string | null;
   admin_note: string | null;
   redeemed_at: string;
+  point_cost: number;
+  approved_at: string | null;
   fulfilled_at: string | null;
   cancelled_at: string | null;
   profiles: { full_name: string; email: string } | null;
@@ -139,12 +141,15 @@ export async function getRewardWallet() {
       }>;
       redemptions: Array<{
         id: string;
-        status: "pending" | "fulfilled" | "cancelled";
+        status: "pending" | "approved" | "fulfilled" | "cancelled";
         fulfillment_method: "pickup" | "delivery";
         recipient_name: string;
         phone: string;
         delivery_address: string | null;
+        admin_note: string | null;
         redeemed_at: string;
+        point_cost: number;
+        approved_at: string | null;
         fulfilled_at: string | null;
         cancelled_at: string | null;
         reward_items: { name: string; point_cost: number } | null;
@@ -181,7 +186,7 @@ export async function getAdminRewardRedemptions() {
 }
 export async function updateAdminRewardRedemption(input: {
   id: string;
-  status: "fulfilled" | "cancelled";
+  status: "approved" | "fulfilled" | "cancelled";
   note?: string;
 }) {
   return apiFetch<{ data: { id: string; status: string } }>(

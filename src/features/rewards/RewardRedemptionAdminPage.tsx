@@ -1,9 +1,18 @@
-import { Alert, Box, Button, Chip, Stack, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Stack,
+  Typography,
+  TextField,
+} from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
+import { ActionDialog } from "../../components/feedback/ActionDialog";
 import { tableColumnAlignment } from "../../components/dataTable.constants";
 import {
   getAdminRewardRedemptions,
@@ -12,7 +21,8 @@ import {
 } from "./rewardsApi";
 
 const statusLabels = {
-  pending: "รอดำเนินการ",
+  pending: "รออนุมัติ",
+  approved: "อนุมัติ รอส่งมอบ",
   fulfilled: "ส่งมอบแล้ว",
   cancelled: "ยกเลิก",
 };
@@ -20,6 +30,11 @@ const statusLabels = {
 export function RewardRedemptionAdminPage() {
   const client = useQueryClient();
   const [error, setError] = useState<string>();
+  const [action, setAction] = useState<{
+    row: AdminRewardRedemption;
+    status: "approved" | "fulfilled" | "cancelled";
+  }>();
+  const [note, setNote] = useState("");
   const items = useQuery({
     queryKey: ["admin-reward-redemptions"],
     queryFn: getAdminRewardRedemptions,
@@ -28,9 +43,13 @@ export function RewardRedemptionAdminPage() {
     mutationFn: updateAdminRewardRedemption,
     onSuccess: async () => {
       setError(undefined);
+      setAction(undefined);
+      setNote("");
       await Promise.all([
         client.invalidateQueries({ queryKey: ["admin-reward-redemptions"] }),
         client.invalidateQueries({ queryKey: ["admin-rewards"] }),
+        client.invalidateQueries({ queryKey: ["reward-wallet"] }),
+        client.invalidateQueries({ queryKey: ["reward-catalog"] }),
       ]);
     },
     onError: (cause) =>
@@ -51,6 +70,8 @@ export function RewardRedemptionAdminPage() {
       flex: 1,
     },
     { field: "phone", headerName: "โทรศัพท์", minWidth: 145 },
+    { field: "point_cost", headerName: "คะแนนที่ใช้", width: 120 },
+    { field: "admin_note", headerName: "หมายเหตุผู้ดูแล", minWidth: 180 },
     {
       field: "fulfillment_method",
       headerName: "วิธีรับ",
@@ -69,7 +90,7 @@ export function RewardRedemptionAdminPage() {
     {
       field: "status",
       headerName: "สถานะ",
-      width: 140,
+      width: 170,
       ...tableColumnAlignment.center,
       renderCell: ({ row }) => (
         <Box
@@ -102,7 +123,7 @@ export function RewardRedemptionAdminPage() {
       width: 230,
       ...tableColumnAlignment.actions,
       renderCell: ({ row }) =>
-        row.status === "pending" ? (
+        row.status === "pending" || row.status === "approved" ? (
           <Stack
             direction="row"
             spacing={0.5}
@@ -117,15 +138,24 @@ export function RewardRedemptionAdminPage() {
               size="small"
               variant="contained"
               disabled={update.isPending}
-              onClick={() => update.mutate({ id: row.id, status: "fulfilled" })}
+              onClick={() => {
+                setError(undefined);
+                setAction({
+                  row,
+                  status: row.status === "pending" ? "approved" : "fulfilled",
+                });
+              }}
             >
-              ส่งมอบแล้ว
+              {row.status === "pending" ? "อนุมัติ" : "บันทึกส่งมอบ"}
             </Button>
             <Button
               size="small"
               color="error"
               disabled={update.isPending}
-              onClick={() => update.mutate({ id: row.id, status: "cancelled" })}
+              onClick={() => {
+                setError(undefined);
+                setAction({ row, status: "cancelled" });
+              }}
             >
               ยกเลิก
             </Button>
@@ -151,7 +181,7 @@ export function RewardRedemptionAdminPage() {
   return (
     <Stack spacing={3}>
       <div>
-        <Typography variant="h3">การส่งมอบรางวัล</Typography>
+        <Typography variant="h3">อนุมัติและส่งมอบรางวัล</Typography>
         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
           ติดตามคำขอรับรางวัลและบันทึกผลการส่งมอบ
         </Typography>
@@ -172,6 +202,59 @@ export function RewardRedemptionAdminPage() {
           emptyMessage="ยังไม่มีคำขอรับรางวัล"
         />
       </MainCard>
+      <ActionDialog
+        open={Boolean(action)}
+        title={action ? statusLabels[action.status] : "จัดการคำขอ"}
+        onRequestClose={
+          update.isPending
+            ? undefined
+            : () => {
+                setAction(undefined);
+                setNote("");
+              }
+        }
+        footer={
+          <Button
+            variant="contained"
+            disabled={
+              update.isPending ||
+              (action?.status === "cancelled" && !note.trim())
+            }
+            onClick={() =>
+              action &&
+              update.mutate({ id: action.row.id, status: action.status, note })
+            }
+          >
+            ยืนยัน
+          </Button>
+        }
+      >
+        <Stack spacing={2}>
+          <Typography>
+            {action?.row.reward_items?.name} · {action?.row.recipient_name} ·{" "}
+            {action?.row.point_cost} คะแนน
+          </Typography>
+          {action?.status === "cancelled" && (
+            <Alert severity="info">
+              ระบบจะคืนคะแนนที่หักไว้และคืนจำนวนรางวัล พร้อมแจ้งเตือนผู้แจ้ง
+            </Alert>
+          )}
+          {error && <Alert severity="error">{error}</Alert>}
+          <TextField
+            label={
+              action?.status === "cancelled"
+                ? "เหตุผลที่ยกเลิก"
+                : "หมายเหตุ / รายละเอียดการส่งมอบ"
+            }
+            required={action?.status === "cancelled"}
+            multiline
+            minRows={3}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            slotProps={{ htmlInput: { maxLength: 500 } }}
+          />
+        </Stack>
+      </ActionDialog>
     </Stack>
   );
 }
