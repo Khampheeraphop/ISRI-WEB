@@ -142,6 +142,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         },
         () => {
           void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+          void queryClient.invalidateQueries({ queryKey: ["reward-wallet"] });
+          void queryClient.invalidateQueries({ queryKey: ["reward-catalog"] });
         },
       )
       .subscribe();

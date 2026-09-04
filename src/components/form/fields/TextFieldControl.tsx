@@ -35,7 +35,7 @@ export function TextFieldControl<T extends FieldValues>({
           fullWidth
           slotProps={{
             input: { readOnly: field.readOnly },
-            htmlInput: field.type === "number" ? { min: 1 } : undefined,
+            htmlInput: field.type === "number" ? { min: field.min ?? 1, max: field.max } : undefined,
           }}
         />
       )}

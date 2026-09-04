@@ -271,7 +271,7 @@ function ApplicationRoutes() {
           <Route
             path="/pm/:id/edit"
             element={
-              <RoleRoute roles={["admin"]}>
+              <RoleRoute roles={["admin", "technician"]}>
                 <PMScheduleFormPage />
               </RoleRoute>
             }
@@ -407,23 +407,22 @@ function ProtectedApplication() {
   const { authUser, profile, user, isLoading } = useAuth();
   const location = useLocation();
   if (isLoading) return <PageLoading />;
-  if (!authUser)
-    {
-      const currentPath = `${location.pathname}${location.search}`;
-      const isQrReportLink =
-        location.pathname === "/incidents/new" &&
-        new URLSearchParams(location.search).has("loc");
-      return (
-        <Navigate
-          to={
-            isQrReportLink
-              ? `/login?returnTo=${encodeURIComponent(currentPath)}`
-              : "/login"
-          }
-          replace
-        />
-      );
-    }
+  if (!authUser) {
+    const currentPath = `${location.pathname}${location.search}`;
+    const isQrReportLink =
+      location.pathname === "/incidents/new" &&
+      new URLSearchParams(location.search).has("loc");
+    return (
+      <Navigate
+        to={
+          isQrReportLink
+            ? `/login?returnTo=${encodeURIComponent(currentPath)}`
+            : "/login"
+        }
+        replace
+      />
+    );
+  }
   if (!profile || !user) return <Navigate to="/onboarding" replace />;
   const returnTo = getQrReportReturnTo();
   const currentPath = `${location.pathname}${location.search}`;

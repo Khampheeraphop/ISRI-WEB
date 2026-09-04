@@ -5,8 +5,10 @@ export interface PMSchedule {
   assetName: string;
   planDetails: string;
   intervalMonths: number;
-  lastDoneAt: string;
+  lastDoneAt: string | null;
   nextDueAt: string;
+  assignedTechnicianId: string | null;
+  assignedTechnicianName: string | null;
 }
 
 export interface PMLog {

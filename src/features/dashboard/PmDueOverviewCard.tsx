@@ -1,9 +1,11 @@
 import { BuildCircleOutlined } from "@mui/icons-material";
-import { Box, Chip, Stack, Typography } from "@mui/material";
+import { Box, Chip, Stack, Typography, Link } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
 import type { DashboardSummary } from "./dashboardApi";
 
 const thaiDate = new Intl.DateTimeFormat("th-TH", {
+  timeZone: "Asia/Bangkok",
   day: "numeric",
   month: "short",
   year: "numeric",
@@ -64,9 +66,9 @@ export function PmDueOverviewCard({ data }: { data?: DashboardSummary["pm"] }) {
             }}
           >
             <Box sx={{ minWidth: 0 }}>
-              <Typography noWrap sx={{ fontWeight: 600 }}>
+              <Link component={RouterLink} to={`/pm/${item.id}/complete`} sx={{ fontWeight: 600 }}>
                 {item.assetName}
-              </Typography>
+              </Link>
               <Typography variant="body2" color="text.secondary" noWrap>
                 {item.locationLabel}
               </Typography>

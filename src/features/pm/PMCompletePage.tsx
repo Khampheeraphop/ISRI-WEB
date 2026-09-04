@@ -14,7 +14,7 @@ import { MainCard } from "../../components/base/MainCard";
 import { GenericForm } from "../../components/form/GenericForm";
 import type { FormField } from "../../components/form/types";
 import { useAuth } from "../../hooks/useAuth";
-import { formatPMDate } from "./pm.constants";
+import { formatPMDate, pmDateInput } from "./pm.constants";
 import { completePMSchedule, getPMSchedule } from "./pmApi";
 
 type PMCompletionForm = { completedAt: string; notes: string };
@@ -35,7 +35,7 @@ const fields: FormField<PMCompletionForm>[] = [
 ];
 const schema: yup.ObjectSchema<PMCompletionForm> = yup.object({
   completedAt: yup.string().required("กรุณาระบุวันที่ดำเนินการ"),
-  notes: yup.string().trim().required(),
+  notes: yup.string().trim().max(4000).required(),
 });
 
 export function PMCompletePage() {
@@ -53,7 +53,7 @@ export function PMCompletePage() {
       completePMSchedule({
         id: id ?? "",
         completedAt: new Date(
-          `${values.completedAt}T09:00:00+07:00`,
+          `${values.completedAt}T00:00:00+07:00`,
         ).toISOString(),
         notes: values.notes,
       }),
@@ -96,7 +96,11 @@ export function PMCompletePage() {
       {canComplete && (
         <>
           {complete.isError && (
-            <Alert severity="error">ไม่สามารถบันทึกผล PM ได้</Alert>
+            <Alert severity="error">
+              {complete.error instanceof Error
+                ? complete.error.message
+                : "ไม่สามารถบันทึกผล PM ได้"}
+            </Alert>
           )}
           <MainCard
             title={<Typography variant="h5">ผลการตรวจรอบนี้</Typography>}
@@ -109,7 +113,7 @@ export function PMCompletePage() {
               fields={fields}
               schema={schema}
               defaultValues={{
-                completedAt: new Date().toISOString().slice(0, 10),
+                completedAt: pmDateInput(),
                 notes: "",
               }}
               submitLabel="บันทึกผลและเลื่อนรอบถัดไป"
