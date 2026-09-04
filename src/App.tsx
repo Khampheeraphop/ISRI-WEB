@@ -44,6 +44,11 @@ const WorkOrderHistoryPage = lazy(() =>
     default: module.WorkOrderHistoryPage,
   })),
 );
+const ActivityHistoryDetailPage = lazy(() =>
+  import("./features/workOrders/ActivityHistoryDetailPage").then((module) => ({
+    default: module.ActivityHistoryDetailPage,
+  })),
+);
 const WorkOrderDetailPage = lazy(() =>
   import("./features/workOrders/WorkOrderDetailPage").then((module) => ({
     default: module.WorkOrderDetailPage,
@@ -289,6 +294,26 @@ function ApplicationRoutes() {
             element={
               <RoleRoute roles={["technician"]}>
                 <TechnicianWorkOrdersPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/activity-history"
+            element={
+              <RoleRoute
+                roles={["reporter", "technician", "dispatcher", "admin"]}
+              >
+                <WorkOrderHistoryPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/activity-history/:id"
+            element={
+              <RoleRoute
+                roles={["reporter", "technician", "dispatcher", "admin"]}
+              >
+                <ActivityHistoryDetailPage />
               </RoleRoute>
             }
           />

@@ -1,7 +1,11 @@
 import { ImageOutlined } from "@mui/icons-material";
 import { Box, Chip, Stack, Typography } from "@mui/material";
 import type { WorkOrderEvent } from "./workOrdersApi";
-import { workOrderStatusLabels } from "./workOrderWorkflowUi";
+import {
+  activityEventLabel,
+  historyStatusColor,
+  historyStatusLabels,
+} from "./activityHistoryApi";
 import { formatBangkokDate } from "../../utils/incident";
 
 export function WorkOrderHistoryTimeline({
@@ -55,24 +59,32 @@ export function WorkOrderHistoryTimeline({
             >
               <Chip
                 size="small"
-                color={
-                  event.status === "done"
-                    ? "success"
-                    : event.status === "rejected"
-                      ? "error"
-                      : "primary"
-                }
-                label={workOrderStatusLabels[event.status] ?? event.status}
+                color={historyStatusColor(event.status)}
+                label={historyStatusLabels[event.status] ?? event.status}
+                sx={{ alignSelf: "flex-start", maxWidth: "100%" }}
               />
               <Typography variant="body2" color="text.secondary">
                 {formatBangkokDate(event.changed_at)} น.
               </Typography>
             </Stack>
             <Typography sx={{ fontWeight: 700, mt: 0.75 }}>
+              {activityEventLabel({
+                ...event,
+                previous_status:
+                  event.previous_status ?? events[index - 1]?.status,
+              })}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {event.changed_by_name}
             </Typography>
             {event.note && (
-              <Typography sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>
+              <Typography
+                sx={{
+                  whiteSpace: "pre-wrap",
+                  overflowWrap: "anywhere",
+                  mt: 0.5,
+                }}
+              >
                 {event.note}
               </Typography>
             )}

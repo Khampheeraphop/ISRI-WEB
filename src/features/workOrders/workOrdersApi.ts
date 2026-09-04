@@ -26,6 +26,7 @@ export type WorkOrderEvent = {
   changed_by_name: string;
   note: string | null;
   event_type: string;
+  previous_status?: string | null;
   attachments: Array<{
     fileName: string;
     mimeType: string;
