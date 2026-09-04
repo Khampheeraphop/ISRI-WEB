@@ -48,6 +48,19 @@ const toInput = (values: PMForm): PMScheduleInput => ({
   assignedTechnicianId: values.assignedTechnicianId ? values.assignedTechnicianId : null,
 });
 
+const specialtyLabels: Record<string, string> = {
+  electrical: "งานไฟฟ้า",
+  plumbing: "งานประปา",
+  air_conditioning: "เครื่องปรับอากาศ",
+  elevator: "งานลิฟต์",
+  building: "โครงสร้างอาคาร",
+};
+
+function formatTechnicianSpecialties(specialties?: string[]): string {
+  if (!specialties || specialties.length === 0) return "";
+  return specialties.map((s) => specialtyLabels[s] ?? s).join(", ");
+}
+
 export function PMScheduleFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -97,14 +110,17 @@ export function PMScheduleFormPage() {
         required: false,
         options: [
           { value: "", label: "-- ยังไม่ระบุช่าง (เลือกภายหลังได้) --" },
-          ...(technicians.data ?? []).map((t) => ({
-            value: t.id,
-            label: `${t.full_name} (${t.email})${
-              t.technician_specialties?.length
-                ? ` · ${t.technician_specialties.join(", ")}`
-                : ""
-            }`,
-          })),
+          ...(technicians.data ?? []).map((t) => {
+            const specialtyText = formatTechnicianSpecialties(
+              t.technician_specialties,
+            );
+            return {
+              value: t.id,
+              label: `${t.full_name} (${t.email})${
+                specialtyText ? ` · ${specialtyText}` : ""
+              }`,
+            };
+          }),
         ],
       },
       {
