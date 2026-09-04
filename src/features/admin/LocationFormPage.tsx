@@ -29,9 +29,9 @@ const fields: FormField<FormValues>[] = [
   },
 ];
 const schema = yup.object({
-  building: yup.string().required(),
-  floor: yup.string().required(),
-  zone: yup.string().required(),
+  building: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
+  floor: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
+  zone: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   assetName: yup.string().default(""),
 }) as yup.ObjectSchema<FormValues>;
 export function LocationFormPage() {

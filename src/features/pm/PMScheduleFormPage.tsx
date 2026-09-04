@@ -36,7 +36,7 @@ type PMForm = {
 };
 
 const schema: yup.ObjectSchema<PMForm> = yup.object({
-  locationId: yup.string().required(),
+  locationId: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   assetName: yup
     .string()
     .trim()
@@ -44,7 +44,7 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
     .max(200)
     .required("กรุณาระบุชื่อครุภัณฑ์"),
   planDetails: yup.string().trim().max(2000).required("กรุณาระบุรายละเอียดแผน"),
-  intervalMonths: yup.number().integer().min(1).max(60).required(),
+  intervalMonths: yup.number().integer().min(1).max(60).required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   lastDoneAt: yup.string().defined(),
   nextDueAt: yup.string().required("กรุณาระบุวันครบกำหนดครั้งถัดไป"),
   assignedTechnicianId: yup.string().defined(),
