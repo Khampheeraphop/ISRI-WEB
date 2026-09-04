@@ -313,28 +313,43 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Button>
               </Stack>
               {unreadNotifications.length ? (
-                unreadNotifications.map((item) => (
-                  <MenuItem
-                    key={item.id}
-                    onClick={async () => {
-                      await markRead.mutateAsync(item.id);
-                      setNotificationAnchor(null);
-                      if (item.target_path) navigate(item.target_path);
-                    }}
-                    sx={{
-                      whiteSpace: "normal",
-                      alignItems: "flex-start",
-                      py: 1.25,
-                      px: 1.5,
-                      border: 1,
-                      borderColor: "divider",
-                      borderRadius: 1.5,
-                      bgcolor: "background.paper",
-                    }}
-                  >
-                    {item.message}
-                  </MenuItem>
-                ))
+                unreadNotifications.map((item) => {
+                  // Determine target path based on notification type
+                  let targetPath = item.target_path;
+                  if (!targetPath) {
+                    if (
+                      item.type?.startsWith("pm_") ||
+                      item.related_pm_schedule_id
+                    ) {
+                      targetPath = "/pm/schedules";
+                    } else if (item.related_incident_id) {
+                      targetPath = `/incidents/${item.related_incident_id}`;
+                    }
+                  }
+
+                  return (
+                    <MenuItem
+                      key={item.id}
+                      onClick={async () => {
+                        await markRead.mutateAsync(item.id);
+                        setNotificationAnchor(null);
+                        if (targetPath) navigate(targetPath);
+                      }}
+                      sx={{
+                        whiteSpace: "normal",
+                        alignItems: "flex-start",
+                        py: 1.25,
+                        px: 1.5,
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 1.5,
+                        bgcolor: "background.paper",
+                      }}
+                    >
+                      {item.message}
+                    </MenuItem>
+                  );
+                })
               ) : (
                 <Box sx={{ px: 1.5, py: 2, textAlign: "center" }}>
                   <Typography variant="body2" color="text.secondary">
