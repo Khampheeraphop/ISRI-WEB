@@ -68,7 +68,7 @@ const specialtyLabels: Record<string, string> = {
   building: "โครงสร้างอาคาร",
 };
 
-function formatTechnicianSpecialties(specialties?: string[]): string {
+export function formatTechnicianSpecialties(specialties?: string[]): string {
   if (!specialties || specialties.length === 0) return "";
   return specialties.map((s) => specialtyLabels[s] ?? s).join(", ");
 }

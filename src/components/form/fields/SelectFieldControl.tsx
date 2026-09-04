@@ -1,4 +1,5 @@
-import { MenuItem, TextField } from "@mui/material";
+import { MenuItem, TextField, IconButton } from "@mui/material";
+import { Clear as ClearIcon } from "@mui/icons-material";
 import { Controller, type Control, type FieldValues } from "react-hook-form";
 import type { FormField } from "../types";
 
@@ -19,15 +20,33 @@ export function SelectFieldControl<T extends FieldValues>({
         <TextField
           {...controllerField}
           select
-          slotProps={{ input: { readOnly: field.readOnly } }}
+          slotProps={{
+            input: { readOnly: field.readOnly },
+            formHelperText: { sx: { marginLeft: 0 } },
+            select: {
+              endAdornment: controllerField.value ? (
+                <IconButton
+                  size="small"
+                  sx={{ position: "absolute", right: 28 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    controllerField.onChange("");
+                    controllerField.onBlur();
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              ) : undefined,
+            },
+          }}
           label={field.label}
           required={field.required}
           error={Boolean(fieldState.error)}
           helperText={fieldState.error?.message ?? field.description}
           fullWidth
-          FormHelperTextProps={{ sx: { marginLeft: 0 } }}
         >
-          {field.options?.map((option) => (
+          {(Array.isArray(field.options) ? field.options : [])?.map((option) => (
             <MenuItem key={option.value} value={option.value}>
               {option.label}
             </MenuItem>

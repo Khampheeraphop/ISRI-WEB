@@ -17,9 +17,36 @@ type FormValues = {
   zone: string;
   assetName: string;
 };
+
+const buildingFloorMap: Record<string, string[]> = {
+  "อาคารสำนักอธิการบดี": ["ชั้น G", "ชั้น 1", "ชั้น 2", "ชั้น 3", "ชั้น 4", "ชั้น 5", "ชั้น 6"],
+  "อาคาร 2": ["ชั้น G", "ชั้น 1", "ชั้น 2", "ชั้น 3", "ชั้น 4", "ชั้น 5", "ชั้น 6"],
+  "อาคารเฉลิมพระเกียรติ 80 พรรษา": ["ชั้น 1", "ชั้น 2", "ชั้น 3"],
+  "อาคารหอพัก": ["ชั้น 1", "ชั้น 2", "ชั้น 3", "ชั้น 4", "ชั้น 5", "ชั้น 6", "ชั้น 7", "ชั้น 8"],
+  "อาคารศูนย์ศิลปวัฒนธรรม": ["ชั้น 1", "ชั้น 2"],
+};
+
+const buildingOptions = Object.keys(buildingFloorMap).map((b) => ({ label: b, value: b }));
+
 const fields: FormField<FormValues>[] = [
-  { name: "building", label: "อาคาร", required: true },
-  { name: "floor", label: "ชั้น", required: true },
+  { 
+    name: "building", 
+    label: "อาคาร", 
+    type: "select",
+    options: buildingOptions,
+    required: true 
+  },
+  { 
+    name: "floor", 
+    label: "ชั้น", 
+    type: "select",
+    options: (values) => {
+      const building = values.building;
+      if (!building || !buildingFloorMap[building]) return [];
+      return buildingFloorMap[building].map((f) => ({ label: f, value: f }));
+    },
+    required: true 
+  },
   { name: "zone", label: "โซน", required: true },
   {
     name: "assetName",
