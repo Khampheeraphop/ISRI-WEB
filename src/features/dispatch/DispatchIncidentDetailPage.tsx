@@ -35,6 +35,7 @@ import {
   getDispatchTechnicians,
   rejectDispatchIncident,
 } from "./dispatchApi";
+import { AiIncidentAssessmentCard } from "./AiIncidentAssessmentCard";
 
 export function DispatchIncidentDetailPage() {
   const { id } = useParams();
@@ -49,6 +50,8 @@ export function DispatchIncidentDetailPage() {
   >("normal");
   const [rejectionOpen, setRejectionOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const aiAssessmentEnabled =
+    import.meta.env.VITE_AI_ASSESSMENT_ENABLED !== "false";
   const detail = useQuery({
     queryKey: ["dispatch-incident", id],
     queryFn: () => getDispatchIncidentDetail(id ?? ""),
@@ -250,6 +253,13 @@ export function DispatchIncidentDetailPage() {
           },
         ]}
       />
+
+      {aiAssessmentEnabled && (
+        <AiIncidentAssessmentCard
+          incidentId={incident.id}
+          onUseSuggestedUrgency={setUrgencyVerified}
+        />
+      )}
 
       <MainCard
         title={
