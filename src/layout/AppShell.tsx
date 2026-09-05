@@ -53,14 +53,14 @@ const roleLabels: Record<Role, string> = {
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   reporter: [
     {
-      label: "ประวัติการดำเนินงาน",
-      to: "/activity-history",
-      icon: <HistoryOutlined />,
-    },
-    {
       label: "รายการแจ้งซ่อมของฉัน",
       to: "/incidents/mine",
       icon: <AssignmentOutlined />,
+    },
+    {
+      label: "ประวัติการดำเนินงาน",
+      to: "/activity-history",
+      icon: <HistoryOutlined />,
     },
     { label: "แต้มและรางวัล", to: "/rewards", icon: <EmojiEventsOutlined /> },
   ],
