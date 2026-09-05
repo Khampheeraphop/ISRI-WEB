@@ -49,21 +49,20 @@ const schema: yup.ObjectSchema<PMCompletionForm> = yup.object({
   notes: yup
     .string()
     .trim()
-    .min(10, "กรุณาระบุรายละเอียดอย่างน้อย 10 ตัวอักษร")
     .max(4000, "ระบุรายละเอียดได้ไม่เกิน 4,000 ตัวอักษร")
     .required("กรุณาระบุงานที่ทำและผลการตรวจ"),
 });
 const formatRecordedAt = (date: string | null) =>
   date
     ? new Intl.DateTimeFormat("th-TH", {
-      timeZone: "Asia/Bangkok",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    }).format(new Date(date)) + " น."
+        timeZone: "Asia/Bangkok",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).format(new Date(date)) + " น."
     : "ไม่พบวันเวลาที่บันทึก";
 
 function PMLogDetail({ log }: { log: PMLog }) {
@@ -99,9 +98,8 @@ export function PMCompletePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") === "history"
-    ? "history"
-    : "details";
+  const activeTab =
+    searchParams.get("tab") === "history" ? "history" : "details";
   const changeTab = (tab: string) =>
     setSearchParams(
       (previous) => {
@@ -293,22 +291,21 @@ export function PMCompletePage() {
           />
           <MainCard
             title={<Typography variant="h5">ผลการดำเนินการล่าสุด</Typography>}
-            action={latest && (
-              <Button
-                size="small"
-                onClick={() => changeTab("history")}
-              >
-                ดูประวัติทั้งหมด
-              </Button>
-            )}
+            action={
+              latest && (
+                <Button size="small" onClick={() => changeTab("history")}>
+                  ดูประวัติทั้งหมด
+                </Button>
+              )
+            }
           >
-            {latest
-              ? <PMLogDetail log={latest} />
-              : (
-                <Typography color="text.secondary">
-                  ยังไม่มีบันทึกผล PM ของแผนนี้
-                </Typography>
-              )}
+            {latest ? (
+              <PMLogDetail log={latest} />
+            ) : (
+              <Typography color="text.secondary">
+                ยังไม่มีบันทึกผล PM ของแผนนี้
+              </Typography>
+            )}
           </MainCard>
           {canComplete && (
             <MainCard
@@ -325,7 +322,8 @@ export function PMCompletePage() {
               subheader={`กำหนดครั้งถัดไป ${formatPMDate(schedule.nextDueAt)}`}
             >
               <Typography color="text.secondary" sx={{ mb: 2 }}>
-                ระบุสิ่งที่ตรวจสอบ งานที่ทำ ผลที่พบ และสิ่งที่ต้องติดตาม เพื่อเก็บประวัติการบำรุงรักษา
+                ระบุสิ่งที่ตรวจสอบ งานที่ทำ ผลที่พบ และสิ่งที่ต้องติดตาม
+                เพื่อเก็บประวัติการบำรุงรักษา
               </Typography>
               <GenericForm<PMCompletionForm>
                 key={`${id}-${formVersion}`}
@@ -368,7 +366,8 @@ export function PMCompletePage() {
             {!logs.length && (
               <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
                 <Typography color="text.secondary">
-                  ยังไม่มีประวัติการดำเนินงาน เมื่อช่างบันทึกผล PM รายการจะแสดงที่นี่
+                  ยังไม่มีประวัติการดำเนินงาน เมื่อช่างบันทึกผล PM
+                  รายการจะแสดงที่นี่
                 </Typography>
                 {canComplete && (
                   <Button onClick={() => changeTab("details")}>
