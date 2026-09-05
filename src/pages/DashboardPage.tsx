@@ -25,6 +25,7 @@ import {
 import { ReportingRateCard } from "../features/dashboard/ReportingRateCard";
 import { TechnicianWorkloadCard } from "../features/dashboard/TechnicianWorkloadCard";
 import { IncentiveOverviewCard } from "../features/dashboard/IncentiveOverviewCard";
+import { HotspotCard } from "../features/dashboard/HotspotCard";
 import { PmDueOverviewCard } from "../features/dashboard/PmDueOverviewCard";
 
 const DashboardChart = lazy(() => import("react-apexcharts"));
@@ -135,9 +136,17 @@ function DashboardLoading() {
 }
 
 export function DashboardPage() {
-  const today = new Date();
-  const [month, setMonth] = useState(today.getMonth() + 1);
-  const [year, setYear] = useState(today.getFullYear());
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+  const currentYear = Number(today.find((part) => part.type === "year")!.value);
+  const currentMonth = Number(
+    today.find((part) => part.type === "month")!.value,
+  );
+  const [month, setMonth] = useState(currentMonth);
+  const [year, setYear] = useState(currentYear);
   const periodMonth = `${year}-${String(month).padStart(2, "0")}`;
   const summaryQuery = useQuery({
     queryKey: ["dashboard-summary", periodMonth],
@@ -212,10 +221,7 @@ export function DashboardPage() {
                 <MenuItem
                   key={label}
                   value={index + 1}
-                  disabled={
-                    year === today.getFullYear() &&
-                    index + 1 > today.getMonth() + 1
-                  }
+                  disabled={year === currentYear && index + 1 > currentMonth}
                 >
                   {label}
                 </MenuItem>
@@ -228,13 +234,14 @@ export function DashboardPage() {
               labelId="dashboard-year"
               label="ปี"
               value={year}
-              onChange={(event) => setYear(Number(event.target.value))}
+              onChange={(event) => {
+                const value = Number(event.target.value);
+                setYear(value);
+                if (value === currentYear && month > currentMonth)
+                  setMonth(currentMonth);
+              }}
             >
-              {[
-                today.getFullYear(),
-                today.getFullYear() - 1,
-                today.getFullYear() - 2,
-              ].map((item) => (
+              {[currentYear, currentYear - 1, currentYear - 2].map((item) => (
                 <MenuItem key={item} value={item}>
                   {item + 543}
                 </MenuItem>
@@ -245,8 +252,8 @@ export function DashboardPage() {
       </Box>
 
       <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
-        สถิติรายงานใช้ช่วงเดือนที่เลือก ส่วน SLA และแผน PM
-        แสดงรายการที่ต้องติดตามในปัจจุบัน
+        สถิติรายงานและ KPI ใช้เดือนที่เลือก ส่วนงานค้างและกำหนดแผน PM
+        แสดงสถานะปัจจุบัน
       </Typography>
 
       <Box
@@ -356,56 +363,22 @@ export function DashboardPage() {
                 </Typography>
               </Box>
             </Box>
-          </MainCard>
 
-          <MainCard
-            title={<Typography variant="h6">จุดพบปัญหาซ้ำ</Typography>}
-            contentSx={{ p: 0 }}
-          >
-            {summary.hotspots.length ? (
-              summary.hotspots.map((item, index) => (
-                <Box
-                  key={`${item.locationLabel}-${item.assetName ?? "area"}`}
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "30px minmax(0, 1fr) auto",
-                    gap: 1.25,
-                    px: 2.5,
-                    py: 1.8,
-                    borderBottom: index === summary.hotspots.length - 1 ? 0 : 1,
-                    borderColor: "divider",
-                  }}
-                >
-                  <Typography color="primary.main" sx={{ fontWeight: 700 }}>
-                    {index + 1}
-                  </Typography>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 600 }} noWrap>
-                      {item.locationLabel}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" noWrap>
-                      {item.assetName || "จุดพื้นที่"}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ textAlign: "right" }}>
-                    <Typography sx={{ fontWeight: 700 }}>
-                      {item.count} ครั้ง
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color={item.openCount ? "warning.main" : "text.secondary"}
-                    >
-                      ค้าง {item.openCount} งาน
-                    </Typography>
-                  </Box>
-                </Box>
-              ))
-            ) : (
-              <Typography color="text.secondary" sx={{ p: 3 }}>
-                ยังไม่พบจุดที่มีการแจ้งซ้ำในช่วงเวลาที่เลือก
+            {summary.sla.respondedCount !== undefined && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                ตอบรับ {summary.sla.respondedCount} งาน (ทัน SLA{" "}
+                {summary.sla.responseOnTimeCount ?? 0}) · ปิดงาน{" "}
+                {summary.sla.closedCount ?? 0} งาน (ทัน SLA{" "}
+                {summary.sla.resolutionOnTimeCount ?? 0}) · ไม่มีข้อมูลแสดง –
               </Typography>
             )}
           </MainCard>
+
+          <HotspotCard data={summary} />
           <IncentiveOverviewCard data={summary.incentives} />
         </Stack>
 
@@ -422,17 +395,23 @@ export function DashboardPage() {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: "130px minmax(0, 1fr)",
+                gridTemplateColumns: { xs: "1fr", sm: "130px minmax(0, 1fr)" },
                 alignItems: "center",
                 gap: 1,
               }}
             >
-              <DashboardChart
-                type="donut"
-                height={180}
-                options={statusOptions}
-                series={summary.statusCounts.map((item) => item.count)}
-              />
+              {summary.statusCounts.some((item) => item.count > 0) ? (
+                <DashboardChart
+                  type="donut"
+                  height={180}
+                  options={statusOptions}
+                  series={summary.statusCounts.map((item) => item.count)}
+                />
+              ) : (
+                <Typography color="text.secondary">
+                  ไม่มีรายการแจ้งในเดือนที่เลือก
+                </Typography>
+              )}
               <Stack spacing={1.15}>
                 {summary.statusCounts.map((item) => (
                   <Stack
@@ -456,12 +435,21 @@ export function DashboardPage() {
                           flexShrink: 0,
                         }}
                       />
-                      <Typography variant="body2" noWrap>
+                      <Typography variant="body2">
                         {statusLabels[item.status] ?? item.status}
                       </Typography>
                     </Stack>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {item.count}
+                      {item.count} (
+                      {Math.round(
+                        (item.count /
+                          (summary.statusCounts.reduce(
+                            (total, row) => total + row.count,
+                            0,
+                          ) || 1)) *
+                          100,
+                      )}
+                      %)
                     </Typography>
                   </Stack>
                 ))}
