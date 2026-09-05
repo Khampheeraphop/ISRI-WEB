@@ -33,7 +33,7 @@ export interface RewardRedemption {
   userId: string;
   rewardItemId: string;
   redeemedAt: string;
-  status: "pending" | "fulfilled" | "cancelled";
+  status: "pending" | "approved" | "fulfilled" | "cancelled";
   fulfillmentMethod: "pickup" | "delivery";
   recipientName: string;
   phone: string;

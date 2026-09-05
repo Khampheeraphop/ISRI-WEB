@@ -8,14 +8,17 @@ type ScheduleResponse = {
   asset_name: string;
   plan_details: string;
   interval_months: number;
-  last_done_at: string;
+  last_done_at: string | null;
   next_due_at: string;
+  assigned_technician_id?: string | null;
+  profiles?: { full_name: string; email?: string } | null;
 };
 
 type LogResponse = {
   id: string;
   schedule_id: string;
   completed_at: string;
+  created_at: string | null;
   technician_id: string;
   profiles: { full_name: string } | null;
   notes: string;
@@ -26,7 +29,16 @@ export type PMScheduleInput = {
   assetName: string;
   planDetails: string;
   intervalMonths: number;
-  lastDoneAt: string;
+  lastDoneAt: string | null;
+  nextDueAt: string;
+  assignedTechnicianId?: string | null;
+};
+
+export type PMTechnicianOption = {
+  id: string;
+  full_name: string;
+  email: string;
+  technician_specialties: string[];
 };
 
 const toSchedule = (item: ScheduleResponse): PMSchedule => ({
@@ -38,12 +50,16 @@ const toSchedule = (item: ScheduleResponse): PMSchedule => ({
   intervalMonths: item.interval_months,
   lastDoneAt: item.last_done_at,
   nextDueAt: item.next_due_at,
+  assignedTechnicianId: item.assigned_technician_id ?? null,
+  assignedTechnicianName: item.profiles?.full_name ?? null,
+  assignedTechnicianEmail: item.profiles?.email ?? null,
 });
 
 const toLog = (item: LogResponse): PMLog => ({
   id: item.id,
   scheduleId: item.schedule_id,
   completedAt: item.completed_at,
+  createdAt: item.created_at ?? null,
   technicianId: item.technician_id,
   technicianName: item.profiles?.full_name ?? null,
   notes: item.notes,
@@ -52,6 +68,37 @@ const toLog = (item: LogResponse): PMLog => ({
 export async function getPMSchedules() {
   const result = await apiFetch<{ data: ScheduleResponse[] }>("/pm/schedules");
   return result.data.map(toSchedule);
+}
+
+export async function getPMTechnicians(): Promise<PMTechnicianOption[]> {
+  try {
+    const result = await apiFetch<{ data: PMTechnicianOption[] }>(
+      "/pm/technicians",
+    );
+    if (result.data?.length) return result.data;
+  } catch {
+    // Fallback to /admin/users if /pm/technicians is not yet deployed to cloud edge functions
+  }
+
+  const usersResult = await apiFetch<{
+    data: Array<{
+      id: string;
+      full_name: string;
+      email: string;
+      approval_status: string;
+      role: string | null;
+      technician_specialties: string[];
+    }>;
+  }>("/admin/users");
+
+  return (usersResult.data ?? [])
+    .filter((u) => u.approval_status === "approved" && u.role === "technician")
+    .map((u) => ({
+      id: u.id,
+      full_name: u.full_name,
+      email: u.email,
+      technician_specialties: u.technician_specialties ?? [],
+    }));
 }
 
 export async function getPMSchedule(id: string) {
@@ -72,7 +119,9 @@ export async function createPMSchedule(input: PMScheduleInput) {
   return toSchedule(result.data);
 }
 
-export async function updatePMSchedule(input: PMScheduleInput & { id: string }) {
+export async function updatePMSchedule(
+  input: PMScheduleInput & { id: string },
+) {
   const result = await apiFetch<{ data: ScheduleResponse }>(
     `/pm/schedules/${input.id}`,
     { method: "PATCH", body: JSON.stringify(input) },
@@ -89,7 +138,13 @@ export async function completePMSchedule(input: {
     data: { schedule: ScheduleResponse; log: LogResponse };
   }>(`/pm/schedules/${input.id}/complete`, {
     method: "POST",
-    body: JSON.stringify({ completedAt: input.completedAt, notes: input.notes }),
+    body: JSON.stringify({
+      completedAt: input.completedAt,
+      notes: input.notes,
+    }),
   });
-  return { schedule: toSchedule(result.data.schedule), log: toLog(result.data.log) };
+  return {
+    schedule: toSchedule(result.data.schedule),
+    log: toLog(result.data.log),
+  };
 }

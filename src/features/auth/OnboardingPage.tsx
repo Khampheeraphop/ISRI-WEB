@@ -69,11 +69,17 @@ export function OnboardingPage() {
         : [...previous, value],
     );
   const isWaiting = Boolean(profile?.requestedPosition);
+  const isRejected = profile?.approvalStatus === "rejected";
+  const showForm = !isWaiting || isRejected; // Show form for new users or rejected users
   return (
     <AuthPageFrame>
       <Stack spacing={1}>
         <Typography variant="h4">
-          {isWaiting ? "รอการอนุมัติ" : "ข้อมูลสำหรับขอใช้งาน"}
+          {isRejected
+            ? "ขอทบทวนสิทธิ์การใช้งาน"
+            : isWaiting
+              ? "รอการอนุมัติ"
+              : "ข้อมูลสำหรับขอใช้งาน"}
         </Typography>
         <Typography color="text.secondary">
           {profile?.fullName || authUser.email}
@@ -85,15 +91,24 @@ export function OnboardingPage() {
         </Typography>
       </Stack>
       {error && <Alert severity="error">{error}</Alert>}
-      {isWaiting ? (
-        <Alert
-          severity={profile?.approvalStatus === "rejected" ? "error" : "info"}
-        >
-          {profile?.approvalStatus === "rejected"
-            ? "คำขอของคุณยังไม่ได้รับอนุมัติ โปรดติดต่อผู้ดูแล"
-            : "ส่งข้อมูลแล้ว กรุณารอผู้ดูแลอนุมัติบัญชี"}
-        </Alert>
-      ) : (
+      {isWaiting && (
+        <>
+          <Alert
+            severity={profile?.approvalStatus === "rejected" ? "error" : "info"}
+          >
+            {profile?.approvalStatus === "rejected"
+              ? "คำขอของคุณยังไม่ได้รับอนุมัติ คุณสามารถแก้ไขข้อมูลและขอทบทวนสิทธิ์ได้"
+              : "ส่งข้อมูลแล้ว กรุณารอผู้ดูแลอนุมัติบัญชี"}
+          </Alert>
+          {profile?.approvalStatus === "rejected" && (
+            <Alert severity="info">
+              คุณสามารถแก้ไขตำแหน่งและความเชี่ยวชาญด้านช่างด้านล่าง หรือกดปุ่ม
+              "ส่งข้อมูลเพื่อขอใช้งาน" เพื่อขอทบทวนสิทธิ์
+            </Alert>
+          )}
+        </>
+      )}
+      {showForm && (
         <Stack spacing={2}>
           <TextField
             label="ตำแหน่งหรือหน้าที่ที่ต้องการใช้งาน"
@@ -127,7 +142,11 @@ export function OnboardingPage() {
             disabled={!canSubmit || submitting}
             onClick={() => void handleSubmit()}
           >
-            {submitting ? "กำลังบันทึก" : "ส่งข้อมูลเพื่อขอใช้งาน"}
+            {submitting
+              ? "กำลังบันทึก"
+              : isRejected
+                ? "ขอทบทวนสิทธิ์"
+                : "ส่งข้อมูลเพื่อขอใช้งาน"}
           </Button>
         </Stack>
       )}

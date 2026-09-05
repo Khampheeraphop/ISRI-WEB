@@ -1,5 +1,5 @@
 import { EngineeringOutlined } from "@mui/icons-material";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Chip, Stack, Typography } from "@mui/material";
 import { MainCard } from "../../components/base/MainCard";
 import type { DashboardSummary } from "./dashboardApi";
 
@@ -13,10 +13,10 @@ export function TechnicianWorkloadCard({
       title={
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <EngineeringOutlined color="primary" />
-          <Typography variant="h6">งานที่มอบหมายในช่วงเวลา</Typography>
+          <Typography variant="h6">ภาระงานของช่าง</Typography>
         </Stack>
       }
-      subheader="จำนวนใบงานที่จัดสรรให้ช่างในเดือนที่เลือก"
+      subheader="งานมอบหมายตามเดือนที่เลือก · งานค้างและ PM ณ ปัจจุบัน"
       contentSx={{ p: 0 }}
     >
       {data.length ? (
@@ -34,7 +34,7 @@ export function TechnicianWorkloadCard({
               borderColor: "divider",
             }}
           >
-            <Typography noWrap sx={{ fontWeight: 600 }}>
+            <Typography sx={{ fontWeight: 600, overflowWrap: "anywhere" }}>
               {item.technicianName}
             </Typography>
             <Typography color="primary.main" sx={{ fontWeight: 700 }}>
@@ -42,8 +42,45 @@ export function TechnicianWorkloadCard({
                 item.assignedCount ??
                   (item as { activeCount?: number }).activeCount ??
                   0,
-              ).toLocaleString("th-TH")} งาน
+              ).toLocaleString("th-TH")}{" "}
+              งาน
             </Typography>
+            {item.primaryCount !== undefined && (
+              <Box sx={{ gridColumn: "1 / -1" }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 1 }}
+                >
+                  ช่างหลัก {item.primaryCount} · ช่างร่วม{" "}
+                  {item.supportCount ?? 0} งาน
+                </Typography>
+                <Stack
+                  direction="row"
+                  useFlexGap
+                  spacing={0.75}
+                  sx={{ flexWrap: "wrap" }}
+                >
+                  <Chip size="small" label={`ค้าง ${item.activeCount ?? 0}`} />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={item.overdueCount ? "error" : "default"}
+                    label={`เกิน SLA ${item.overdueCount ?? 0}`}
+                  />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`รออนุมัติ/ตรวจรับ ${item.pendingReviewCount ?? 0}`}
+                  />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`PM ${item.pmAssignedCount ?? 0} แผน · ต้องติดตาม ${item.pmDueCount ?? 0}`}
+                  />
+                </Stack>
+              </Box>
+            )}
           </Box>
         ))
       ) : (

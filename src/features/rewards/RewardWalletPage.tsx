@@ -47,6 +47,8 @@ type WalletRedemption = Awaited<
   ReturnType<typeof getRewardWallet>
 >["redemptions"][number];
 const redemptionColumns: GridColDef<WalletRedemption>[] = [
+  { field: "point_cost", headerName: "คะแนนที่ใช้", width: 120 },
+  { field: "admin_note", headerName: "หมายเหตุผู้ดูแล", minWidth: 180 },
   {
     field: "reward",
     headerName: "รางวัล",
@@ -65,7 +67,7 @@ const redemptionColumns: GridColDef<WalletRedemption>[] = [
   {
     field: "status",
     headerName: "สถานะ",
-    width: 140,
+    width: 170,
     ...tableColumnAlignment.center,
     renderCell: ({ row }) => (
       <Chip
@@ -83,7 +85,9 @@ const redemptionColumns: GridColDef<WalletRedemption>[] = [
             ? "ส่งมอบแล้ว"
             : row.status === "cancelled"
               ? "ยกเลิกและคืนแต้ม"
-              : "รอดำเนินการ"
+              : row.status === "approved"
+                ? "อนุมัติ รอส่งมอบ"
+                : "รออนุมัติ"
         }
       />
     ),

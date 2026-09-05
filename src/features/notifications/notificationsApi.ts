@@ -6,6 +6,7 @@ export type AppNotification = {
   message: string;
   related_incident_id: string | null;
   work_order_id?: string | null;
+  related_pm_schedule_id?: string | null;
   target_path?: string | null;
   is_read: boolean;
   created_at: string;
