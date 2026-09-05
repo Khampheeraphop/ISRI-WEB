@@ -55,7 +55,9 @@ export function OnboardingPage() {
       await saveOnboarding(position, selected);
       await refreshProfile();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "บันทึกข้อมูลไม่สำเร็จ");
+      setError(
+        cause instanceof Error ? cause.message : "บันทึกข้อมูลไม่สำเร็จ",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -73,7 +75,11 @@ export function OnboardingPage() {
     <AuthPageFrame>
       <Stack spacing={1}>
         <Typography variant="h4">
-          {isWaiting ? "รอการอนุมัติ" : "ข้อมูลสำหรับขอใช้งาน"}
+          {isRejected
+            ? "ขอทบทวนสิทธิ์การใช้งาน"
+            : isWaiting
+              ? "รอการอนุมัติ"
+              : "ข้อมูลสำหรับขอใช้งาน"}
         </Typography>
         <Typography color="text.secondary">
           {profile?.fullName || authUser.email}
@@ -85,7 +91,7 @@ export function OnboardingPage() {
         </Typography>
       </Stack>
       {error && <Alert severity="error">{error}</Alert>}
-      {isWaiting ? (
+      {isWaiting && (
         <>
           <Alert
             severity={profile?.approvalStatus === "rejected" ? "error" : "info"}
@@ -96,11 +102,13 @@ export function OnboardingPage() {
           </Alert>
           {profile?.approvalStatus === "rejected" && (
             <Alert severity="info">
-              คุณสามารถแก้ไขตำแหน่งและความเชี่ยวชาญด้านช่างด้านล่าง หรือกดปุ่ม "ส่งข้อมูลเพื่อขอใช้งาน" เพื่อขอทบทวนสิทธิ์
+              คุณสามารถแก้ไขตำแหน่งและความเชี่ยวชาญด้านช่างด้านล่าง หรือกดปุ่ม
+              "ส่งข้อมูลเพื่อขอใช้งาน" เพื่อขอทบทวนสิทธิ์
             </Alert>
           )}
         </>
-      ) : showForm ? (
+      )}
+      {showForm && (
         <Stack spacing={2}>
           <TextField
             label="ตำแหน่งหรือหน้าที่ที่ต้องการใช้งาน"
@@ -134,7 +142,11 @@ export function OnboardingPage() {
             disabled={!canSubmit || submitting}
             onClick={() => void handleSubmit()}
           >
-            {submitting ? "กำลังบันทึก" : isRejected ? "ขอทบทวนสิทธิ์" : "ส่งข้อมูลเพื่อขอใช้งาน"}
+            {submitting
+              ? "กำลังบันทึก"
+              : isRejected
+                ? "ขอทบทวนสิทธิ์"
+                : "ส่งข้อมูลเพื่อขอใช้งาน"}
           </Button>
         </Stack>
       )}
