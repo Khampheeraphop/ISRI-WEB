@@ -224,10 +224,6 @@ export function AiIncidentAssessmentCard({
               value={latestAssessment.confidence * 100}
               sx={{ mt: 0.75, height: 7, borderRadius: 4 }}
             />
-            <Typography variant="caption" color="text.secondary">
-              ค่านี้ไม่ใช่ความน่าจะเป็นที่ผ่านการสอบเทียบ
-              ใช้ประกอบการตรวจสอบเท่านั้น
-            </Typography>
           </Box>
 
           <Box>
@@ -296,8 +292,8 @@ export function AiIncidentAssessmentCard({
             }}
           >
             <Typography variant="caption" color="text.secondary">
-              วิเคราะห์เมื่อ {formatBangkokDate(latestAssessment.createdAt)} น. ·{" "}
-              {latestAssessment.model} · ภาพ{" "}
+              วิเคราะห์เมื่อ {formatBangkokDate(latestAssessment.createdAt)} น.
+              · {latestAssessment.model} · ภาพ{" "}
               {latestAssessment.inputAttachmentCount} รูป
             </Typography>
             <Stack direction="row" spacing={1}>
