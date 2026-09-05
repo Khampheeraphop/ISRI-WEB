@@ -104,6 +104,7 @@ function AttentionCard({
         gridTemplateColumns: "40px minmax(0, 1fr)",
         gap: 1.5,
         p: 2,
+        bgcolor: "background.paper", // <- Added background
         border: 1,
         borderColor: "divider",
         borderTop: 3,

@@ -33,9 +33,35 @@ export function TextFieldControl<T extends FieldValues>({
           error={Boolean(fieldState.error)}
           helperText={fieldState.error?.message ?? field.description}
           fullWidth
+          sx={
+            field.readOnly
+              ? {
+                  "& .MuiInputBase-root": {
+                    backgroundColor: "action.hover",
+                    pointerEvents: "none",
+                  },
+                  "& .MuiInputBase-input": {
+                    color: "text.disabled",
+                    WebkitTextFillColor: "var(--mui-palette-text-disabled)",
+                  },
+                  "& .MuiFormLabel-root": {
+                    color: "text.disabled",
+                  },
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "action.disabled",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "action.disabled",
+                  },
+                }
+              : undefined
+          }
           slotProps={{
             input: { readOnly: field.readOnly },
-            htmlInput: field.type === "number" ? { min: field.min ?? 1, max: field.max } : undefined,
+            htmlInput:
+              field.type === "number"
+                ? { min: field.min ?? 1, max: field.max }
+                : undefined,
             formHelperText: { sx: { marginLeft: 0 } },
           }}
         />
