@@ -363,19 +363,6 @@ export function DashboardPage() {
                 </Typography>
               </Box>
             </Box>
-
-            {summary.sla.respondedCount !== undefined && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 0.5 }}
-              >
-                ตอบรับ {summary.sla.respondedCount} งาน (ทัน SLA{" "}
-                {summary.sla.responseOnTimeCount ?? 0}) · ปิดงาน{" "}
-                {summary.sla.closedCount ?? 0} งาน (ทัน SLA{" "}
-                {summary.sla.resolutionOnTimeCount ?? 0}) · ไม่มีข้อมูลแสดง –
-              </Typography>
-            )}
           </MainCard>
 
           <HotspotCard data={summary} />
@@ -457,9 +444,10 @@ export function DashboardPage() {
             </Box>
           </MainCard>
           <TechnicianWorkloadCard data={summary.technicianWorkload} />
-          <PmDueOverviewCard data={summary.pm} />
         </Stack>
       </Box>
+
+      <PmDueOverviewCard data={summary.pm} />
     </Stack>
   );
 }
