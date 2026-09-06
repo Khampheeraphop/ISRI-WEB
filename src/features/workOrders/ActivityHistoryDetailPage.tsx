@@ -160,7 +160,13 @@ export function ActivityHistoryDetailPage() {
               },
               {
                 label: "สถานะปัจจุบัน",
-                value: historyStatusLabels[incident.status] ?? incident.status,
+                value: (
+                  <Chip
+                    size="small"
+                    color={historyStatusColor(incident.status)}
+                    label={historyStatusLabels[incident.status] ?? incident.status}
+                  />
+                ),
               },
               {
                 label: "รายละเอียดที่แจ้ง",

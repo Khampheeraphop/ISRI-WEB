@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { IncidentStatusChip } from "../components/IncidentStatusChip";
-import { PriorityRibbon } from "../components/PriorityRibbon";
+
 import { useAuth } from "../hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { getMyIncidents } from "../features/incidents/incidentsApi";
@@ -48,13 +48,9 @@ export function MyIncidentsPage() {
             <Paper
               key={incident.id}
               sx={{
-                position: "relative",
-                overflow: "hidden",
                 p: { xs: 2.5, md: 3 },
-                pr: { xs: 2.5, sm: 13 },
               }}
             >
-              <PriorityRibbon urgency={incident.urgencyReported} />
               <Stack spacing={1.5}>
                 <Box
                   sx={{

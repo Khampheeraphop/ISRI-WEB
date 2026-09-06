@@ -135,7 +135,7 @@ export function PMScheduleFormPage() {
             value: t.id,
             label: `${t.full_name} (${t.email})${
               t.technician_specialties?.length
-                ? ` · ${t.technician_specialties.join(", ")}`
+                ? ` · ${formatTechnicianSpecialties(t.technician_specialties)}`
                 : ""
             }`,
           })),

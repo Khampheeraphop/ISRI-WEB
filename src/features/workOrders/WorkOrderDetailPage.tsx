@@ -169,10 +169,12 @@ export function WorkOrderDetailPage() {
               {
                 label: "สถานะ",
                 value: (
-                  <Typography>
-                    {workOrderStatusLabels[workOrder.status] ??
+                  <Chip
+                    size="small"
+                    color={workOrder.status === "done" ? "success" : "primary"}
+                    label={workOrderStatusLabels[workOrder.status] ??
                       workOrder.status}
-                  </Typography>
+                  />
                 ),
               },
               {
