@@ -21,6 +21,14 @@ import { useAuth } from "../../hooks/useAuth";
 import { formatPMDate, getPMDueDetail } from "./pm.constants";
 import { getPMSchedules } from "./pmApi";
 
+const statusLabels = {
+  draft: "ฉบับร่าง",
+  active: "ใช้งาน",
+  paused: "พักแผน",
+  completed: "สิ้นสุดแล้ว",
+  cancelled: "ยกเลิก",
+} as const;
+
 export function PMSchedulesPage() {
   const { profile } = useAuth();
   const schedules = useQuery({
@@ -118,6 +126,12 @@ export function PMSchedulesPage() {
                   )}
                   <Chip
                     size="small"
+                    label={statusLabels[schedule.status]}
+                    color={schedule.status === "active" ? "success" : "default"}
+                    variant="outlined"
+                  />
+                  <Chip
+                    size="small"
                     color={due.color}
                     variant="outlined"
                     label={due.label}
@@ -130,7 +144,7 @@ export function PMSchedulesPage() {
                   spacing={1}
                   sx={{ width: "100%", justifyContent: "flex-end" }}
                 >
-                  {isTechnician && (
+                  {isTechnician && schedule.status === "active" && (
                     <Button
                       component={Link}
                       to={`/pm/${schedule.id}/complete`}
@@ -179,6 +193,9 @@ export function PMSchedulesPage() {
                 </Typography>
                 <Typography color="text.secondary">
                   ครบกำหนด {formatPMDate(schedule.nextDueAt)}
+                </Typography>
+                <Typography color="text.secondary">
+                  สิ้นสุด {schedule.endAt ? formatPMDate(schedule.endAt) : "ไม่กำหนด"}
                 </Typography>
               </Stack>
               <Typography color="text.secondary" sx={{ mt: 1.5 }}>

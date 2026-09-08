@@ -7,6 +7,9 @@ export interface PMSchedule {
   intervalMonths: number;
   lastDoneAt: string | null;
   nextDueAt: string;
+  endAt: string | null;
+  status: "draft" | "active" | "paused" | "completed" | "cancelled";
+  calendarSequence: number;
   assignedTechnicianId?: string | null;
   assignedTechnicianName?: string | null;
   assignedTechnicianEmail?: string | null;

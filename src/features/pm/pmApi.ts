@@ -10,6 +10,9 @@ type ScheduleResponse = {
   interval_months: number;
   last_done_at: string | null;
   next_due_at: string;
+  end_at: string | null;
+  status: PMSchedule["status"];
+  calendar_sequence: number;
   assigned_technician_id?: string | null;
   profiles?: { full_name: string; email?: string } | null;
 };
@@ -31,6 +34,8 @@ export type PMScheduleInput = {
   intervalMonths: number;
   lastDoneAt: string | null;
   nextDueAt: string;
+  endAt: string | null;
+  status: PMSchedule["status"];
   assignedTechnicianId?: string | null;
 };
 
@@ -50,10 +55,33 @@ const toSchedule = (item: ScheduleResponse): PMSchedule => ({
   intervalMonths: item.interval_months,
   lastDoneAt: item.last_done_at,
   nextDueAt: item.next_due_at,
+  endAt: item.end_at,
+  status: item.status,
+  calendarSequence: item.calendar_sequence,
   assignedTechnicianId: item.assigned_technician_id ?? null,
   assignedTechnicianName: item.profiles?.full_name ?? null,
   assignedTechnicianEmail: item.profiles?.email ?? null,
 });
+
+function assertPmLifecycleSaved(
+  item: ScheduleResponse,
+  input: PMScheduleInput,
+) {
+  if (
+    !("end_at" in item) ||
+    !("status" in item) ||
+    !("calendar_sequence" in item)
+  ) {
+    throw new Error(
+      "Backend ยังไม่ได้อัปเดต PM lifecycle กรุณา deploy migration และ isri-api เวอร์ชันล่าสุด",
+    );
+  }
+  const requestedEnd = input.endAt ? new Date(input.endAt).getTime() : null;
+  const savedEnd = item.end_at ? new Date(item.end_at).getTime() : null;
+  if (requestedEnd !== savedEnd || item.status !== input.status) {
+    throw new Error("ระบบบันทึกวันสิ้นสุดหรือสถานะแผน PM ไม่สำเร็จ");
+  }
+}
 
 const toLog = (item: LogResponse): PMLog => ({
   id: item.id,
@@ -116,6 +144,7 @@ export async function createPMSchedule(input: PMScheduleInput) {
     method: "POST",
     body: JSON.stringify(input),
   });
+  assertPmLifecycleSaved(result.data, input);
   return toSchedule(result.data);
 }
 
@@ -126,6 +155,7 @@ export async function updatePMSchedule(
     `/pm/schedules/${input.id}`,
     { method: "PATCH", body: JSON.stringify(input) },
   );
+  assertPmLifecycleSaved(result.data, input);
   return toSchedule(result.data);
 }
 

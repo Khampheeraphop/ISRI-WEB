@@ -17,7 +17,7 @@ type IncidentResponse = {
   category: IncidentCategory;
   other_category: string | null;
   urgency_reported: UrgencyLevel;
-  urgency_verified: UrgencyLevel | null;
+  urgency_verified?: UrgencyLevel | null;
   description: string;
   status: IncidentStatus;
   rejection_reason?: string | null;
