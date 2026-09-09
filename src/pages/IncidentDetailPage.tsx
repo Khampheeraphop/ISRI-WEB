@@ -21,7 +21,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DetailSection } from "../components/detail/DetailSection";
 import { IncidentStatusChip } from "../components/IncidentStatusChip";
-import { PriorityRibbon } from "../components/PriorityRibbon";
+
 import {
   getMyIncidentDetail,
   getMyIncidentHistory,
@@ -96,8 +96,7 @@ export function IncidentDetailPage() {
       </Tabs>
       {tab === 0 && (
         <>
-          <Box sx={{ position: "relative" }}>
-            <PriorityRibbon urgency={incident.urgencyReported} />
+          <Box>
             <DetailSection
               title="ภาพรวมรายการ"
               icon={<DescriptionOutlined />}
@@ -120,18 +119,20 @@ export function IncidentDetailPage() {
                 },
                 {
                   label: "ระดับความเร่งด่วน",
-                  value: (
+                  value: incident.urgencyVerified ? (
                     <Chip
                       size="small"
                       color={
-                        incident.urgencyReported === "critical"
+                        incident.urgencyVerified === "critical"
                           ? "error"
-                          : incident.urgencyReported === "urgent"
+                          : incident.urgencyVerified === "urgent"
                             ? "warning"
                             : "info"
                       }
-                      label={urgencyLabel[incident.urgencyReported]}
+                      label={urgencyLabel[incident.urgencyVerified]}
                     />
+                  ) : (
+                    <Typography color="text.secondary">–</Typography>
                   ),
                 },
               ]}

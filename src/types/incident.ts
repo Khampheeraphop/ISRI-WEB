@@ -51,6 +51,7 @@ export interface Incident {
   category: IncidentCategory;
   otherCategory?: string;
   urgencyReported: UrgencyLevel;
+  urgencyVerified?: UrgencyLevel;
   description: string;
   photoUrls: string[];
   reporterId: string;

@@ -58,7 +58,7 @@ export function WorkOrderActionDialog({
           {error && <Alert severity="error">{error}</Alert>}
           <TextField
             label={
-              requiresNote ? "รายละเอียดการดำเนินงาน *" : "หมายเหตุ (ถ้ามี)"
+              requiresNote ? "รายละเอียดการดำเนินงาน" : "หมายเหตุ (ถ้ามี)"
             }
             required={requiresNote}
             multiline

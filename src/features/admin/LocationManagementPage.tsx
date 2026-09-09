@@ -33,7 +33,7 @@ import { deleteManagedLocation, getManagedLocations } from "./locationsApi";
 // comfortably scannable when the label is mounted on a wall or equipment.
 const QR_SIZE = 720;
 const POSTER_WIDTH = 1240;
-const POSTER_HEIGHT = 1748;
+const POSTER_HEIGHT = 1580;
 
 const getQrUrl = (location: ManagedLocation) => {
   const asset = location.assetName
@@ -42,9 +42,10 @@ const getQrUrl = (location: ManagedLocation) => {
   return `${window.location.origin}/incidents/new?loc=${encodeURIComponent(location.code)}${asset}`;
 };
 
-const getLocationTitle = (location: ManagedLocation) =>
-  location.assetName ||
-  `${location.building} · ${location.floor} · ${location.zone}`;
+const getLocationTitle = (location: ManagedLocation) => {
+  const base = `${location.building} · ${location.floor} · ${location.zone}`;
+  return location.assetName ? `${base} · ${location.assetName}` : base;
+};
 
 const getDownloadFileName = (location: ManagedLocation) =>
   `QR-${getLocationTitle(location)}`
@@ -53,24 +54,28 @@ const getDownloadFileName = (location: ManagedLocation) =>
     .trim()
     .slice(0, 120) + ".png";
 
-const loadImage = (source: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = reject;
-    image.src = source;
+const loadImage = (src: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
   });
 
 const roundedRect = (
   context: CanvasRenderingContext2D,
   x: number,
   y: number,
-  width: number,
-  height: number,
-  radius: number,
+  w: number,
+  h: number,
+  r: number,
 ) => {
   context.beginPath();
-  context.roundRect(x, y, width, height, radius);
+  context.moveTo(x + r, y);
+  context.arcTo(x + w, y, x + w, y + h, r);
+  context.arcTo(x + w, y + h, x, y + h, r);
+  context.arcTo(x, y + h, x, y, r);
+  context.arcTo(x, y, x + w, y, r);
   context.closePath();
 };
 
@@ -81,22 +86,20 @@ const drawWrappedText = (
   y: number,
   maxWidth: number,
   lineHeight: number,
-  maxLines = 2,
-) => {
+): number => {
+  const words = text.split(/\s+/);
   const lines: string[] = [];
-  let line = "";
-  for (const character of Array.from(text)) {
-    const candidate = `${line}${character}`;
-    if (context.measureText(candidate).width > maxWidth && line) {
-      lines.push(line);
-      line = character;
-      if (lines.length === maxLines - 1) break;
-    } else line = candidate;
+  let current = "";
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (context.measureText(test).width > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
   }
-  if (line && lines.length < maxLines) {
-    const consumed = lines.join("").length + line.length;
-    lines.push(consumed < text.length ? `${line.slice(0, -1)}…` : line);
-  }
+  if (current) lines.push(current);
   lines.forEach((item, index) =>
     context.fillText(item, x, y + index * lineHeight),
   );
@@ -127,61 +130,42 @@ const getQrPoster = async (location: ManagedLocation) => {
   context.stroke();
 
   context.textAlign = "center";
-  context.fillStyle = "#1F1E23";
-  context.font = "700 42px Anuphan, sans-serif";
-  context.fillText("ISRI", POSTER_WIDTH / 2, 112);
-  context.fillStyle = "#68636C";
-  context.font = "500 28px Anuphan, sans-serif";
-  context.fillText("สแกนเพื่อแจ้งปัญหาโครงสร้างพื้นฐาน", POSTER_WIDTH / 2, 158);
-  context.strokeStyle = "#E7E2DC";
-  context.lineWidth = 3;
-  context.beginPath();
-  context.moveTo(160, 206);
-  context.lineTo(POSTER_WIDTH - 160, 206);
-  context.stroke();
 
   context.fillStyle = "#4B3B86";
   context.font = "600 25px Anuphan, sans-serif";
-  context.fillText("จุดแจ้งเหตุ", POSTER_WIDTH / 2, 270);
+  context.fillText("จุดแจ้งเหตุ", POSTER_WIDTH / 2, 110);
   context.fillStyle = "#25232A";
   context.font = "700 34px Anuphan, sans-serif";
   drawWrappedText(
     context,
     getLocationTitle(location),
     POSTER_WIDTH / 2,
-    326,
+    166,
     POSTER_WIDTH - 220,
     42,
-  );
-  context.fillStyle = "#726D76";
-  context.font = "500 27px Anuphan, sans-serif";
-  context.fillText(
-    `${location.building} · ${location.floor} · ${location.zone}`,
-    POSTER_WIDTH / 2,
-    430,
   );
 
   context.fillStyle = "#FFFFFF";
   context.strokeStyle = "#ECE8E1";
   context.lineWidth = 3;
-  roundedRect(context, 170, 490, POSTER_WIDTH - 340, POSTER_WIDTH - 340, 16);
+  roundedRect(context, 170, 260, POSTER_WIDTH - 340, POSTER_WIDTH - 340, 16);
   context.fill();
   context.stroke();
-  context.drawImage(qrImage, 260, 580, QR_SIZE, QR_SIZE);
+  context.drawImage(qrImage, 260, 350, QR_SIZE, QR_SIZE);
 
   context.fillStyle = "#2A2830";
   context.font = "600 30px Anuphan, sans-serif";
   context.fillText(
     "สแกน QR เพื่อเปิดแบบฟอร์มแจ้งปัญหา",
     POSTER_WIDTH / 2,
-    1435,
+    1275,
   );
   context.fillStyle = "#77717A";
   context.font = "500 25px Anuphan, sans-serif";
-  context.fillText("ระบบจะระบุตำแหน่งให้โดยอัตโนมัติ", POSTER_WIDTH / 2, 1485);
+  context.fillText("ระบบจะระบุตำแหน่งให้โดยอัตโนมัติ", POSTER_WIDTH / 2, 1325);
   context.fillStyle = "#A7A1AA";
   context.font = "500 22px Anuphan, sans-serif";
-  context.fillText(`รหัสจุด: ${location.code}`, POSTER_WIDTH / 2, 1575);
+  context.fillText(`รหัสจุด: ${location.code}`, POSTER_WIDTH / 2, 1415);
   return canvas.toDataURL("image/png");
 };
 
@@ -331,15 +315,9 @@ export function LocationManagementPage() {
                     maxWidth: 280,
                   }}
                 />
-                <Box>
-                  <Typography sx={{ fontWeight: 700 }}>
+                <Typography sx={{ fontWeight: 700 }}>
                     {getLocationTitle(preview.location)}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {preview.location.building} · {preview.location.floor} ·{" "}
-                    {preview.location.zone}
-                  </Typography>
-                </Box>
               </Stack>
             </DialogContent>
             <DialogActions>

@@ -1,5 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Button, Stack } from "@mui/material";
+import { useEffect } from "react";
 import {
   useForm,
   useWatch,
@@ -40,13 +41,27 @@ export function GenericForm<T extends FieldValues>({
   isSubmitting,
   columns = 1,
 }: GenericFormProps<T>) {
-  const { control, handleSubmit } = useForm<T>({
+  const { control, handleSubmit, setValue } = useForm<T>({
     defaultValues,
     resolver: yupResolver(schema) as unknown as Resolver<T>,
     mode: "onTouched",
     reValidateMode: "onChange",
   });
+  
   const values = useWatch({ control }) as T;
+
+  useEffect(() => {
+    fields.forEach((field) => {
+      if (field.type === "select" && typeof field.options === "function") {
+        const resolvedOptions = field.options(values);
+        const currentValue = values[field.name];
+        if (currentValue && !resolvedOptions.some((opt) => opt.value === currentValue)) {
+          setValue(field.name, "" as any, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+        }
+      }
+    });
+  }, [values, fields, setValue]);
+
   return (
     <Box
       component="form"
@@ -63,20 +78,27 @@ export function GenericForm<T extends FieldValues>({
     >
       {fields
         .filter((field) => !field.visibleWhen || field.visibleWhen(values))
-        .map((field) => (
-          <Box
-            key={field.name}
-            sx={{ gridColumn: field.fullWidth ? "1 / -1" : "auto" }}
-          >
-            {field.type === "select" ? (
-              <SelectFieldControl control={control} field={field} />
-            ) : field.type === "file" ? (
-              <ImageUploadControl control={control} field={field} />
-            ) : (
-              <TextFieldControl control={control} field={field} />
-            )}
-          </Box>
-        ))}
+        .map((field) => {
+          const resolvedField = {
+            ...field,
+            options: typeof field.options === "function" ? field.options(values) : field.options,
+          } as FormField<T>;
+
+          return (
+            <Box
+              key={resolvedField.name}
+              sx={{ gridColumn: resolvedField.fullWidth ? "1 / -1" : "auto" }}
+            >
+              {resolvedField.type === "select" ? (
+                <SelectFieldControl control={control} field={resolvedField} />
+              ) : resolvedField.type === "file" ? (
+                <ImageUploadControl control={control} field={resolvedField} />
+              ) : (
+                <TextFieldControl control={control} field={resolvedField} />
+              )}
+            </Box>
+          );
+        })}
       <Stack
         direction="row"
         spacing={1.25}

@@ -32,11 +32,13 @@ type PMForm = {
   intervalMonths: number;
   lastDoneAt: string;
   nextDueAt: string;
+  endAt: string;
+  status: "draft" | "active" | "paused" | "completed" | "cancelled";
   assignedTechnicianId: string;
 };
 
 const schema: yup.ObjectSchema<PMForm> = yup.object({
-  locationId: yup.string().required(),
+  locationId: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   assetName: yup
     .string()
     .trim()
@@ -44,9 +46,24 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
     .max(200)
     .required("กรุณาระบุชื่อครุภัณฑ์"),
   planDetails: yup.string().trim().max(2000).required("กรุณาระบุรายละเอียดแผน"),
-  intervalMonths: yup.number().integer().min(1).max(60).required(),
+  intervalMonths: yup.number().integer().min(1).max(60).required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   lastDoneAt: yup.string().defined(),
   nextDueAt: yup.string().required("กรุณาระบุวันครบกำหนดครั้งถัดไป"),
+  endAt: yup.string().defined()
+    .test(
+      "required-while-active",
+      "แผนที่ใช้งานต้องระบุวันสิ้นสุด",
+      (value, context) => context.parent.status !== "active" || Boolean(value),
+    )
+    .test(
+      "after-next-due",
+      "วันสิ้นสุดต้องไม่น้อยกว่าวันครบกำหนดครั้งถัดไป",
+      (value, context) => !value || !context.parent.nextDueAt || value >= context.parent.nextDueAt,
+    ),
+  status: yup
+    .mixed<PMForm["status"]>()
+    .oneOf(["draft", "active", "paused", "completed", "cancelled"])
+    .required("กรุณาเลือกสถานะแผน"),
   assignedTechnicianId: yup.string().defined(),
 });
 
@@ -57,8 +74,25 @@ const toInput = (values: PMForm): PMScheduleInput => ({
     ? new Date(`${values.lastDoneAt}T00:00:00+07:00`).toISOString()
     : null,
   nextDueAt: new Date(`${values.nextDueAt}T00:00:00+07:00`).toISOString(),
+  endAt: values.endAt
+    ? new Date(`${values.endAt}T23:59:59+07:00`).toISOString()
+    : null,
+  status: values.status,
   assignedTechnicianId: values.assignedTechnicianId || null,
 });
+
+const specialtyLabels: Record<string, string> = {
+  electrical: "งานไฟฟ้า",
+  plumbing: "งานประปา",
+  air_conditioning: "เครื่องปรับอากาศ",
+  elevator: "งานลิฟต์",
+  building: "โครงสร้างอาคาร",
+};
+
+export function formatTechnicianSpecialties(specialties?: string[]): string {
+  if (!specialties || specialties.length === 0) return "";
+  return specialties.map((s) => specialtyLabels[s] ?? s).join(", ");
+}
 
 export function PMScheduleFormPage() {
   const { id } = useParams();
@@ -122,7 +156,7 @@ export function PMScheduleFormPage() {
             value: t.id,
             label: `${t.full_name} (${t.email})${
               t.technician_specialties?.length
-                ? ` · ${t.technician_specialties.join(", ")}`
+                ? ` · ${formatTechnicianSpecialties(t.technician_specialties)}`
                 : ""
             }`,
           })),
@@ -134,6 +168,20 @@ export function PMScheduleFormPage() {
                 },
               ]
             : []),
+        ],
+      },
+      {
+        name: "status",
+        label: "สถานะแผน PM",
+        type: "select",
+        required: true,
+        readOnly: !isAdmin,
+        options: [
+          { value: "draft", label: "ฉบับร่าง" },
+          { value: "active", label: "ใช้งาน" },
+          { value: "paused", label: "พักแผน" },
+          { value: "completed", label: "สิ้นสุดแล้ว" },
+          { value: "cancelled", label: "ยกเลิก" },
         ],
       },
       {
@@ -153,6 +201,12 @@ export function PMScheduleFormPage() {
         label: "วันครบกำหนดครั้งถัดไป",
         type: "date",
         required: true,
+      },
+      {
+        name: "endAt",
+        label: "วันสิ้นสุดแผน (เว้นว่างได้)",
+        type: "date",
+        readOnly: !isAdmin,
       },
       {
         name: "planDetails",
@@ -176,6 +230,8 @@ export function PMScheduleFormPage() {
               ? pmDateInput(editing.lastDoneAt)
               : "",
             nextDueAt: pmDateInput(editing.nextDueAt),
+            endAt: editing.endAt ? pmDateInput(editing.endAt) : "",
+            status: editing.status,
             assignedTechnicianId: editing.assignedTechnicianId ?? "",
           }
         : {
@@ -186,6 +242,8 @@ export function PMScheduleFormPage() {
             intervalMonths: 1,
             lastDoneAt: "",
             nextDueAt: pmDateInput(),
+            endAt: "",
+            status: "active",
             assignedTechnicianId: "",
           },
     [editing, locations.data],

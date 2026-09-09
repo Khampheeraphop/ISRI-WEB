@@ -8,13 +8,19 @@ export const theme = createTheme({
       light: "#7C6BB0",
       contrastText: "#FFFFFF",
     },
-    background: { default: "#FAF9FC", paper: "#FFFFFF" },
-    text: { primary: "#1F1B2E", secondary: "#635C78" },
-    divider: "#E4E1ED",
-    error: { main: "#C1443A" },
-    warning: { main: "#C68A2E" },
-    success: { main: "#3B8F6D" },
-    info: { main: "#3E6FA6" },
+    secondary: {
+      main: "#9C79DF",
+      dark: "#6F4CB0",
+      light: "#C7B1F3",
+      contrastText: "#FFFFFF",
+    },
+    background: { default: "#F2EEF8", paper: "#FFFFFF" },
+    text: { primary: "#231B3A", secondary: "#6A5E8A" },
+    divider: "#DFD7ED",
+    error: { main: "#C1443A", contrastText: "#FFFFFF" },
+    warning: { main: "#C68A2E", contrastText: "#FFFFFF" },
+    success: { main: "#3B8F6D", contrastText: "#FFFFFF" },
+    info: { main: "#3E6FA6", contrastText: "#FFFFFF" },
   },
   typography: {
     fontFamily: '"Anuphan", sans-serif',
@@ -33,10 +39,29 @@ export const theme = createTheme({
   components: {
     MuiPaper: {
       styleOverrides: {
-        root: { boxShadow: "none", border: "1px solid #E4E1ED" },
+        root: { 
+          boxShadow: "0px 4px 24px rgba(75, 59, 134, 0.08)", 
+          border: "1px solid #F0EDF5",
+          backgroundColor: "#FFFFFF"
+        },
       },
     },
-    MuiButton: { styleOverrides: { root: { boxShadow: "none" } } },
+    MuiButton: { 
+      styleOverrides: { 
+        root: { boxShadow: "none" },
+        outlined: { backgroundColor: "#FFFFFF" }
+      } 
+    },
+    MuiChip: {
+      styleOverrides: {
+        outlined: { backgroundColor: "#FFFFFF" }
+      }
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: { backgroundColor: "#FFFFFF" }
+      }
+    },
     MuiInputBase: { styleOverrides: { root: { fontSize: "1rem" } } },
     MuiFormLabel: { styleOverrides: { root: { fontSize: "0.95rem" } } },
     MuiMenuItem: { styleOverrides: { root: { fontSize: "0.95rem" } } },

@@ -17,6 +17,7 @@ type IncidentResponse = {
   category: IncidentCategory;
   other_category: string | null;
   urgency_reported: UrgencyLevel;
+  urgency_verified?: UrgencyLevel | null;
   description: string;
   status: IncidentStatus;
   rejection_reason?: string | null;
@@ -50,6 +51,7 @@ export const toIncident = (incident: IncidentResponse): Incident => ({
   category: incident.category,
   otherCategory: incident.other_category ?? undefined,
   urgencyReported: incident.urgency_reported,
+  urgencyVerified: incident.urgency_verified ?? undefined,
   description: incident.description,
   photoUrls: [],
   reporterId: "",

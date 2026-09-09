@@ -13,7 +13,10 @@ export const incidentReportSchema: yup.ObjectSchema<IncidentReportFormValues> =
     assetName: yup.string().trim().required("กรุณาระบุชื่อชิ้นงาน"),
     category: yup
       .mixed<IncidentCategoryCode>()
-      .oneOf(incidentCategoryOptions.map((option) => option.value))
+      .oneOf(
+        incidentCategoryOptions.map((option) => option.value),
+        "กรุณาเลือกข้อมูลให้ครบถ้วน"
+      )
       .required("กรุณาเลือกประเภทปัญหา"),
     otherCategory: yup
       .string()

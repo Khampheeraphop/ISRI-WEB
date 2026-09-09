@@ -102,7 +102,11 @@ export function IncidentReportForm({
       )}
       <GenericForm<IncidentReportFormValues>
         key={location.id}
-        fields={incidentReportFields}
+        fields={incidentReportFields.map((field) =>
+          field.name === "assetName" && Boolean(qrAssetName)
+            ? { ...field, readOnly: true }
+            : field,
+        )}
         schema={incidentReportSchema}
         defaultValues={{
           building: location.building,
