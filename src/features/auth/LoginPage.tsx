@@ -1,4 +1,5 @@
 import GoogleIcon from "@mui/icons-material/Google";
+import LockOutlined from "@mui/icons-material/LockOutlined";
 import {
   Alert,
   Button,
@@ -61,11 +62,13 @@ export function LoginPage() {
   };
   return (
     <AuthPageFrame>
-      <Stack spacing={1}>
-        <Typography variant="h4">เข้าสู่ระบบ</Typography>
-        <Typography color="text.secondary">
-          ใช้บัญชี Google เพื่อเข้าสู่ระบบครั้งแรก
-          จากนั้นผู้ดูแลจะตรวจสอบและกำหนดสิทธิ์การใช้งาน
+      <Stack spacing={1.25}>
+        <Typography variant="h3" component="h1">
+          เข้าสู่ระบบ
+        </Typography>
+        <Typography color="text.secondary" sx={{ maxWidth: 440 }}>
+          เข้าใช้งานระบบด้วยบัญชี Google ของคุณ
+          ผู้ใช้งานครั้งแรกจะได้รับการตรวจสอบสิทธิ์จากผู้ดูแลระบบ
         </Typography>
       </Stack>
       {!isSupabaseConfigured && (
@@ -75,27 +78,38 @@ export function LoginPage() {
       <Button
         fullWidth
         size="large"
-        variant="outlined"
+        variant="contained"
         startIcon={submitting ? <CircularProgress size={18} /> : <GoogleIcon />}
         disabled={!isSupabaseConfigured || submitting}
         onClick={() => void handleSignIn()}
+        sx={{
+          minHeight: 54,
+          borderRadius: 2,
+          fontSize: "1rem",
+          background: "linear-gradient(135deg, #4B3B86 0%, #6754A8 100%)",
+          boxShadow: "0 12px 28px rgba(75,59,134,.22)",
+          "&:hover": {
+            boxShadow: "0 15px 32px rgba(75,59,134,.3)",
+          },
+        }}
       >
         เข้าสู่ระบบด้วย Google
       </Button>
       {localDemoEnabled && (
         <>
-          <Divider>สำหรับทดสอบระบบ Local</Divider>
+          <Divider sx={{ color: "text.secondary", fontSize: ".8rem" }}>
+            หรือบัญชีสำหรับทดสอบระบบ
+          </Divider>
           <Stack spacing={2}>
-            <Alert severity="info">
-              ใช้บัญชีจาก seed.sql เช่น nattaya.nurse@isri.local หรือ
-              admin@isri.local
-            </Alert>
             <TextField
-              label="อีเมลบัญชีทดสอบ"
+              label="อีเมล"
               type="email"
               autoComplete="username"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              slotProps={{
+                input: { sx: { borderRadius: 2, bgcolor: "#fff" } },
+              }}
             />
             <TextField
               label="รหัสผ่าน"
@@ -103,11 +117,15 @@ export function LoginPage() {
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              slotProps={{
+                input: { sx: { borderRadius: 2, bgcolor: "#fff" } },
+              }}
             />
             <Button
               fullWidth
               size="large"
-              variant="contained"
+              variant="outlined"
+              startIcon={<LockOutlined />}
               disabled={
                 !isSupabaseConfigured ||
                 submitting ||
@@ -115,6 +133,7 @@ export function LoginPage() {
                 !password
               }
               onClick={() => void handlePasswordSignIn()}
+              sx={{ minHeight: 50, borderRadius: 2 }}
             >
               เข้าสู่ระบบด้วยบัญชีทดสอบ
             </Button>

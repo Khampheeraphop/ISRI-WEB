@@ -1,5 +1,6 @@
 import {
   AccountCircleOutlined,
+  CloseOutlined,
   NotificationsOutlined,
   AdminPanelSettingsOutlined,
   AssignmentOutlined,
@@ -16,9 +17,14 @@ import {
 } from "@mui/icons-material";
 import {
   AppBar,
+  Avatar,
   Badge,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  Divider,
   Drawer,
   IconButton,
   List,
@@ -50,6 +56,42 @@ const roleLabels: Record<Role, string> = {
   dispatcher: "ผู้จัดสรรงาน",
   admin: "ผู้ดูแลระบบ",
 };
+
+function normalizeAvatarUrl(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  const rawValue = value.trim();
+  const markdownLink = rawValue.match(
+    /^\[(https?:\/\/[^\]]+)]\((https?:\/\/[^)]+)\)$/,
+  );
+  const candidate = markdownLink?.[2] ?? rawValue;
+
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return undefined;
+    if (url.hostname === "lh3.googleusercontent.com") {
+      url.pathname = url.pathname.replace(/=s\d+-c$/, "=s256-c");
+    }
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function getGoogleAvatarUrl(authUser: ReturnType<typeof useAuth>["authUser"]) {
+  const googleIdentity = authUser?.identities?.find(
+    (identity) => identity.provider === "google",
+  );
+  const identityData = googleIdentity?.identity_data;
+
+  return [
+    authUser?.user_metadata.avatar_url,
+    authUser?.user_metadata.picture,
+    identityData?.avatar_url,
+    identityData?.picture,
+  ]
+    .map(normalizeAvatarUrl)
+    .find((value): value is string => Boolean(value));
+}
 const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
   reporter: [
     {
@@ -125,11 +167,12 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { authUser, profile, user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountAnchor, setAccountAnchor] = useState<HTMLElement | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [notificationAnchor, setNotificationAnchor] =
     useState<HTMLElement | null>(null);
   const queryClient = useQueryClient();
@@ -172,6 +215,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
   if (!user) return null;
+  const avatarUrl = getGoogleAvatarUrl(authUser);
+  const initials = user.name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
   const unreadNotifications = (notifications.data ?? []).filter(
     (item) => !item.is_read,
   );
@@ -249,10 +300,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button
             color="inherit"
             onClick={(event) => setAccountAnchor(event.currentTarget)}
-            startIcon={<AccountCircleOutlined color="primary" />}
-            sx={{ textTransform: "none", textAlign: "left", py: 0.5 }}
+            aria-haspopup="menu"
+            aria-expanded={Boolean(accountAnchor)}
+            sx={{
+              ml: 0.75,
+              textTransform: "none",
+              textAlign: "right",
+              py: 0.5,
+              px: { xs: 0.75, sm: 1.25 },
+              borderRadius: 2.5,
+              "&:hover": { bgcolor: "rgba(75,59,134,.06)" },
+            }}
           >
-            <Box>
+            <Box sx={{ display: { xs: "none", sm: "block" }, mr: 1.25 }}>
               <Typography
                 variant="body2"
                 sx={{ fontWeight: 700, lineHeight: 1.2 }}
@@ -263,19 +323,303 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {roleLabels[user.role]}
               </Typography>
             </Box>
+            <Avatar
+              src={avatarUrl}
+              alt={user.name}
+              slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+              sx={{
+                width: 42,
+                height: 42,
+                fontSize: ".9rem",
+                fontWeight: 700,
+                color: "primary.main",
+                bgcolor: "rgba(75,59,134,.12)",
+                border: "2px solid #fff",
+                boxShadow: "0 0 0 1px #DCD7E9, 0 4px 12px rgba(45,32,90,.12)",
+              }}
+            >
+              {initials}
+            </Avatar>
           </Button>
           <Menu
             anchorEl={accountAnchor}
             open={Boolean(accountAnchor)}
             onClose={() => setAccountAnchor(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 1,
+                  minWidth: 210,
+                  p: 0.75,
+                  borderRadius: 2,
+                  boxShadow: "0 14px 40px rgba(31,27,46,.14)",
+                },
+              },
+            }}
           >
-            <MenuItem onClick={() => void signOut()}>
+            <MenuItem
+              onClick={() => {
+                setAccountAnchor(null);
+                setProfileOpen(true);
+              }}
+              sx={{ borderRadius: 1.5, py: 1.15 }}
+            >
               <ListItemIcon>
-                <LogoutOutlined fontSize="small" />
+                <AccountCircleOutlined fontSize="small" />
+              </ListItemIcon>
+              ดูโปรไฟล์
+            </MenuItem>
+            <Divider sx={{ my: 0.5 }} />
+            <MenuItem
+              onClick={() => {
+                setAccountAnchor(null);
+                void signOut();
+              }}
+              sx={{ borderRadius: 1.5, py: 1.15, color: "error.main" }}
+            >
+              <ListItemIcon>
+                <LogoutOutlined fontSize="small" color="error" />
               </ListItemIcon>
               ออกจากระบบ
             </MenuItem>
           </Menu>
+          <Dialog
+            open={profileOpen}
+            onClose={() => setProfileOpen(false)}
+            fullWidth
+            maxWidth="md"
+            slotProps={{
+              paper: {
+                sx: {
+                  overflowX: "hidden",
+                  overflowY: { xs: "auto", sm: "hidden" },
+                  maxHeight: { xs: "calc(100dvh - 24px)", sm: "none" },
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "minmax(0, 1fr)",
+                    sm: "290px minmax(0, 1fr)",
+                  },
+                  gridTemplateRows: { xs: "auto auto auto", sm: "1fr auto" },
+                  width: { xs: "calc(100% - 24px)", sm: 780 },
+                  maxWidth: "calc(100% - 24px)",
+                  m: { xs: 1.5, sm: 3 },
+                  borderRadius: { xs: 2.5, sm: 3.5 },
+                  boxShadow: "0 24px 80px rgba(31,27,46,.22)",
+                },
+              },
+            }}
+          >
+            <DialogTitle
+              component="div"
+              sx={{
+                position: "relative",
+                gridColumn: 1,
+                gridRow: { xs: 1, sm: "1 / 3" },
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                p: { xs: 2.5, sm: 4 },
+                minHeight: { xs: 188, sm: 430 },
+                color: "common.white",
+                background:
+                  "linear-gradient(155deg, #332667 0%, #51408F 54%, #735FAD 100%)",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  width: 220,
+                  height: 220,
+                  borderRadius: "50%",
+                  top: -120,
+                  left: -100,
+                  border: "44px solid rgba(255,255,255,.055)",
+                },
+                "&::after": {
+                  content: '""',
+                  position: "absolute",
+                  width: 150,
+                  height: 150,
+                  borderRadius: "50%",
+                  right: -75,
+                  bottom: -70,
+                  bgcolor: "rgba(255,255,255,.055)",
+                },
+              }}
+            >
+              <IconButton
+                aria-label="ปิด"
+                onClick={() => setProfileOpen(false)}
+                sx={{
+                  position: "absolute",
+                  top: 12,
+                  right: 12,
+                  zIndex: 2,
+                  display: { xs: "inline-flex", sm: "none" },
+                  color: "rgba(255,255,255,.82)",
+                  bgcolor: "rgba(255,255,255,.1)",
+                }}
+              >
+                <CloseOutlined />
+              </IconButton>
+              <Stack
+                sx={{ position: "relative", zIndex: 1, alignItems: "center" }}
+              >
+                <Avatar
+                  src={avatarUrl}
+                  alt={user.name}
+                  slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+                  sx={{
+                    width: { xs: 104, sm: 156 },
+                    height: { xs: 104, sm: 156 },
+                    fontSize: "2.2rem",
+                    fontWeight: 700,
+                    color: "primary.main",
+                    bgcolor: "#F2EFFA",
+                    border: {
+                      xs: "4px solid rgba(255,255,255,.94)",
+                      sm: "6px solid rgba(255,255,255,.94)",
+                    },
+                    boxShadow: "0 16px 38px rgba(16,10,44,.3)",
+                  }}
+                >
+                  {initials}
+                </Avatar>
+              </Stack>
+            </DialogTitle>
+            <Box
+              sx={{
+                gridColumn: { xs: 1, sm: 2 },
+                gridRow: { xs: 2, sm: 1 },
+                position: "relative",
+                px: { xs: 2.5, sm: 4 },
+                pb: { xs: 1.5, sm: 4 },
+                pt: { xs: 2.5, sm: 8 },
+              }}
+            >
+              <IconButton
+                aria-label="ปิด"
+                onClick={() => setProfileOpen(false)}
+                sx={{
+                  position: "absolute",
+                  top: 14,
+                  right: 14,
+                  display: { xs: "none", sm: "inline-flex" },
+                  color: "text.secondary",
+                }}
+              >
+                <CloseOutlined />
+              </IconButton>
+              <Box sx={{ pr: { sm: 5 }, mb: { xs: 2, sm: 3 } }}>
+                <Typography variant="h4">โปรไฟล์ของฉัน</Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  รายละเอียดบัญชีผู้ใช้งาน
+                </Typography>
+              </Box>
+              <Stack spacing={{ xs: 1.5, sm: 2.25 }}>
+                <Box
+                  sx={{
+                    p: { xs: 1.5, sm: 2 },
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: "divider",
+                    bgcolor: "#FCFBFE",
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    ชื่อ–นามสกุล
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600, mt: 0.35 }}>
+                    {user.name}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    p: { xs: 1.5, sm: 2 },
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: "divider",
+                    bgcolor: "#FCFBFE",
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    อีเมล
+                  </Typography>
+                  <Typography
+                    sx={{ fontWeight: 600, mt: 0.35, wordBreak: "break-word" }}
+                  >
+                    {profile?.email ?? authUser?.email ?? "—"}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 1.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      p: { xs: 1.5, sm: 2 },
+                      borderRadius: 2,
+                      bgcolor: "rgba(75,59,134,.065)",
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary">
+                      สิทธิ์การใช้งาน
+                    </Typography>
+                    <Typography sx={{ fontWeight: 600, mt: 0.35 }}>
+                      {roleLabels[user.role]}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      p: { xs: 1.5, sm: 2 },
+                      borderRadius: 2,
+                      bgcolor: "rgba(59,143,109,.08)",
+                    }}
+                  >
+                    <Typography variant="caption" color="text.secondary">
+                      สถานะบัญชี
+                    </Typography>
+                    <Typography
+                      color="success.main"
+                      sx={{ fontWeight: 600, mt: 0.35 }}
+                    >
+                      ยืนยันแล้ว
+                    </Typography>
+                  </Box>
+                </Box>
+              </Stack>
+            </Box>
+            <DialogActions
+              sx={{
+                gridColumn: { xs: 1, sm: 2 },
+                gridRow: { xs: 3, sm: 2 },
+                px: { xs: 2.5, sm: 4 },
+                pb: { xs: 2.5, sm: 4 },
+                pt: 0,
+              }}
+            >
+              <Button
+                variant="contained"
+                onClick={() => setProfileOpen(false)}
+                sx={{
+                  width: { xs: "100%", sm: "auto" },
+                  minWidth: 120,
+                  minHeight: 44,
+                  borderRadius: 2,
+                }}
+              >
+                ปิด
+              </Button>
+            </DialogActions>
+          </Dialog>
           <Menu
             anchorEl={notificationAnchor}
             open={Boolean(notificationAnchor)}
