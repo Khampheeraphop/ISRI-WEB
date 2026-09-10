@@ -665,7 +665,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                       item.type?.startsWith("pm_") ||
                       item.related_pm_schedule_id
                     ) {
-                      targetPath = "/pm/schedules";
+                      targetPath = item.related_pm_schedule_id
+                        ? `/pm/${item.related_pm_schedule_id}/complete?tab=history`
+                        : "/pm";
                     } else if (item.related_incident_id) {
                       targetPath = `/incidents/${item.related_incident_id}`;
                     }
