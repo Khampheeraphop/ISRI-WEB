@@ -12,6 +12,7 @@ export type FormField<T extends FieldValues> = {
   readOnly?: boolean;
   min?: number;
   max?: number;
+  maxFiles?: number;
   fullWidth?: boolean;
   required?: boolean;
   visibleWhen?: (values: T) => boolean;

@@ -1,5 +1,11 @@
+import type {
+  CampaignAwardStatus,
+  CampaignPeriodType,
+  CampaignStatus,
+  CreateRewardCampaign,
+  RewardCampaign,
+} from "../../types/reward";
 import { apiFetch } from "../api/apiClient";
-import type { CampaignPeriodType, CampaignStatus, RewardCampaign } from "../../types/reward";
 
 type CampaignResponse = {
   id: string;
@@ -8,10 +14,30 @@ type CampaignResponse = {
   start_date: string;
   end_date: string;
   prize_description: string;
+  reward_item_id: string | null;
+  winner_count: number;
+  reserved_reward_count: number;
   status: CampaignStatus;
+  reward_item: {
+    id: string;
+    name: string;
+    description: string;
+    stock: number;
+    is_active: boolean;
+    image_url: string | null;
+  } | null;
+  campaign_awards: Array<{
+    id: string;
+    user_id: string;
+    rank: number;
+    status: CampaignAwardStatus;
+    awarded_at: string;
+    fulfilled_at: string | null;
+    cancelled_at: string | null;
+    admin_note: string | null;
+    profiles: { full_name: string } | null;
+  }>;
 };
-
-type CampaignInput = Omit<RewardCampaign, "id" | "status">;
 
 export type CampaignLeaderboardScore = {
   campaignId: string;
@@ -28,15 +54,42 @@ const toCampaign = (campaign: CampaignResponse): RewardCampaign => ({
   startDate: campaign.start_date,
   endDate: campaign.end_date,
   prizeDescription: campaign.prize_description,
+  rewardItemId: campaign.reward_item_id ?? undefined,
+  reward: campaign.reward_item
+    ? {
+        id: campaign.reward_item.id,
+        name: campaign.reward_item.name,
+        description: campaign.reward_item.description,
+        stock: campaign.reward_item.stock,
+        isActive: campaign.reward_item.is_active,
+        imageUrl: campaign.reward_item.image_url,
+      }
+    : undefined,
+  winnerCount: campaign.winner_count ?? 1,
+  reservedRewardCount: campaign.reserved_reward_count ?? 0,
+  awards: (campaign.campaign_awards ?? [])
+    .map((award) => ({
+      id: award.id,
+      userId: award.user_id,
+      winnerName: award.profiles?.full_name ?? "ผู้ใช้งานระบบ",
+      rank: award.rank,
+      status: award.status,
+      awardedAt: award.awarded_at,
+      fulfilledAt: award.fulfilled_at ?? undefined,
+      cancelledAt: award.cancelled_at ?? undefined,
+      adminNote: award.admin_note ?? undefined,
+    }))
+    .sort((left, right) => left.rank - right.rank),
   status: campaign.status,
 });
 
-const toPayload = (campaign: CampaignInput) => ({
+const toPayload = (campaign: CreateRewardCampaign) => ({
   name: campaign.name,
   periodType: campaign.periodType,
   startDate: campaign.startDate,
   endDate: campaign.endDate,
-  prizeDescription: campaign.prizeDescription,
+  rewardItemId: campaign.rewardItemId,
+  winnerCount: campaign.winnerCount,
 });
 
 export async function getCampaigns() {
@@ -44,15 +97,20 @@ export async function getCampaigns() {
   return result.data.map(toCampaign);
 }
 
-export async function createCampaign(input: CampaignInput) {
-  const result = await apiFetch<{ data: CampaignResponse }>("/admin/campaigns", {
-    method: "POST",
-    body: JSON.stringify(toPayload(input)),
-  });
+export async function createCampaign(input: CreateRewardCampaign) {
+  const result = await apiFetch<{ data: CampaignResponse }>(
+    "/admin/campaigns",
+    {
+      method: "POST",
+      body: JSON.stringify(toPayload(input)),
+    },
+  );
   return toCampaign(result.data);
 }
 
-export async function updateCampaign(input: CampaignInput & { id: string }) {
+export async function updateCampaign(
+  input: CreateRewardCampaign & { id: string },
+) {
   const result = await apiFetch<{ data: CampaignResponse }>(
     `/admin/campaigns/${input.id}`,
     { method: "PATCH", body: JSON.stringify(toPayload(input)) },
@@ -66,6 +124,20 @@ export async function closeCampaign(id: string) {
     { method: "POST" },
   );
   return toCampaign(result.data);
+}
+
+export async function updateCampaignAward(input: {
+  id: string;
+  status: "fulfilled" | "cancelled";
+  note?: string;
+}) {
+  return apiFetch<{ data: { id: string; status: CampaignAwardStatus } }>(
+    `/admin/campaign-awards/${input.id}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status: input.status, note: input.note }),
+    },
+  );
 }
 
 export async function getCampaignLeaderboard(id: string) {

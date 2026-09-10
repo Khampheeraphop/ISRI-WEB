@@ -1,4 +1,8 @@
-import { EmojiEventsOutlined, MilitaryTechOutlined } from "@mui/icons-material";
+import {
+  EmojiEventsOutlined,
+  Inventory2Outlined,
+  MilitaryTechOutlined,
+} from "@mui/icons-material";
 import {
   Avatar,
   Box,
@@ -138,7 +142,10 @@ function PodiumWinner({ row }: { row: LeaderboardRow }) {
 
 export function CampaignLeaderboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const campaigns = useQuery({ queryKey: ["campaigns"], queryFn: getCampaigns });
+  const campaigns = useQuery({
+    queryKey: ["campaigns"],
+    queryFn: getCampaigns,
+  });
   const selectedId = searchParams.get("campaign");
   const selectedCampaign =
     (campaigns.data ?? []).find((item) => item.id === selectedId) ??
@@ -231,13 +238,13 @@ export function CampaignLeaderboardPage() {
           <MainCard contentSx={{ p: { xs: 2.25, md: 2.75 } }}>
             <Stack
               direction={{ xs: "column", md: "row" }}
-              spacing={1.5}
+              spacing={2}
               sx={{
                 alignItems: { md: "center" },
                 justifyContent: "space-between",
               }}
             >
-              <Box>
+              <Box sx={{ flex: 1 }}>
                 <Typography variant="h5">{selectedCampaign.name}</Typography>
                 <Typography color="text.secondary" sx={{ mt: 0.25 }}>
                   {formatCampaignPeriod(
@@ -246,22 +253,75 @@ export function CampaignLeaderboardPage() {
                   )}{" "}
                   · {campaignPeriodLabel[selectedCampaign.periodType]}
                 </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ mt: 1.25, alignItems: "center" }}
+                >
+                  <Chip
+                    label={campaignStatusLabel[selectedCampaign.status]}
+                    color={
+                      selectedCampaign.status === "active"
+                        ? "success"
+                        : "default"
+                    }
+                    variant="outlined"
+                  />
+                  <Chip
+                    label={`ผู้ชนะ ${selectedCampaign.winnerCount} คน`}
+                    variant="outlined"
+                  />
+                </Stack>
               </Box>
               <Stack
                 direction="row"
-                spacing={1}
-                sx={{ alignItems: "center", flexWrap: "wrap" }}
+                spacing={1.5}
+                sx={{
+                  alignItems: "center",
+                  width: { xs: "100%", md: 390 },
+                  p: 1.25,
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 2,
+                }}
               >
-                <Chip
-                  label={campaignStatusLabel[selectedCampaign.status]}
-                  color={
-                    selectedCampaign.status === "active" ? "success" : "default"
-                  }
-                  variant="outlined"
-                />
-                <Typography variant="body2" color="text.secondary">
-                  {selectedCampaign.prizeDescription}
-                </Typography>
+                <Box
+                  sx={{
+                    width: 82,
+                    height: 72,
+                    flexShrink: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    bgcolor: "background.default",
+                    borderRadius: 1.5,
+                    overflow: "hidden",
+                  }}
+                >
+                  {selectedCampaign.reward?.imageUrl ? (
+                    <Box
+                      component="img"
+                      src={selectedCampaign.reward.imageUrl}
+                      alt={selectedCampaign.reward.name}
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        p: 0.75,
+                      }}
+                    />
+                  ) : (
+                    <Inventory2Outlined color="disabled" />
+                  )}
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    รางวัลของแคมเปญ
+                  </Typography>
+                  <Typography sx={{ fontWeight: 700 }}>
+                    {selectedCampaign.reward?.name ??
+                      selectedCampaign.prizeDescription}
+                  </Typography>
+                </Box>
               </Stack>
             </Stack>
           </MainCard>

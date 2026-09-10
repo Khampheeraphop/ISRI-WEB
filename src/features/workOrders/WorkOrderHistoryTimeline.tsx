@@ -120,7 +120,9 @@ export function WorkOrderHistoryTimeline({
                         sx={{
                           width: "100%",
                           height: "100%",
-                          objectFit: "cover",
+                          objectFit: "contain",
+                          bgcolor: "#F7F7FA",
+                          p: 0.5,
                         }}
                       />
                     ) : (

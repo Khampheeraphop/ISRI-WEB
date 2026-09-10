@@ -50,17 +50,26 @@ export function RewardCatalogAdminPage() {
           variant="rounded"
           alt={row.name}
           src={row.imageUrl ?? undefined}
-          sx={{ width: 48, height: 48, bgcolor: "background.default" }}
+          sx={{
+            width: 48,
+            height: 48,
+            bgcolor: "#F7F7FA",
+            "& .MuiAvatar-img": { objectFit: "contain", p: 0.25 },
+          }}
         />
       ),
     },
     { field: "name", headerName: "ของรางวัล", minWidth: 220, flex: 1 },
     {
       field: "pointCost",
-      headerName: "แต้ม",
+      headerName: "คะแนนแลก",
       minWidth: 90,
       type: "number",
       ...tableColumnAlignment.numeric,
+      renderCell: ({ row }) =>
+        row.isActive && row.rewardPeriod === "standard"
+          ? row.pointCost.toLocaleString("th-TH")
+          : "–",
     },
     {
       field: "stock",
@@ -70,30 +79,28 @@ export function RewardCatalogAdminPage() {
       ...tableColumnAlignment.numeric,
     },
     {
-      field: "rewardPeriod",
-      headerName: "รอบรางวัล",
-      minWidth: 125,
-      ...tableColumnAlignment.center,
-      renderCell: ({ value }) => (
-        <Chip
-          size="small"
-          color={value === "annual" ? "secondary" : "default"}
-          variant="outlined"
-          label={value === "annual" ? "ประจำปี" : "ทั่วไป"}
-        />
-      ),
-    },
-    {
-      field: "isActive",
-      headerName: "สถานะ",
-      minWidth: 115,
+      field: "usage",
+      headerName: "ประเภทของรางวัล",
+      minWidth: 175,
       ...tableColumnAlignment.center,
       renderCell: ({ row }) => (
         <Chip
           size="small"
-          color={row.isActive ? "success" : "default"}
+          color={
+            row.rewardPeriod === "annual"
+              ? "secondary"
+              : row.isActive
+                ? "success"
+                : "default"
+          }
           variant="outlined"
-          label={row.isActive ? "เปิดให้แลก" : "ปิดการแลก"}
+          label={
+            row.rewardPeriod === "annual"
+              ? "รางวัลประจำปี"
+              : row.isActive
+                ? "แลกด้วยคะแนน"
+                : "รางวัลแคมเปญ"
+          }
         />
       ),
     },

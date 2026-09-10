@@ -30,19 +30,25 @@ function ImagePreview({
     <Box
       sx={{
         position: "relative",
-        width: 112,
+        width: 144,
         height: 112,
         overflow: "hidden",
         border: 1,
         borderColor: "divider",
         borderRadius: 1.5,
+        bgcolor: "#F7F7FA",
       }}
     >
       <Box
         component="img"
         src={previewUrl}
         alt={file.name}
-        sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+        sx={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          p: 0.75,
+        }}
       />
       <IconButton
         aria-label={`ลบ ${file.name}`}
@@ -66,6 +72,7 @@ interface ImageUploadFieldProps {
   label: string;
   required?: boolean;
   files?: File[];
+  maxFiles?: number;
   onChange: (files: File[]) => void;
   errorMessage?: string;
 }
@@ -74,17 +81,23 @@ export function ImageUploadField({
   label,
   required,
   files = [],
+  maxFiles = 3,
   onChange,
   errorMessage,
 }: ImageUploadFieldProps) {
   const [uploadMessage, setUploadMessage] = useState<string>();
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: imageAccept,
-    maxFiles: 3,
+    maxFiles,
+    multiple: maxFiles > 1,
     maxSize: 3 * 1024 * 1024,
     onDropAccepted: (acceptedFiles) => {
       setUploadMessage(undefined);
-      onChange([...files, ...acceptedFiles].slice(0, 3));
+      onChange(
+        maxFiles === 1
+          ? acceptedFiles.slice(0, 1)
+          : [...files, ...acceptedFiles].slice(0, maxFiles),
+      );
     },
     onDropRejected: (rejections) => {
       const code = rejections[0]?.errors[0]?.code;
@@ -92,7 +105,7 @@ export function ImageUploadField({
         code === "file-too-large"
           ? "ขนาดไฟล์ต้องไม่เกิน 3 MB"
           : code === "too-many-files"
-            ? "แนบภาพได้ไม่เกิน 3 ภาพ"
+            ? `แนบภาพได้ไม่เกิน ${maxFiles} ภาพ`
             : "รองรับไฟล์ JPG, JPEG และ PNG เท่านั้น",
       );
     },
@@ -142,7 +155,7 @@ export function ImageUploadField({
             ลากภาพมาวางที่นี่ หรือกดเพื่อเลือกไฟล์
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            JPG, JPEG, PNG · ไม่เกิน 3 MB ต่อภาพ · สูงสุด 3 ภาพ
+            JPG, JPEG, PNG · ไม่เกิน 3 MB ต่อภาพ · สูงสุด {maxFiles} ภาพ
           </Typography>
         </Stack>
       </Box>

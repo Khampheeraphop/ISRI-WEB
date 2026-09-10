@@ -45,6 +45,29 @@ export type CreateRewardItem = Omit<RewardItem, "id">;
 export type CampaignPeriodType = "monthly" | "yearly" | "custom";
 export type CampaignStatus = "active" | "ended";
 
+export type CampaignAwardStatus = "pending" | "fulfilled" | "cancelled";
+
+export interface CampaignReward {
+  id: string;
+  name: string;
+  description: string;
+  stock: number;
+  isActive: boolean;
+  imageUrl: string | null;
+}
+
+export interface CampaignAward {
+  id: string;
+  userId: string;
+  winnerName: string;
+  rank: number;
+  status: CampaignAwardStatus;
+  awardedAt: string;
+  fulfilledAt?: string;
+  cancelledAt?: string;
+  adminNote?: string;
+}
+
 export interface RewardCampaign {
   id: string;
   name: string;
@@ -52,6 +75,11 @@ export interface RewardCampaign {
   startDate: string;
   endDate: string;
   prizeDescription: string;
+  rewardItemId?: string;
+  reward?: CampaignReward;
+  winnerCount: number;
+  reservedRewardCount: number;
+  awards: CampaignAward[];
   status: CampaignStatus;
 }
 
@@ -63,7 +91,10 @@ export interface CampaignScore {
   lastScoredAt?: string;
 }
 
-export type CreateRewardCampaign = Omit<RewardCampaign, "id">;
+export type CreateRewardCampaign = Pick<
+  RewardCampaign,
+  "name" | "periodType" | "startDate" | "endDate" | "winnerCount"
+> & { rewardItemId: string };
 
 export interface FileStorage {
   id: string;

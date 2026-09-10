@@ -199,8 +199,9 @@ export function RewardWalletPage() {
                     width: 96,
                     height: 96,
                     borderRadius: 1,
-                    objectFit: "cover",
-                    bgcolor: "background.default",
+                    objectFit: "contain",
+                    bgcolor: "#F7F7FA",
+                    p: 0.5,
                   }}
                 />
                 <Box>
@@ -211,11 +212,13 @@ export function RewardWalletPage() {
                     {reward.description}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                    <Chip
-                      size="small"
-                      color="primary"
-                      label={`${reward.pointCost} แต้ม`}
-                    />
+                    {reward.rewardPeriod === "standard" && (
+                      <Chip
+                        size="small"
+                        color="primary"
+                        label={`${reward.pointCost} แต้ม`}
+                      />
+                    )}
                     <Chip
                       size="small"
                       variant="outlined"
