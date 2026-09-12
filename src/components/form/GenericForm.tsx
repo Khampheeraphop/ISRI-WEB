@@ -27,6 +27,7 @@ interface GenericFormProps<T extends FieldValues> {
   cancelLabel?: string;
   isSubmitting?: boolean;
   columns?: 1 | 2;
+  deriveValues?: (values: T) => Partial<T>;
 }
 
 export function GenericForm<T extends FieldValues>({
@@ -40,6 +41,7 @@ export function GenericForm<T extends FieldValues>({
   cancelLabel = "ยกเลิก",
   isSubmitting,
   columns = 1,
+  deriveValues,
 }: GenericFormProps<T>) {
   const { control, handleSubmit, setValue } = useForm<T>({
     defaultValues,
@@ -61,6 +63,19 @@ export function GenericForm<T extends FieldValues>({
       }
     });
   }, [values, fields, setValue]);
+
+  useEffect(() => {
+    if (!deriveValues) return;
+
+    Object.entries(deriveValues(values)).forEach(([name, nextValue]) => {
+      const fieldName = name as keyof T;
+      if (values[fieldName] === nextValue) return;
+      setValue(fieldName as any, nextValue as any, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    });
+  }, [deriveValues, setValue, values]);
 
   return (
     <Box

@@ -58,6 +58,8 @@ export function TextFieldControl<T extends FieldValues>({
           }
           slotProps={{
             input: { readOnly: field.readOnly },
+            inputLabel:
+              field.type === "date" ? { shrink: true } : undefined,
             htmlInput:
               field.type === "number"
                 ? { min: field.min ?? 1, max: field.max }

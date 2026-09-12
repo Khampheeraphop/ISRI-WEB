@@ -1,6 +1,6 @@
 import type { FieldValues, Path } from "react-hook-form";
 
-export type FormOption = { label: string; value: string };
+export type FormOption = { label: string; value: string; disabled?: boolean };
 
 export type FormField<T extends FieldValues> = {
   name: Path<T>;

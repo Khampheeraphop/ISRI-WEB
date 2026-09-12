@@ -17,7 +17,7 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
     >
       <Box
         component="section"
-        aria-label="ภาพทีมงานดูแลโครงสร้างพื้นฐาน"
+        aria-label="พยาบาลแจ้งปัญหาและช่างโรงพยาบาลเข้าตรวจสอบ"
         sx={{
           display: { xs: "none", md: "flex" },
           minHeight: "100vh",
@@ -28,9 +28,9 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
           p: { md: 5, lg: 7 },
           color: "common.white",
           backgroundImage:
-            "linear-gradient(180deg, rgba(11,18,55,.22) 0%, rgba(11,18,55,.08) 38%, rgba(9,13,42,.88) 100%), url('/images/isri-login-hero.png')",
+            "linear-gradient(180deg, rgba(11,18,55,.32) 0%, rgba(11,18,55,.12) 38%, rgba(9,13,42,.92) 100%), url('/images/isri-login-hospital-hero-v2.png')",
           backgroundSize: "cover",
-          backgroundPosition: "center 44%",
+          backgroundPosition: "center 42%",
           "&::after": {
             content: '""',
             position: "absolute",
@@ -71,7 +71,7 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
               variant="caption"
               sx={{ color: "rgba(255,255,255,.76)" }}
             >
-              INFRASTRUCTURE SAFETY &amp; REWARDS
+              HOSPITAL INCIDENT REPORTING
             </Typography>
           </Box>
         </Stack>
@@ -97,9 +97,9 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
               textShadow: "0 3px 22px rgba(0,0,0,.24)",
             }}
           >
-            ทุกเหตุการณ์ที่แจ้ง
+            พบปัญหาในโรงพยาบาล
             <br />
-            คือจุดเริ่มต้นของความปลอดภัย
+            แจ้งได้ทันที
           </Typography>
           <Typography
             sx={{
@@ -109,8 +109,8 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
               lineHeight: 1.8,
             }}
           >
-            เชื่อมทีมงาน ตรวจสอบสถานะ และร่วมสร้างพื้นที่ทำงานที่ดีขึ้น
-            ในระบบเดียว
+            ส่งต่อปัญหาถึงทีมที่รับผิดชอบ ติดตามสถานะ
+            และร่วมดูแลโรงพยาบาลให้ปลอดภัยในระบบเดียว
           </Typography>
         </Stack>
       </Box>
