@@ -58,7 +58,7 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
           backgroundSize: "cover",
           backgroundPosition: "center 45%",
           "&::after": {
-            content: '\"\"',
+            content: '""',
             position: "absolute",
             zIndex: -1,
             inset: 0,
@@ -67,7 +67,7 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
           },
         }}
       >
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <BrandMark inverse />
           <Box>
             <Typography
@@ -90,7 +90,7 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
         </Stack>
 
         <Stack spacing={2.25} sx={{ maxWidth: 590 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <VerifiedUserOutlined sx={{ fontSize: 19, color: "#F4C56F" }} />
             <Typography sx={{ fontSize: ".9rem", fontWeight: 600 }}>
               เพื่อสถานพยาบาลที่ปลอดภัยสำหรับทุกคน
@@ -136,7 +136,7 @@ export function AuthPageFrame({ children }: PropsWithChildren) {
           bgcolor: { xs: "#F8F7FB", md: "#FFFFFF" },
           "&::before": {
             display: { xs: "block", md: "none" },
-            content: '\"\"',
+            content: '""',
             position: "absolute",
             width: 300,
             height: 300,

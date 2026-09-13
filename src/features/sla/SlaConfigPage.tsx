@@ -1,11 +1,8 @@
 import {
   AccessTimeRounded,
-  AlarmOnOutlined,
   BoltRounded,
-  CheckCircleOutlineRounded,
   CrisisAlertRounded,
   InfoOutlined,
-  SaveOutlined,
   StarsRounded,
 } from "@mui/icons-material";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -33,7 +30,7 @@ import {
 } from "react-hook-form";
 import * as yup from "yup";
 import type { SLARule } from "../../types/workOrder";
-import { getSlaRules, getSlaSummary, updateSlaRule } from "./slaApi";
+import { getSlaRules, updateSlaRule } from "./slaApi";
 
 type SlaFormValues = {
   responseMinutes: number;
@@ -176,7 +173,7 @@ function SlaRuleEditor({
       }}
     >
       <Box sx={{ px: { xs: 2.25, sm: 2.75 }, py: 2.5 }}>
-        <Stack direction="row" spacing={1.5} alignItems="flex-start">
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-start" }}>
           <Box
             sx={{
               width: 42,
@@ -192,7 +189,7 @@ function SlaRuleEditor({
             {detail.icon}
           </Box>
           <Box sx={{ minWidth: 0 }}>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <Typography variant="h6">ระดับ{detail.title}</Typography>
               <Chip
                 size="small"
@@ -357,8 +354,7 @@ function SlaRuleEditor({
         <Stack
           direction="row"
           spacing={1}
-          alignItems="center"
-          sx={{ mt: 1.5, color: "#6B627B" }}
+          sx={{ mt: 1.5, color: "#6B627B", alignItems: "center" }}
         >
           <StarsRounded sx={{ fontSize: 17, color: "#8064B3" }} />
           <Typography sx={{ fontSize: ".75rem", lineHeight: 1.5 }}>
@@ -393,7 +389,6 @@ function SlaRuleEditor({
 export function SlaConfigPage() {
   const queryClient = useQueryClient();
   const rules = useQuery({ queryKey: ["sla-rules"], queryFn: getSlaRules });
-  const summary = useQuery({ queryKey: ["sla-summary"], queryFn: getSlaSummary });
   const [feedback, setFeedback] = useState<{
     severity: "success" | "error";
     message: string;
@@ -426,7 +421,7 @@ export function SlaConfigPage() {
   if (rules.isLoading) {
     return (
       <Box sx={{ minHeight: 360, display: "grid", placeItems: "center" }}>
-        <Stack spacing={1.5} alignItems="center">
+        <Stack spacing={1.5} sx={{ alignItems: "center" }}>
           <CircularProgress aria-label="กำลังโหลดการตั้งค่า SLA" />
           <Typography color="text.secondary">กำลังโหลดการตั้งค่า...</Typography>
         </Stack>
@@ -434,7 +429,6 @@ export function SlaConfigPage() {
     );
   }
 
-  const overdueCount = summary.data?.data.overdueCount ?? 0;
   const sortedRules = [...(rules.data ?? [])].sort(
     (a, b) =>
       urgencyDetails[a.urgencyLevel].order - urgencyDetails[b.urgencyLevel].order,
@@ -445,8 +439,10 @@ export function SlaConfigPage() {
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
+        sx={{
+          justifyContent: "space-between",
+          alignItems: { xs: "flex-start", sm: "center" },
+        }}
       >
         <Box>
           <Typography

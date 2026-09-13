@@ -90,8 +90,10 @@ function StockIndicator({
     <Stack
       direction={vertical ? "column" : "row"}
       spacing={vertical ? 0.5 : 1}
-      alignItems="center"
-      sx={{ width: vertical ? "100%" : "auto" }}
+      sx={{
+        width: vertical ? "100%" : "auto",
+        alignItems: "center",
+      }}
     >
       <Typography sx={{ minWidth: vertical ? 0 : 24, fontWeight: 700, lineHeight: 1.2 }}>
         {stock}
@@ -142,7 +144,7 @@ function SummaryCard({
         borderRadius: 2.25,
         boxShadow: `0 10px 24px ${background}2B`,
         "&::after": {
-          content: '\"\"',
+          content: '""',
           position: "absolute",
           zIndex: -1,
           width: 110,
@@ -155,7 +157,7 @@ function SummaryCard({
       }}
     >
       <Box sx={{ minWidth: 0 }}>
-        <Stack direction="row" spacing={0.75} alignItems="baseline">
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: "baseline" }}>
           <Typography
             sx={{
               color: "inherit",
@@ -217,7 +219,7 @@ function RewardMobileCard({
         boxShadow: "0 5px 18px rgba(50,38,84,.05)",
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="flex-start">
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-start" }}>
         <Avatar
           variant="rounded"
           alt={reward.name}
@@ -378,7 +380,11 @@ export function RewardCatalogAdminPage() {
       minWidth: 330,
       flex: 1,
       renderCell: ({ row }) => (
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ minWidth: 0, alignItems: "center" }}
+        >
           <Avatar
             variant="rounded"
             alt={row.name}
@@ -469,7 +475,6 @@ export function RewardCatalogAdminPage() {
       field: "actions",
       headerName: "จัดการ",
       width: 112,
-      sortable: false,
       ...tableColumnAlignment.actions,
       renderCell: ({ row }) => (
         <Stack direction="row" spacing={0.5}>
@@ -728,7 +733,7 @@ export function RewardCatalogAdminPage() {
         }
       >
         {target && (
-          <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
             <Avatar
               variant="rounded"
               alt={target.name}
