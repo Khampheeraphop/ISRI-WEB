@@ -7,6 +7,7 @@ import {
   CircularProgress,
   FormControlLabel,
   FormGroup,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -17,6 +18,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { saveOnboarding } from "./authApi";
 import { AuthPageFrame } from "./AuthPageFrame";
 import type { TechnicianSpecialty } from "../../types/auth";
+import type { Role } from "../../types/user";
+import { systemRoleOptions } from "../../constants/roles";
 import { clearAuthReturnTo, getAuthReturnTo } from "./authReturnTo";
 
 const specialties: { value: TechnicianSpecialty; label: string }[] = [
@@ -27,15 +30,26 @@ const specialties: { value: TechnicianSpecialty; label: string }[] = [
   { value: "building", label: "โครงสร้างและพื้นผิวอาคาร" },
 ];
 
+const normalizePosition = (value: string | null | undefined): Role | "" => {
+  if (!value) return "";
+  return (
+    systemRoleOptions.find(
+      (option) => option.value === value || option.label === value,
+    )?.value ?? ""
+  );
+};
+
 export function OnboardingPage() {
   const { authUser, profile, isLoading, refreshProfile, signOut } = useAuth();
-  const [position, setPosition] = useState(profile?.requestedPosition ?? "");
+  const [position, setPosition] = useState<Role | "">(
+    normalizePosition(profile?.requestedPosition),
+  );
   const [selected, setSelected] = useState<TechnicianSpecialty[]>(
     profile?.technicianSpecialties ?? [],
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>();
-  const canSubmit = useMemo(() => position.trim().length >= 2, [position]);
+  const canSubmit = useMemo(() => position !== "", [position]);
   if (isLoading)
     return (
       <AuthPageFrame>
@@ -52,7 +66,10 @@ export function OnboardingPage() {
     try {
       setError(undefined);
       setSubmitting(true);
-      await saveOnboarding(position, selected);
+      await saveOnboarding(
+        position,
+        position === "technician" ? selected : [],
+      );
       await refreshProfile();
     } catch (cause) {
       setError(
@@ -111,31 +128,43 @@ export function OnboardingPage() {
       {showForm && (
         <Stack spacing={2}>
           <TextField
-            label="ตำแหน่งหรือหน้าที่ที่ต้องการใช้งาน"
+            select
+            label="ตำแหน่งที่ต้องการใช้งาน"
             required
             value={position}
-            onChange={(event) => setPosition(event.target.value)}
-            slotProps={{ htmlInput: { maxLength: 120 } }}
-          />
-          <Box>
-            <Typography variant="subtitle2">
-              ความเชี่ยวชาญด้านช่าง (ถ้ามี)
-            </Typography>
-            <FormGroup>
-              {specialties.map((item) => (
-                <FormControlLabel
-                  key={item.value}
-                  label={item.label}
-                  control={
-                    <Checkbox
-                      checked={selected.includes(item.value)}
-                      onChange={() => toggleSpecialty(item.value)}
-                    />
-                  }
-                />
-              ))}
-            </FormGroup>
-          </Box>
+            onChange={(event) => {
+              const nextPosition = event.target.value as Role;
+              setPosition(nextPosition);
+              if (nextPosition !== "technician") setSelected([]);
+            }}
+          >
+            {systemRoleOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          {position === "technician" && (
+            <Box>
+              <Typography variant="subtitle2">
+                ความเชี่ยวชาญของช่าง (ถ้ามี)
+              </Typography>
+              <FormGroup>
+                {specialties.map((item) => (
+                  <FormControlLabel
+                    key={item.value}
+                    label={item.label}
+                    control={
+                      <Checkbox
+                        checked={selected.includes(item.value)}
+                        onChange={() => toggleSpecialty(item.value)}
+                      />
+                    }
+                  />
+                ))}
+              </FormGroup>
+            </Box>
+          )}
           <Button
             variant="contained"
             size="large"

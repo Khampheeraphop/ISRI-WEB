@@ -24,6 +24,7 @@ import { useEffect, useState } from "react";
 import { ActionDialog } from "../../components/feedback/ActionDialog";
 import type { ApprovalStatus, TechnicianSpecialty } from "../../types/auth";
 import type { Role } from "../../types/user";
+import { getRoleLabel } from "../../constants/roles";
 import {
   roleLabels,
   specialtyOptions,
@@ -208,7 +209,9 @@ export function UserApprovalDialog({
             <Typography variant="caption" color="text.secondary">
               ตำแหน่งที่แจ้งไว้
             </Typography>
-            <Typography>{user.requestedPosition ?? "ยังไม่ระบุ"}</Typography>
+            <Typography>
+              {getRoleLabel(user.requestedPosition) ?? "ยังไม่ระบุ"}
+            </Typography>
           </Box>
           <FormControl fullWidth>
             <InputLabel id="approval-role-label">สิทธิ์การใช้งาน</InputLabel>

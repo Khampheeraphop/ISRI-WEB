@@ -24,10 +24,11 @@ import {
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { Controller, useForm, type Resolver } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import * as yup from "yup";
 import { MainCard } from "../../components/base/MainCard";
+import { ThaiDateField } from "../../components/form/fields/ThaiDateField";
 import type {
   CampaignPeriodType,
   CreateRewardCampaign,
@@ -82,13 +83,16 @@ export function CampaignFormPage() {
         name: yup
           .string()
           .trim()
-          .min(2)
-          .max(200)
+          .min(2, "ชื่อแคมเปญต้องมีอย่างน้อย 2 ตัวอักษร")
+          .max(200, "ชื่อแคมเปญต้องมีความยาวไม่เกิน 200 ตัวอักษร")
           .required("กรุณาระบุชื่อแคมเปญ"),
         periodType: yup
           .mixed<CampaignPeriodType>()
-          .oneOf(["monthly", "yearly", "custom"])
-          .required(),
+          .oneOf(
+            ["monthly", "yearly", "custom"],
+            "กรุณาเลือกประเภทรอบ",
+          )
+          .required("กรุณาเลือกประเภทรอบ"),
         startDate: yup
           .string()
           .required("กรุณาระบุวันเริ่ม")
@@ -146,6 +150,7 @@ export function CampaignFormPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     watch,
@@ -309,7 +314,7 @@ export function CampaignFormPage() {
                 label="ชื่อแคมเปญ"
                 placeholder="เช่น ร่วมแจ้ง ร่วมสร้างความปลอดภัย ประจำเดือนกันยายน"
                 error={Boolean(errors.name)}
-                helperText={errors.name?.message ?? "ชื่อที่สื่อถึงเป้าหมายและช่วงเวลาของแคมเปญ"}
+                helperText={errors.name?.message}
                 required
                 sx={{ gridColumn: "1 / -1" }}
               />
@@ -318,7 +323,7 @@ export function CampaignFormPage() {
                 select
                 label="ประเภทรอบ"
                 error={Boolean(errors.periodType)}
-                helperText={errors.periodType?.message ?? "ใช้สำหรับจัดกลุ่มและแสดงผลแคมเปญ"}
+                helperText={errors.periodType?.message}
                 required
               >
                 <MenuItem value="monthly">รายเดือน</MenuItem>
@@ -330,7 +335,7 @@ export function CampaignFormPage() {
                 type="number"
                 label="จำนวนผู้ชนะ"
                 error={Boolean(errors.winnerCount)}
-                helperText={errors.winnerCount?.message ?? "ระบบจะสำรองรางวัลตามจำนวนนี้"}
+                helperText={errors.winnerCount?.message}
                 slotProps={{ htmlInput: { min: 1, max: 100 } }}
                 required
               />
@@ -351,26 +356,40 @@ export function CampaignFormPage() {
                   <CalendarMonthOutlined color="primary" />
                   <Typography sx={{ fontWeight: 700 }}>ช่วงเวลาแคมเปญ</Typography>
                 </Stack>
-                <TextField
-                  {...register("startDate")}
-                  type="date"
-                  label="วันเริ่ม"
-                  error={Boolean(errors.startDate)}
-                  helperText={errors.startDate?.message}
-                  slotProps={{
-                    inputLabel: { shrink: true },
-                    htmlInput: { min: today, readOnly: startIsLocked },
-                  }}
-                  required
+                <Controller
+                  control={control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <ThaiDateField
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      label="วันเริ่ม"
+                      min={today}
+                      readOnly={startIsLocked}
+                      error={Boolean(errors.startDate)}
+                      helperText={errors.startDate?.message}
+                      required
+                    />
+                  )}
                 />
-                <TextField
-                  {...register("endDate")}
-                  type="date"
-                  label="วันสิ้นสุด"
-                  error={Boolean(errors.endDate)}
-                  helperText={errors.endDate?.message}
-                  slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: today } }}
-                  required
+                <Controller
+                  control={control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <ThaiDateField
+                      name={field.name}
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      label="วันสิ้นสุด"
+                      min={today}
+                      error={Boolean(errors.endDate)}
+                      helperText={errors.endDate?.message}
+                      required
+                    />
+                  )}
                 />
               </Box>
             </Box>
@@ -504,7 +523,12 @@ export function CampaignFormPage() {
                             component="img"
                             src={reward.imageUrl}
                             alt={reward.name}
-                            sx={{ width: "100%", height: "100%", objectFit: "contain", p: 1.25 }}
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                            }}
                           />
                         ) : (
                           <Inventory2Outlined color="disabled" sx={{ fontSize: 48 }} />
@@ -550,7 +574,7 @@ export function CampaignFormPage() {
                           color={isUnavailable ? "error" : "default"}
                           label={
                             isUnavailable
-                              ? `คงเหลือ ${available} ชิ้น — ไม่พอสำหรับผู้ชนะ`
+                              ? `คงเหลือ ${available} ชิ้น`
                               : `พร้อมใช้ ${available} ชิ้น`
                           }
                           sx={{ alignSelf: "flex-start", mt: "auto !important" }}

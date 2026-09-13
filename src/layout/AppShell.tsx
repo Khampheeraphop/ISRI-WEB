@@ -41,6 +41,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { roleLabels } from "../constants/roles";
 import type { Role } from "../types/user";
 import {
   getNotifications,
@@ -50,13 +51,6 @@ import {
 import { supabase } from "../lib/supabase/client";
 
 const drawerWidth = 252;
-const roleLabels: Record<Role, string> = {
-  reporter: "ผู้แจ้งเหตุ",
-  technician: "ช่างซ่อมบำรุง",
-  dispatcher: "ผู้จัดสรรงาน",
-  admin: "ผู้ดูแลระบบ",
-};
-
 function normalizeAvatarUrl(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return undefined;
   const rawValue = value.trim();

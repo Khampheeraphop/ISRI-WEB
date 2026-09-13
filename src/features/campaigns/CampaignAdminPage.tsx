@@ -1,12 +1,16 @@
 import {
   AddOutlined,
   CalendarMonthOutlined,
+  CampaignRounded,
   CancelOutlined,
   CardGiftcardOutlined,
   CheckCircleOutlined,
   EmojiEventsOutlined,
+  HourglassBottomRounded,
   Inventory2Outlined,
   LockOutlined,
+  SearchRounded,
+  TaskAltRounded,
 } from "@mui/icons-material";
 import {
   Alert,
@@ -16,6 +20,9 @@ import {
   Chip,
   CircularProgress,
   Divider,
+  InputAdornment,
+  MenuItem,
+  Paper,
   Stack,
   TextField,
   Typography,
@@ -63,6 +70,11 @@ function CampaignListCard({
     <MainCard
       title={<Typography variant="h5">{campaign.name}</Typography>}
       subheader={campaignPeriodLabel[campaign.periodType]}
+      sx={{
+        overflow: "hidden",
+        borderTop: `4px solid ${isActive ? "#3A8B69" : "#81778E"}`,
+        boxShadow: "0 8px 26px rgba(48,37,78,.055)",
+      }}
       action={
         <Chip
           size="small"
@@ -133,8 +145,8 @@ function CampaignListCard({
                 sx={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "contain",
-                  p: 1,
+                  objectFit: "cover",
+                  display: "block",
                 }}
               />
             ) : (
@@ -291,6 +303,10 @@ export function CampaignAdminPage() {
   const [closeTarget, setCloseTarget] = useState<RewardCampaign>();
   const [awardAction, setAwardAction] = useState<AwardAction>();
   const [awardNote, setAwardNote] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "ended">(
+    "all",
+  );
   const [feedback, setFeedback] = useState<{
     severity: "success" | "error";
     text: string;
@@ -340,32 +356,228 @@ export function CampaignAdminPage() {
       }),
   });
 
+  const allCampaigns = campaigns.data ?? [];
+  const filteredCampaigns = allCampaigns.filter((campaign) => {
+    const keyword = search.trim().toLocaleLowerCase("th-TH");
+    const matchesStatus =
+      statusFilter === "all" || campaign.status === statusFilter;
+    const matchesSearch =
+      !keyword ||
+      campaign.name.toLocaleLowerCase("th-TH").includes(keyword) ||
+      (campaign.reward?.name ?? campaign.prizeDescription)
+        .toLocaleLowerCase("th-TH")
+        .includes(keyword);
+    return matchesStatus && matchesSearch;
+  });
+  const pendingAwards = allCampaigns.reduce(
+    (total, campaign) =>
+      total + campaign.awards.filter((award) => award.status === "pending").length,
+    0,
+  );
+  const summary = [
+    {
+      label: "แคมเปญทั้งหมด",
+      value: allCampaigns.length,
+      color: "#514091",
+      background: "#F0ECFA",
+      icon: <CampaignRounded />,
+    },
+    {
+      label: "กำลังดำเนินการ",
+      value: allCampaigns.filter((campaign) => campaign.status === "active").length,
+      color: "#287357",
+      background: "#EAF7F1",
+      icon: <EmojiEventsOutlined />,
+    },
+    {
+      label: "ปิดรอบแล้ว",
+      value: allCampaigns.filter((campaign) => campaign.status === "ended").length,
+      color: "#52677A",
+      background: "#EDF2F5",
+      icon: <TaskAltRounded />,
+    },
+    {
+      label: "รอส่งมอบรางวัล",
+      value: pendingAwards,
+      color: "#A56312",
+      background: "#FFF5E7",
+      icon: <HourglassBottomRounded />,
+    },
+  ];
+
   return (
-    <Stack spacing={3}>
-      <Box
+    <Stack spacing={{ xs: 2, md: 2.5 }} sx={{ maxWidth: 1440, mx: "auto" }}>
+      <Paper
+        variant="outlined"
         sx={{
+          p: { xs: 2.25, sm: 3 },
           display: "flex",
           justifyContent: "space-between",
           gap: 2,
-          alignItems: { xs: "flex-start", sm: "center" },
+          alignItems: { xs: "stretch", sm: "center" },
           flexDirection: { xs: "column", sm: "row" },
+          overflow: "hidden",
+          borderColor: "rgba(81,64,145,.16)",
+          borderRadius: 2.5,
+          background:
+            "linear-gradient(120deg, rgba(81,64,145,.11), rgba(255,255,255,.98) 62%, rgba(244,236,252,.78))",
         }}
       >
-        <Box>
-          <Typography variant="h3">จัดการแคมเปญรางวัล</Typography>
-          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-            กำหนดช่วงสะสมคะแนน รางวัล และผลการจัดอันดับของแต่ละรอบ
-          </Typography>
-        </Box>
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+          <Box
+            sx={{
+              width: { xs: 48, sm: 56 },
+              height: { xs: 48, sm: 56 },
+              flex: "0 0 auto",
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 2,
+              color: "#FFFFFF",
+              bgcolor: "#514091",
+              boxShadow: "0 10px 22px rgba(81,64,145,.22)",
+              "& .MuiSvgIcon-root": { fontSize: { xs: 26, sm: 30 } },
+            }}
+          >
+            <EmojiEventsOutlined />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              variant="h3"
+              sx={{ fontSize: { xs: "1.5rem", sm: "2rem" }, lineHeight: 1.25 }}
+            >
+              จัดการแคมเปญรางวัล
+            </Typography>
+            <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+              กำหนดช่วงสะสมคะแนน รางวัล และติดตามผลของแต่ละรอบ
+            </Typography>
+          </Box>
+        </Stack>
         <Button
           component={Link}
           to="/campaigns/manage/new"
           variant="contained"
           startIcon={<AddOutlined />}
+          sx={{
+            minHeight: 44,
+            px: 2.25,
+            borderRadius: 1.75,
+            flex: "0 0 auto",
+          }}
         >
           สร้างแคมเปญ
         </Button>
+      </Paper>
+
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "repeat(2, minmax(0, 1fr))",
+            md: "repeat(4, minmax(0, 1fr))",
+          },
+          gap: { xs: 1.25, md: 1.75 },
+        }}
+      >
+        {summary.map((item) => (
+          <Paper
+            key={item.label}
+            variant="outlined"
+            sx={{
+              p: { xs: 1.5, sm: 2 },
+              minHeight: { xs: 92, sm: 104 },
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+              borderColor: "#E2DCEB",
+              borderRadius: 2.25,
+              boxShadow: "0 5px 16px rgba(48,37,78,.04)",
+            }}
+          >
+            <Box>
+              <Typography
+                sx={{
+                  color: item.color,
+                  fontSize: { xs: "1.35rem", sm: "1.65rem" },
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                }}
+              >
+                {item.value.toLocaleString("th-TH")}
+              </Typography>
+              <Typography sx={{ mt: 0.75, color: "#61586E", fontSize: ".78rem" }}>
+                {item.label}
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                width: { xs: 34, sm: 40 },
+                height: { xs: 34, sm: 40 },
+                flex: "0 0 auto",
+                display: "grid",
+                placeItems: "center",
+                borderRadius: 1.5,
+                color: item.color,
+                bgcolor: item.background,
+              }}
+            >
+              {item.icon}
+            </Box>
+          </Paper>
+        ))}
       </Box>
+
+      <Paper
+        variant="outlined"
+        sx={{
+          p: { xs: 1.5, sm: 2 },
+          borderColor: "#E0D9EA",
+          borderRadius: 2.25,
+          boxShadow: "0 7px 20px rgba(48,37,78,.045)",
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
+          sx={{ alignItems: { sm: "center" } }}
+        >
+          <TextField
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="ค้นหาชื่อแคมเปญหรือของรางวัล"
+            aria-label="ค้นหาแคมเปญ"
+            size="small"
+            fullWidth
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRounded color="action" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          <TextField
+            select
+            label="สถานะแคมเปญ"
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value as "all" | "active" | "ended")
+            }
+            size="small"
+            sx={{ minWidth: { sm: 240 } }}
+          >
+            <MenuItem value="all">ทุกสถานะ</MenuItem>
+            <MenuItem value="active">กำลังดำเนินการ</MenuItem>
+            <MenuItem value="ended">ปิดรอบแล้ว</MenuItem>
+          </TextField>
+        </Stack>
+        <Typography sx={{ mt: 1.25, color: "#746B80", fontSize: ".76rem" }}>
+          แสดง {filteredCampaigns.length.toLocaleString("th-TH")} จาก {allCampaigns.length.toLocaleString("th-TH")} แคมเปญ
+        </Typography>
+      </Paper>
+
       {feedback && (
         <Alert
           severity={feedback.severity}
@@ -383,7 +595,7 @@ export function CampaignAdminPage() {
         </Box>
       ) : (
         <Stack spacing={2}>
-          {(campaigns.data ?? []).map((campaign) => (
+          {filteredCampaigns.map((campaign) => (
             <CampaignListCard
               key={campaign.id}
               campaign={campaign}
@@ -394,14 +606,68 @@ export function CampaignAdminPage() {
               }}
             />
           ))}
-          {!campaigns.data?.length && (
-            <MainCard
-              title={<Typography variant="h5">ยังไม่มีแคมเปญ</Typography>}
+          {!filteredCampaigns.length && (
+            <Paper
+              variant="outlined"
+              sx={{
+                minHeight: 260,
+                p: { xs: 3, sm: 5 },
+                display: "grid",
+                placeItems: "center",
+                textAlign: "center",
+                borderColor: "#E0D9EA",
+                borderRadius: 2.5,
+              }}
             >
-              <Typography color="text.secondary">
-                สร้างแคมเปญเพื่อเริ่มสะสมคะแนนและจัดอันดับผู้แจ้งเหตุ
-              </Typography>
-            </MainCard>
+              <Box>
+                <Box
+                  sx={{
+                    width: 58,
+                    height: 58,
+                    mx: "auto",
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#8577A5",
+                    bgcolor: "#F1EDF7",
+                    borderRadius: "50%",
+                  }}
+                >
+                  <CampaignRounded sx={{ fontSize: 30 }} />
+                </Box>
+                <Typography variant="h6" sx={{ mt: 1.25 }}>
+                  {allCampaigns.length
+                    ? "ไม่พบแคมเปญที่ตรงกับตัวกรอง"
+                    : "ยังไม่มีแคมเปญ"}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                  {allCampaigns.length
+                    ? "ลองเปลี่ยนสถานะหรือคำค้นหาแล้วตรวจสอบอีกครั้ง"
+                    : "สร้างแคมเปญเพื่อเริ่มสะสมคะแนนและจัดอันดับผู้แจ้งเหตุ"}
+                </Typography>
+                {allCampaigns.length ? (
+                  <Button
+                    variant="outlined"
+                    sx={{ mt: 2, borderRadius: 1.75 }}
+                    onClick={() => {
+                      setSearch("");
+                      setStatusFilter("all");
+                    }}
+                  >
+                    ล้างตัวกรอง
+                  </Button>
+                ) : (
+                  <Button
+                    component={Link}
+                    to="/campaigns/manage/new"
+                    variant="contained"
+                    startIcon={<AddOutlined />}
+                    sx={{ mt: 2, borderRadius: 1.75 }}
+                  >
+                    สร้างแคมเปญแรก
+                  </Button>
+                )}
+              </Box>
+            </Paper>
           )}
         </Stack>
       )}
