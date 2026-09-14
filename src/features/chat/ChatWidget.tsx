@@ -67,6 +67,12 @@ const schema = yup.object({
 });
 type Entry = ChatMessage & Partial<Pick<ChatReply, "sources" | "fetchedAt">>;
 
+function displaySources(sources: ChatReply["sources"] = []) {
+  const allowed = sources.filter((source) => isChatSourcePath(source.path));
+  const itemLinks = allowed.filter((source) => /\/[0-9a-f-]{36}$/i.test(source.path));
+  return (itemLinks.length ? itemLinks : allowed).slice(0, 3);
+}
+
 export function ChatWidget({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -161,7 +167,7 @@ export function ChatWidget({ user }: { user: User }) {
               right: { xs: 8, sm: 24 },
               bottom: { xs: 8, sm: 88 },
               m: 0,
-              width: { xs: "calc(100% - 16px)", sm: 430 },
+              width: { xs: "calc(100% - 16px)", sm: 480 },
               maxWidth: "none",
               height: { xs: "calc(100dvh - 24px)", sm: 600 },
               maxHeight: {
@@ -206,7 +212,12 @@ export function ChatWidget({ user }: { user: User }) {
         </DialogTitle>
         <Divider />
         <DialogContent
-          sx={{ p: 2, bgcolor: "background.default", overflowWrap: "anywhere" }}
+          sx={{
+            px: { xs: 1.5, sm: 2.25 },
+            py: 2,
+            bgcolor: "background.default",
+            overflowWrap: "anywhere",
+          }}
         >
           {!entries.length && (
             <Stack spacing={1.5} sx={{ py: 1 }}>
@@ -271,11 +282,11 @@ export function ChatWidget({ user }: { user: User }) {
               <Box
                 key={index}
                 sx={{
-                  my: 1.5,
-                  ml: entry.role === "user" ? 4 : 0,
-                  mr: entry.role === "assistant" ? 1 : 0,
-                  p: 1.5,
-                  borderRadius: 2,
+                  my: 1.75,
+                  ml: entry.role === "user" ? { xs: 3, sm: 7 } : 0,
+                  px: entry.role === "assistant" ? { xs: 1.75, sm: 2 } : 1.75,
+                  py: 1.5,
+                  borderRadius: 2.5,
                   bgcolor:
                     entry.role === "user" ? "primary.main" : "background.paper",
                   color:
@@ -289,18 +300,23 @@ export function ChatWidget({ user }: { user: User }) {
                 <Typography
                   variant="caption"
                   component="div"
-                  sx={{ mb: 0.5, fontWeight: 700 }}
+                  sx={{ mb: 0.75, fontWeight: 700, fontSize: "0.78rem" }}
                 >
                   {entry.role === "user" ? "คุณ" : "ผู้ช่วย ISRI"}
                 </Typography>
-                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                <Typography
+                  sx={{
+                    whiteSpace: "pre-wrap",
+                    fontSize: { xs: "0.94rem", sm: "0.96rem" },
+                    lineHeight: 1.8,
+                    letterSpacing: "0.005em",
+                  }}
+                >
                   {entry.text}
                 </Typography>
                 {!!entry.sources?.length && (
-                  <Stack spacing={0.5} sx={{ mt: 1 }}>
-                    {entry.sources
-                      .filter((source) => isChatSourcePath(source.path))
-                      .map((source) => (
+                  <Stack spacing={0.75} sx={{ mt: 1.5 }}>
+                    {displaySources(entry.sources).map((source) => (
                         <Button
                           key={source.path}
                           component={Link}
@@ -311,6 +327,8 @@ export function ChatWidget({ user }: { user: User }) {
                           sx={{
                             justifyContent: "flex-start",
                             textAlign: "left",
+                            py: 0.75,
+                            lineHeight: 1.4,
                           }}
                         >
                           {source.label}
