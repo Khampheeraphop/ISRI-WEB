@@ -49,6 +49,7 @@ import {
   markNotificationRead,
 } from "../features/notifications/notificationsApi";
 import { supabase } from "../lib/supabase/client";
+import { ChatWidget } from "../features/chat/ChatWidget";
 
 const drawerWidth = 252;
 function normalizeAvatarUrl(value: unknown) {
@@ -745,6 +746,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         {children}
       </Box>
+      <ChatWidget key={`${user.id}:${user.role}`} user={user} />
     </Box>
   );
 }

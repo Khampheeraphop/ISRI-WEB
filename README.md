@@ -1,5 +1,7 @@
 # ISRI Web
 
+ผู้ช่วยแชทมุมขวาล่างรองรับทั้ง 4 บทบาท โดยเรียก Edge Function `isri-chat` ดูการตั้งค่า API และ Gemini ใน [CHAT_SETUP.md](../api/CHAT_SETUP.md)
+
 เว็บ React + TypeScript + Material UI สำหรับระบบแจ้งปัญหาโครงสร้างพื้นฐานในสถานพยาบาล ใช้ Google OAuth ผ่าน Supabase Auth และเรียก Edge Function ผ่าน React Query
 
 คู่มือเปิด Local, ใช้ Seed, ตั้ง Google OAuth และ Deploy Production แบบละเอียดอยู่ที่ [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
