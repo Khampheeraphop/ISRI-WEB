@@ -169,6 +169,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationAnchor, setNotificationAnchor] =
     useState<HTMLElement | null>(null);
+  const isMobileRewards =
+    user?.role === "reporter" && location.pathname === "/rewards";
   const queryClient = useQueryClient();
   const notifications = useQuery({
     queryKey: ["notifications"],
@@ -265,6 +267,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         color="inherit"
         elevation={0}
         sx={{
+          display: { xs: isMobileRewards ? "none" : "block", md: "block" },
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
           borderBottom: 1,
@@ -738,9 +741,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           flexGrow: 1,
           minWidth: 0,
           bgcolor: "background.default",
-          px: { xs: 2, sm: 3, lg: 4 },
-          py: 4,
-          mt: "70px",
+          px: { xs: isMobileRewards ? 0 : 2, sm: 3, lg: 4 },
+          pt: { xs: isMobileRewards ? 0 : 4, md: 4 },
+          pb: {
+            xs: isMobileRewards ? 0 : 4,
+            md: 4,
+          },
+          mt: { xs: isMobileRewards ? 0 : "70px", md: "70px" },
         }}
       >
         {children}
