@@ -17,7 +17,6 @@ import {
   Fab,
   IconButton,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -28,6 +27,7 @@ import * as yup from "yup";
 import { Link } from "react-router-dom";
 import type { User } from "../../types/user";
 import { roleLabels } from "../../constants/roles";
+import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import {
   getChatAvailability,
   isChatSourcePath,
@@ -63,13 +63,15 @@ const schema = yup.object({
     .string()
     .trim()
     .required("กรุณาพิมพ์คำถาม")
-    .max(1500, "พิมพ์ได้ไม่เกิน 1,500 ตัวอักษร"),
+    .max(200, "พิมพ์ได้ไม่เกิน 200 ตัวอักษร"),
 });
 type Entry = ChatMessage & Partial<Pick<ChatReply, "sources" | "fetchedAt">>;
 
 function displaySources(sources: ChatReply["sources"] = []) {
   const allowed = sources.filter((source) => isChatSourcePath(source.path));
-  const itemLinks = allowed.filter((source) => /\/[0-9a-f-]{36}$/i.test(source.path));
+  const itemLinks = allowed.filter((source) =>
+    /\/[0-9a-f-]{36}$/i.test(source.path),
+  );
   return (itemLinks.length ? itemLinks : allowed).slice(0, 3);
 }
 
@@ -84,8 +86,10 @@ export function ChatWidget({ user }: { user: User }) {
     handleSubmit,
     reset,
     setFocus,
+    watch,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema), defaultValues: { text: "" } });
+  const chatText = watch("text");
   const availability = useQuery({
     queryKey: ["chat-availability", user.id, user.role],
     queryFn: ({ signal }) => getChatAvailability(signal),
@@ -317,23 +321,23 @@ export function ChatWidget({ user }: { user: User }) {
                 {!!entry.sources?.length && (
                   <Stack spacing={0.75} sx={{ mt: 1.5 }}>
                     {displaySources(entry.sources).map((source) => (
-                        <Button
-                          key={source.path}
-                          component={Link}
-                          to={source.path}
-                          onClick={() => setOpen(false)}
-                          size="small"
-                          variant="outlined"
-                          sx={{
-                            justifyContent: "flex-start",
-                            textAlign: "left",
-                            py: 0.75,
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          {source.label}
-                        </Button>
-                      ))}
+                      <Button
+                        key={source.path}
+                        component={Link}
+                        to={source.path}
+                        onClick={() => setOpen(false)}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          justifyContent: "flex-start",
+                          textAlign: "left",
+                          py: 0.75,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {source.label}
+                      </Button>
+                    ))}
                   </Stack>
                 )}
                 {entry.fetchedAt && (
@@ -397,17 +401,16 @@ export function ChatWidget({ user }: { user: User }) {
           sx={{ p: 1.5, pb: "max(12px, env(safe-area-inset-bottom))" }}
         >
           <Stack direction="row" spacing={1} sx={{ alignItems: "flex-end" }}>
-            <TextField
+            <LimitedTextField
               {...register("text")}
+              value={chatText}
               label="ถามเกี่ยวกับ ISRI"
               fullWidth
-              multiline
               maxRows={4}
               size="small"
               disabled={mutation.isPending || !availability.data?.enabled}
               error={Boolean(errors.text)}
               helperText={errors.text?.message}
-              slotProps={{ htmlInput: { maxLength: 1500 } }}
               onKeyDown={(event) => {
                 if (
                   event.key === "Enter" &&

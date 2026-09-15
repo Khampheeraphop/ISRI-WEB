@@ -75,7 +75,7 @@ const fields: FormField<FormValues>[] = [
 const makeSchema = (requireImage: boolean) =>
   yup.object({
     name: yup.string().trim().min(2).max(200).required(),
-    description: yup.string().trim().min(2).max(2000).required(),
+    description: yup.string().trim().min(2).max(200).required(),
     pointCost: yup.number().integer().min(1).required(),
     stock: yup.number().integer().min(0).required(),
     usage: yup

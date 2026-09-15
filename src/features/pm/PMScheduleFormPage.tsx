@@ -52,8 +52,17 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
     .min(2)
     .max(200)
     .required("กรุณาระบุชื่อครุภัณฑ์"),
-  planDetails: yup.string().trim().max(2000).required("กรุณาระบุรายละเอียดแผน"),
-  intervalMonths: yup.number().integer().min(1).max(60).required("กรุณากรอกข้อมูลให้ครบถ้วน"),
+  planDetails: yup
+    .string()
+    .trim()
+    .max(200, "ระบุรายละเอียดได้ไม่เกิน 200 ตัวอักษร")
+    .required("กรุณาระบุรายละเอียดแผน"),
+  intervalMonths: yup
+    .number()
+    .integer()
+    .min(1)
+    .max(60)
+    .required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   lastDoneAt: yup
     .string()
     .defined()
@@ -63,7 +72,9 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
       (value) => !value || value <= pmDateInput(),
     ),
   nextDueAt: yup.string().required("กรุณาระบุวันครบกำหนดครั้งถัดไป"),
-  endAt: yup.string().defined()
+  endAt: yup
+    .string()
+    .defined()
     .test(
       "required-while-active",
       "แผนที่ใช้งานต้องระบุวันสิ้นสุด",
@@ -72,7 +83,10 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
     .test(
       "after-next-due",
       "วันสิ้นสุดต้องไม่น้อยกว่าวันครบกำหนดครั้งถัดไป",
-      (value, context) => !value || !context.parent.nextDueAt || value >= context.parent.nextDueAt,
+      (value, context) =>
+        !value ||
+        !context.parent.nextDueAt ||
+        value >= context.parent.nextDueAt,
     ),
   status: yup
     .mixed<PMForm["status"]>()
@@ -105,7 +119,9 @@ function addMonthsToDateInput(value: string, months: number): string {
   const absoluteMonth = monthIndex + months;
   const targetYear = year + Math.floor(absoluteMonth / 12);
   const targetMonth = ((absoluteMonth % 12) + 12) % 12;
-  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  const lastDay = new Date(
+    Date.UTC(targetYear, targetMonth + 1, 0),
+  ).getUTCDate();
   const targetDay = Math.min(day, lastDay);
 
   return `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(
@@ -163,7 +179,6 @@ export function PMScheduleFormPage() {
       {
         name: "locationId",
         label: "จุด/ตำแหน่ง",
-        description: "เลือกตำแหน่งติดตั้งของครุภัณฑ์ที่ต้องการวางแผน",
         type: "select",
         required: true,
         readOnly: !isAdmin,
@@ -175,14 +190,12 @@ export function PMScheduleFormPage() {
       {
         name: "assetName",
         label: "ชื่อครุภัณฑ์",
-        description: "ระบุชื่อให้ค้นหาและแยกจากครุภัณฑ์อื่นได้ง่าย",
         required: true,
         readOnly: !isAdmin,
       },
       {
         name: "assignedTechnicianId",
         label: "ช่างผู้รับผิดชอบ",
-        description: "เว้นว่างได้ หากต้องการมอบหมายผู้รับผิดชอบภายหลัง",
         type: "select",
         readOnly: !isAdmin,
         options: [
@@ -242,16 +255,12 @@ export function PMScheduleFormPage() {
         required: true,
         min: 1,
         max: 60,
-        description: "ระบบจะเลื่อนกำหนดรอบถัดไปตามจำนวนเดือนนี้",
       },
       {
         name: "lastDoneAt",
         label: "วันที่ทำ PM ล่าสุด",
         type: "date",
         readOnly: Boolean(editing),
-        description: editing
-          ? "วันที่นี้อ้างอิงจากผล PM ล่าสุดและแก้ไขไม่ได้"
-          : "เว้นว่างได้ หากครุภัณฑ์นี้ยังไม่เคยทำ PM",
       },
       {
         name: "nextDueAt",
@@ -259,14 +268,12 @@ export function PMScheduleFormPage() {
         type: "date",
         required: true,
         readOnly: true,
-        description: "ระบบคำนวณจากวันที่ PM ล่าสุด (หรือวันนี้) และรอบตรวจ",
       },
       {
         name: "endAt",
         label: "วันสิ้นสุดแผน",
         type: "date",
         readOnly: !isAdmin,
-        description: "ผู้ใช้กำหนดเอง โดยต้องไม่ก่อนวันครบกำหนด และจำเป็นเมื่อแผนกำลังใช้งาน",
       },
       {
         name: "planDetails",
@@ -274,7 +281,6 @@ export function PMScheduleFormPage() {
         type: "textarea",
         required: true,
         fullWidth: true,
-        description: "ระบุรายการตรวจ วิธีดำเนินงาน หรือข้อควรระวังให้ช่างเข้าใจตรงกัน",
       },
     ],
     [locations.data, technicians.data, isAdmin, editing],
@@ -499,7 +505,8 @@ export function PMScheduleFormPage() {
               "& .MuiAlert-message": { py: 0.25 },
             }}
           >
-            ระบบคำนวณวันครบกำหนดให้อัตโนมัติจากรอบตรวจ ส่วนวันสิ้นสุดแผนให้ผู้ใช้กำหนดเอง
+            ระบบคำนวณวันครบกำหนดให้อัตโนมัติจากรอบตรวจ
+            ส่วนวันสิ้นสุดแผนให้ผู้ใช้กำหนดเอง
             และต้องไม่ก่อนวันครบกำหนดครั้งถัดไป
           </Alert>
 

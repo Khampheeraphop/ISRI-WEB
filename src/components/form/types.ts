@@ -13,6 +13,7 @@ export type FormField<T extends FieldValues> = {
   readOnly?: boolean;
   min?: number;
   max?: number;
+  limitText?: number;
   maxFiles?: number;
   accept?: Accept;
   acceptedFileTypesLabel?: string;

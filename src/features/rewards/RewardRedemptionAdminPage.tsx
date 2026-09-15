@@ -26,6 +26,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
 import { ActionDialog } from "../../components/feedback/ActionDialog";
+import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import { tableColumnAlignment } from "../../components/dataTable.constants";
 import { formatThaiPhoneNumber } from "../../utils/phone";
 import {
@@ -414,7 +415,7 @@ export function RewardRedemptionAdminPage() {
           spacing={1.5}
           sx={{ alignItems: { sm: "center" } }}
         >
-          <TextField
+          <LimitedTextField
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="ค้นหารางวัล ผู้รับ เบอร์โทร หรือที่อยู่"
@@ -730,13 +731,11 @@ export function RewardRedemptionAdminPage() {
             helperText={
               action?.status === "cancelled"
                 ? "จำเป็นต้องระบุเหตุผลก่อนยกเลิกคำขอ"
-                : `${note.length}/500 ตัวอักษร`
+                : undefined
             }
-            multiline
             minRows={3}
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            slotProps={{ htmlInput: { maxLength: 500 } }}
           />
         </Stack>
       </ActionDialog>

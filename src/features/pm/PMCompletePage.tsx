@@ -49,7 +49,7 @@ const schema: yup.ObjectSchema<PMCompletionForm> = yup.object({
   notes: yup
     .string()
     .trim()
-    .max(4000, "ระบุรายละเอียดได้ไม่เกิน 4,000 ตัวอักษร")
+    .max(200, "ระบุรายละเอียดได้ไม่เกิน 200 ตัวอักษร")
     .required("กรุณาระบุงานที่ทำและผลการตรวจ"),
 });
 const formatRecordedAt = (date: string | null) =>

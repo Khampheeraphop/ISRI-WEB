@@ -6,10 +6,10 @@ import {
   DialogContent,
   DialogTitle,
   Stack,
-  TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { FileUploadField } from "../../components/form/fields/FileUploadField";
+import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import { actionNeedsNote } from "./workOrderWorkflowUi";
 
 const MAX_ATTACHMENTS = 3;
@@ -63,10 +63,9 @@ export function WorkOrderActionDialog({
       <DialogContent dividers>
         <Stack spacing={2}>
           {error && <Alert severity="error">{error}</Alert>}
-          <TextField
+          <LimitedTextField
             label={requiresNote ? "รายละเอียดการดำเนินงาน" : "หมายเหตุ (ถ้ามี)"}
             required={requiresNote}
-            multiline
             minRows={4}
             value={note}
             onChange={(event) => setNote(event.target.value)}

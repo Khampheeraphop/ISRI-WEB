@@ -30,6 +30,10 @@ export const incidentReportSchema: yup.ObjectSchema<IncidentReportFormValues> =
             .max(120, "ระบุได้ไม่เกิน 120 ตัวอักษร"),
         otherwise: (schema) => schema.optional().strip(),
       }),
-    description: yup.string().trim().required("กรุณาระบุรายละเอียดปัญหา"),
+    description: yup
+      .string()
+      .trim()
+      .max(200, "ระบุรายละเอียดได้ไม่เกิน 200 ตัวอักษร")
+      .required("กรุณาระบุรายละเอียดปัญหา"),
     photos: yup.mixed<File[]>().optional(),
   });

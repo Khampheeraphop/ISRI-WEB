@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { ActionDialog } from "../../components/feedback/ActionDialog";
+import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import {
   formatThaiPhoneNumber,
   isValidThaiMobileNumber,
@@ -254,23 +255,19 @@ export function RewardRedemptionDialog({
         />
         </Box>
         {method === "delivery" && (
-          <TextField
+          <LimitedTextField
             required
             label="ที่อยู่สำหรับจัดส่ง"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
-            multiline
             minRows={3}
-            slotProps={{ htmlInput: { maxLength: 1000 } }}
           />
         )}
-        <TextField
+        <LimitedTextField
           label="หมายเหตุถึงผู้ดูแล (ถ้ามี)"
           value={note}
           onChange={(event) => setNote(event.target.value)}
-          multiline
           minRows={2}
-          slotProps={{ htmlInput: { maxLength: 500 } }}
         />
       </Stack>
     </ActionDialog>

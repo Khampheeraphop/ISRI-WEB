@@ -11,7 +11,6 @@ import {
   MenuItem,
   Select,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import {
@@ -22,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { ActionDialog } from "../../components/feedback/ActionDialog";
+import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import type { ApprovalStatus, TechnicianSpecialty } from "../../types/auth";
 import type { Role } from "../../types/user";
 import { getRoleLabel } from "../../constants/roles";
@@ -246,11 +246,10 @@ export function UserApprovalDialog({
               </FormGroup>
             </Box>
           )}
-          <TextField
+          <LimitedTextField
             label="หมายเหตุ (ถ้ามี)"
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            multiline
             minRows={2}
           />
         </Stack>

@@ -32,6 +32,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
 import { ActionDialog } from "../../components/feedback/ActionDialog";
+import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import type { CampaignAward, RewardCampaign } from "../../types/reward";
 import {
   campaignPeriodLabel,
@@ -757,13 +758,11 @@ export function CampaignAdminPage() {
               เมื่อยกเลิก ระบบจะคืนของรางวัล 1 ชิ้นเข้าสู่สต็อก
             </Alert>
           )}
-          <TextField
+          <LimitedTextField
             label="หมายเหตุ (ถ้ามี)"
             value={awardNote}
             onChange={(event) => setAwardNote(event.target.value)}
-            multiline
             minRows={2}
-            slotProps={{ htmlInput: { maxLength: 500 } }}
             fullWidth
           />
         </Stack>

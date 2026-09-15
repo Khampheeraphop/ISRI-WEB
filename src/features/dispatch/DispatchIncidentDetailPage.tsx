@@ -18,13 +18,13 @@ import {
   MenuItem,
   Select,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
+import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import { DetailSection } from "../../components/detail/DetailSection";
 import { IncidentStatusChip } from "../../components/IncidentStatusChip";
 import { formatBangkokDate } from "../../utils/incident";
@@ -447,17 +447,15 @@ export function DispatchIncidentDetailPage() {
         <DialogTitle>ไม่รับรายการแจ้งซ่อม</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
-            <TextField
+            <LimitedTextField
               autoFocus
               fullWidth
               required
-              multiline
               minRows={4}
               label="เหตุผลที่ไม่รับรายการ"
               value={rejectionReason}
               onChange={(event) => setRejectionReason(event.target.value)}
-              helperText={`${rejectionReason.trim().length}/2,000 ตัวอักษร (อย่างน้อย 5 ตัวอักษร)`}
-              slotProps={{ htmlInput: { maxLength: 2000 } }}
+              helperText="อย่างน้อย 5 ตัวอักษร"
             />
           </Stack>
         </DialogContent>
