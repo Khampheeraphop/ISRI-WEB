@@ -21,6 +21,9 @@ export function ImageUploadControl<T extends FieldValues>({
           required={field.required}
           files={controllerField.value ?? []}
           maxFiles={field.maxFiles}
+          accept={field.accept}
+          acceptedFileTypesLabel={field.acceptedFileTypesLabel}
+          maxSize={field.maxFileSize}
           onChange={controllerField.onChange}
           errorMessage={fieldState.error?.message}
         />

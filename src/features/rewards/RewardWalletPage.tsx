@@ -232,14 +232,19 @@ export function RewardWalletPage() {
             >
               <StarsRounded sx={{ fontSize: 20 }} />
             </Box>
-            <Typography sx={{ fontSize: "1.45rem", fontWeight: 700, lineHeight: 1 }}>
+            <Typography
+              sx={{ fontSize: "1.45rem", fontWeight: 700, lineHeight: 1 }}
+            >
               {balance.toLocaleString("th-TH")}
             </Typography>
             <Typography sx={{ color: "text.primary", fontWeight: 600 }}>
               คะแนน
             </Typography>
           </Stack>
-          <IconButton aria-label="แชร์หน้ารางวัล" onClick={() => void shareRewards()}>
+          <IconButton
+            aria-label="แชร์หน้ารางวัล"
+            onClick={() => void shareRewards()}
+          >
             <ShareRounded />
           </IconButton>
         </Stack>
@@ -306,10 +311,16 @@ export function RewardWalletPage() {
             <StarsRounded sx={{ fontSize: { sm: 34, md: 40 } }} />
           </Box>
           <Box>
-            <Typography sx={{ color: "rgba(255,255,255,.78)", fontWeight: 600 }}>
+            <Typography
+              sx={{ color: "rgba(255,255,255,.78)", fontWeight: 600 }}
+            >
               คะแนนสะสมของคุณ
             </Typography>
-            <Stack direction="row" spacing={1} sx={{ alignItems: "baseline", mt: 0.5 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: "baseline", mt: 0.5 }}
+            >
               <Typography
                 component="h1"
                 sx={{
@@ -322,23 +333,37 @@ export function RewardWalletPage() {
               >
                 {balance.toLocaleString("th-TH")}
               </Typography>
-              <Typography sx={{ color: "rgba(255,255,255,.86)", fontWeight: 600 }}>
+              <Typography
+                sx={{ color: "rgba(255,255,255,.86)", fontWeight: 600 }}
+              >
                 คะแนน
               </Typography>
             </Stack>
-            <Typography sx={{ mt: 0.75, color: "rgba(255,255,255,.7)", fontSize: ".86rem" }}>
+            <Typography
+              sx={{
+                mt: 0.75,
+                color: "rgba(255,255,255,.7)",
+                fontSize: ".86rem",
+              }}
+            >
               คะแนนที่พร้อมใช้แลกรางวัล
             </Typography>
           </Box>
         </Stack>
       </Paper>
       {(wallet.isError || catalog.isError) && (
-        <Alert severity="error" sx={{ mx: { xs: 2, sm: 0 }, mt: { xs: 2, sm: 0 } }}>
+        <Alert
+          severity="error"
+          sx={{ mx: { xs: 2, sm: 0 }, mt: { xs: 2, sm: 0 } }}
+        >
           ไม่สามารถโหลดข้อมูลรางวัลได้
         </Alert>
       )}
       {redeem.isSuccess && (
-        <Alert severity="success" sx={{ mx: { xs: 2, sm: 0 }, mt: { xs: 2, sm: 0 } }}>
+        <Alert
+          severity="success"
+          sx={{ mx: { xs: 2, sm: 0 }, mt: { xs: 2, sm: 0 } }}
+        >
           ส่งคำขอรับรางวัลแล้ว สามารถติดตามผลได้จากประวัติการรับรางวัล
         </Alert>
       )}
@@ -445,10 +470,16 @@ export function RewardWalletPage() {
             <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
               <CardGiftcardOutlined color="primary" />
               <Box>
-                <Typography variant="h5">{isMobile ? "รางวัล" : "รางวัลที่แลกได้"}</Typography>
+                <Typography variant="h5">
+                  {isMobile ? "รางวัล" : "รางวัลที่แลกได้"}
+                </Typography>
                 <Typography
                   color="text.secondary"
-                  sx={{ display: { xs: "none", sm: "block" }, mt: 0.15, fontSize: ".76rem" }}
+                  sx={{
+                    display: { xs: "none", sm: "block" },
+                    mt: 0.15,
+                    fontSize: ".76rem",
+                  }}
                 >
                   เลือกรางวัลตามจำนวนแต้มและสต็อกที่มีอยู่
                 </Typography>
@@ -459,7 +490,10 @@ export function RewardWalletPage() {
             border: { xs: 0, sm: 1 },
             borderRadius: { xs: 0, sm: 2.5 },
             overflow: "hidden",
-            "& .MuiCardHeader-root": { px: { xs: 2, sm: 2.5 }, py: { xs: 2, sm: 2.5 } },
+            "& .MuiCardHeader-root": {
+              px: { xs: 2, sm: 2.5 },
+              py: { xs: 2, sm: 2.5 },
+            },
             "& .MuiDivider-root": { display: { xs: "none", sm: "block" } },
           }}
           contentSx={{ p: { xs: "0 16px 24px", sm: 3 } }}
@@ -482,7 +516,10 @@ export function RewardWalletPage() {
                 balance >= reward.pointCost;
               const progress =
                 reward.rewardPeriod === "standard" && reward.pointCost > 0
-                  ? Math.min(100, Math.max(0, (balance / reward.pointCost) * 100))
+                  ? Math.min(
+                      100,
+                      Math.max(0, (balance / reward.pointCost) * 100),
+                    )
                   : 0;
               return (
                 <Box
@@ -508,9 +545,16 @@ export function RewardWalletPage() {
                     borderRadius: { xs: 2.25, sm: 2.5 },
                     bgcolor: "background.paper",
                     boxShadow: enabled
-                      ? { xs: "0 7px 20px rgba(75,56,137,.08)", sm: "0 10px 27px rgba(75,56,137,.1)" }
-                      : { xs: "0 4px 14px rgba(55,44,82,.04)", sm: "0 5px 16px rgba(55,44,82,.045)" },
-                    transition: "transform .15s ease, border-color .15s ease, box-shadow .15s ease",
+                      ? {
+                          xs: "0 7px 20px rgba(75,56,137,.08)",
+                          sm: "0 10px 27px rgba(75,56,137,.1)",
+                        }
+                      : {
+                          xs: "0 4px 14px rgba(55,44,82,.04)",
+                          sm: "0 5px 16px rgba(55,44,82,.045)",
+                        },
+                    transition:
+                      "transform .15s ease, border-color .15s ease, box-shadow .15s ease",
                     "&:hover": {
                       transform: "translateY(-3px)",
                       borderColor: "#AD9CCF",
@@ -549,7 +593,10 @@ export function RewardWalletPage() {
                         }}
                       />
                     ) : (
-                      <CardGiftcardOutlined color="disabled" sx={{ fontSize: 52 }} />
+                      <CardGiftcardOutlined
+                        color="disabled"
+                        sx={{ fontSize: 52 }}
+                      />
                     )}
                     <Chip
                       size="small"
@@ -573,9 +620,19 @@ export function RewardWalletPage() {
                       }}
                     />
                   </Box>
-                  <Stack spacing={{ xs: 0.7, sm: 1 }} sx={{ minWidth: 0, flex: 1, p: { xs: 1.15, sm: 2 } }}>
+                  <Stack
+                    spacing={{ xs: 0.7, sm: 1 }}
+                    sx={{ minWidth: 0, flex: 1, p: { xs: 1.15, sm: 2 } }}
+                  >
                     {reward.rewardPeriod === "annual" && (
-                      <Typography sx={{ color: "#765BB3", fontSize: ".74rem", fontWeight: 700, letterSpacing: ".03em" }}>
+                      <Typography
+                        sx={{
+                          color: "#765BB3",
+                          fontSize: ".74rem",
+                          fontWeight: 700,
+                          letterSpacing: ".03em",
+                        }}
+                      >
                         รางวัลประจำปี
                       </Typography>
                     )}
@@ -608,13 +665,40 @@ export function RewardWalletPage() {
                     </Typography>
                     {reward.rewardPeriod === "standard" && (
                       <Box sx={{ mt: "auto !important", pt: 0.5 }}>
-                        <Stack direction="row" sx={{ alignItems: "baseline", justifyContent: "space-between", gap: 0.5, mb: { xs: 0.9, sm: 1.25 } }}>
-                          <Stack direction="row" spacing={0.6} sx={{ alignItems: "center" }}>
-                            <StarsRounded sx={{ color: "#E59A1B", fontSize: { xs: 18, sm: 21 } }} />
-                            <Typography sx={{ color: "#C77A00", fontSize: { xs: "1.12rem", sm: "1.42rem" }, fontWeight: 700, lineHeight: 1 }}>
+                        <Stack
+                          direction="row"
+                          sx={{
+                            alignItems: "baseline",
+                            justifyContent: "space-between",
+                            gap: 0.5,
+                            mb: { xs: 0.9, sm: 1.25 },
+                          }}
+                        >
+                          <Stack
+                            direction="row"
+                            spacing={0.6}
+                            sx={{ alignItems: "center" }}
+                          >
+                            <StarsRounded
+                              sx={{
+                                color: "#E59A1B",
+                                fontSize: { xs: 18, sm: 21 },
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                color: "#C77A00",
+                                fontSize: { xs: "1.12rem", sm: "1.42rem" },
+                                fontWeight: 700,
+                                lineHeight: 1,
+                              }}
+                            >
                               {reward.pointCost.toLocaleString("th-TH")}
                             </Typography>
-                            <Typography color="text.secondary" sx={{ fontSize: { xs: ".7rem", sm: ".82rem" } }}>
+                            <Typography
+                              color="text.secondary"
+                              sx={{ fontSize: { xs: ".7rem", sm: ".82rem" } }}
+                            >
                               คะแนน
                             </Typography>
                           </Stack>
@@ -636,9 +720,17 @@ export function RewardWalletPage() {
                         />
                         <Stack
                           direction="row"
-                          sx={{ display: { xs: "none", sm: "flex" }, justifyContent: "space-between", gap: 1, mb: 1.25 }}
+                          sx={{
+                            display: { xs: "none", sm: "flex" },
+                            justifyContent: "space-between",
+                            gap: 1,
+                            mb: 1.25,
+                          }}
                         >
-                          <Typography color="text.secondary" sx={{ fontSize: ".72rem" }}>
+                          <Typography
+                            color="text.secondary"
+                            sx={{ fontSize: ".72rem" }}
+                          >
                             มี {balance.toLocaleString("th-TH")} คะแนน
                           </Typography>
                           <Typography
@@ -664,7 +756,9 @@ export function RewardWalletPage() {
                             px: { xs: 0.75, sm: 2 },
                             borderRadius: { xs: 1.5, sm: 1.75 },
                             fontSize: { xs: ".74rem", sm: ".95rem" },
-                            "& .MuiButton-startIcon": { display: { xs: "none", sm: "inherit" } },
+                            "& .MuiButton-startIcon": {
+                              display: { xs: "none", sm: "inherit" },
+                            },
                           }}
                           startIcon={<RedeemOutlined />}
                           disabled={!enabled || redeem.isPending}
@@ -676,7 +770,9 @@ export function RewardWalletPage() {
                           {reward.stock <= 0
                             ? "ของรางวัลหมด"
                             : balance < reward.pointCost
-                              ? isMobile ? "คะแนนไม่พอ" : "คะแนนยังไม่เพียงพอ"
+                              ? isMobile
+                                ? "คะแนนไม่พอ"
+                                : "คะแนนยังไม่เพียงพอ"
                               : "แลกรางวัล"}
                         </Button>
                       </Box>
@@ -696,8 +792,12 @@ export function RewardWalletPage() {
                 }}
               >
                 <Box>
-                  <CardGiftcardOutlined sx={{ fontSize: 42, color: "#9B90AE" }} />
-                  <Typography sx={{ mt: 1, fontWeight: 700 }}>ยังไม่มีรางวัลให้แลก</Typography>
+                  <CardGiftcardOutlined
+                    sx={{ fontSize: 42, color: "#9B90AE" }}
+                  />
+                  <Typography sx={{ mt: 1, fontWeight: 700 }}>
+                    ยังไม่มีรางวัลให้แลก
+                  </Typography>
                   <Typography color="text.secondary" sx={{ mt: 0.35 }}>
                     เมื่อมีรางวัลใหม่ รายการจะแสดงในส่วนนี้
                   </Typography>
@@ -772,248 +872,323 @@ export function RewardWalletPage() {
           },
         }}
       >
-        {detailReward && (() => {
-          const detailEnabled =
-            detailReward.rewardPeriod === "standard" &&
-            detailReward.stock > 0 &&
-            balance >= detailReward.pointCost;
-          const detailProgress =
-            detailReward.rewardPeriod === "standard" && detailReward.pointCost > 0
-              ? Math.min(100, Math.max(0, (balance / detailReward.pointCost) * 100))
-              : 0;
-          return (
-            <DialogContent
-              sx={{
-                position: "relative",
-                display: { md: "grid" },
-                gridTemplateColumns: { md: "minmax(0, 1.08fr) minmax(390px, .92fr)" },
-                minHeight: 0,
-                p: 0,
-                overflow: { xs: "auto", md: "hidden" },
-              }}
-            >
-              <IconButton
-                aria-label="ปิดรายละเอียด"
-                onClick={() => setDetailReward(undefined)}
-                sx={{
-                  position: "absolute",
-                  zIndex: 3,
-                  top: { xs: 12, md: 16 },
-                  right: { xs: 12, md: 16 },
-                  bgcolor: "rgba(255,255,255,.96)",
-                  boxShadow: "0 5px 18px rgba(37,27,66,.15)",
-                  "&:hover": { bgcolor: "#FFFFFF" },
-                }}
-              >
-                <CloseRounded />
-              </IconButton>
-              <Box
+        {detailReward &&
+          (() => {
+            const detailEnabled =
+              detailReward.rewardPeriod === "standard" &&
+              detailReward.stock > 0 &&
+              balance >= detailReward.pointCost;
+            const detailProgress =
+              detailReward.rewardPeriod === "standard" &&
+              detailReward.pointCost > 0
+                ? Math.min(
+                    100,
+                    Math.max(0, (balance / detailReward.pointCost) * 100),
+                  )
+                : 0;
+            return (
+              <DialogContent
                 sx={{
                   position: "relative",
-                  minHeight: { xs: 280, sm: 360, md: 0 },
-                  display: "grid",
-                  placeItems: "center",
-                  overflow: "hidden",
-                  p: { xs: 0, md: 3 },
-                  bgcolor: "#F7F5FA",
-                  borderRight: { md: "1px solid #E7E1EF" },
-                }}
-              >
-
-                {detailReward.imageUrl ? (
-                  <Box
-                    component="img"
-                    src={detailReward.imageUrl}
-                    alt={detailReward.name}
-                    sx={{
-                      width: "100%",
-                      height: "100%",
-                      maxHeight: { xs: 360, md: "100%" },
-                      objectFit: "contain",
-                      objectPosition: "center",
-                      display: "block",
-                    }}
-                  />
-                ) : (
-                  <CardGiftcardOutlined color="disabled" sx={{ fontSize: 72 }} />
-                )}
-              </Box>
-              <Box
-                sx={{
-                  minWidth: 0,
+                  display: { md: "grid" },
+                  gridTemplateColumns: {
+                    md: "minmax(0, 1.08fr) minmax(390px, .92fr)",
+                  },
                   minHeight: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  bgcolor: "#FFFFFF",
+                  p: 0,
+                  overflow: { xs: "auto", md: "hidden" },
                 }}
               >
-                <Box
+                <IconButton
+                  aria-label="ปิดรายละเอียด"
+                  onClick={() => setDetailReward(undefined)}
                   sx={{
-                    minHeight: 0,
-                    flex: 1,
-                    overflowY: { md: "auto" },
-                    p: { xs: 2.25, sm: 3.5, md: 4 },
-                    pr: { md: 4.5 },
+                    position: "absolute",
+                    zIndex: 3,
+                    top: { xs: 12, md: 16 },
+                    right: { xs: 12, md: 16 },
+                    bgcolor: "rgba(255,255,255,.96)",
+                    boxShadow: "0 5px 18px rgba(37,27,66,.15)",
+                    "&:hover": { bgcolor: "#FFFFFF" },
                   }}
                 >
-                  <Stack
-                    direction={{ xs: "column", sm: "row", md: "column" }}
-                    spacing={1.5}
+                  <CloseRounded />
+                </IconButton>
+                <Box
+                  sx={{
+                    position: "relative",
+                    minHeight: { xs: 280, sm: 360, md: 0 },
+                    display: "grid",
+                    placeItems: "center",
+                    overflow: "hidden",
+                    p: { xs: 0, md: 3 },
+                    bgcolor: "#F7F5FA",
+                    borderRight: { md: "1px solid #E7E1EF" },
+                  }}
+                >
+                  {detailReward.imageUrl ? (
+                    <Box
+                      component="img"
+                      src={detailReward.imageUrl}
+                      alt={detailReward.name}
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        maxHeight: { xs: 360, md: "100%" },
+                        objectFit: "contain",
+                        objectPosition: "center",
+                        display: "block",
+                      }}
+                    />
+                  ) : (
+                    <CardGiftcardOutlined
+                      color="disabled"
+                      sx={{ fontSize: 72 }}
+                    />
+                  )}
+                </Box>
+                <Box
+                  sx={{
+                    minWidth: 0,
+                    minHeight: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    bgcolor: "#FFFFFF",
+                  }}
+                >
+                  <Box
                     sx={{
-                      pr: { xs: 5, md: 4 },
-                      justifyContent: "space-between",
-                      alignItems: { xs: "flex-start", sm: "center", md: "flex-start" },
+                      minHeight: 0,
+                      flex: 1,
+                      overflowY: { md: "auto" },
+                      p: { xs: 2.25, sm: 3.5, md: 4 },
+                      pr: { md: 4.5 },
                     }}
                   >
-                    <Box sx={{ minWidth: 0 }}>
-                      {detailReward.rewardPeriod === "annual" && (
-                        <Typography sx={{ color: "primary.main", fontSize: ".78rem", fontWeight: 700 }}>
-                          รางวัลประจำปี
+                    <Stack
+                      direction={{ xs: "column", sm: "row", md: "column" }}
+                      spacing={1.5}
+                      sx={{
+                        pr: { xs: 5, md: 4 },
+                        justifyContent: "space-between",
+                        alignItems: {
+                          xs: "flex-start",
+                          sm: "center",
+                          md: "flex-start",
+                        },
+                      }}
+                    >
+                      <Box sx={{ minWidth: 0 }}>
+                        {detailReward.rewardPeriod === "annual" && (
+                          <Typography
+                            sx={{
+                              color: "primary.main",
+                              fontSize: ".78rem",
+                              fontWeight: 700,
+                            }}
+                          >
+                            รางวัลประจำปี
+                          </Typography>
+                        )}
+                        <Typography
+                          component="h2"
+                          sx={{
+                            mt: 0.25,
+                            fontSize: {
+                              xs: "1.35rem",
+                              sm: "1.65rem",
+                              md: "1.8rem",
+                            },
+                            fontWeight: 700,
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {detailReward.name}
                         </Typography>
-                      )}
-                      <Typography
-                        component="h2"
+                      </Box>
+                      <Chip
+                        icon={<Inventory2Outlined />}
+                        label={`จำนวนคงเหลือ ${detailReward.stock} ชิ้น`}
+                        color={detailReward.stock > 0 ? "primary" : "default"}
+                        variant="outlined"
+                        sx={{ flex: "0 0 auto", fontWeight: 700 }}
+                      />
+                    </Stack>
+
+                    {detailReward.rewardPeriod === "standard" && (
+                      <Box
                         sx={{
-                          mt: 0.25,
-                          fontSize: { xs: "1.35rem", sm: "1.65rem", md: "1.8rem" },
-                          fontWeight: 700,
-                          lineHeight: 1.45,
+                          mt: 2.5,
+                          overflow: "hidden",
+                          borderRadius: 2.25,
+                          bgcolor: "#F8F6FB",
+                          border: "1px solid #E6DFEF",
                         }}
                       >
-                        {detailReward.name}
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                          }}
+                        >
+                          <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+                            <Typography
+                              color="text.secondary"
+                              sx={{ fontSize: ".8rem" }}
+                            >
+                              ใช้คะแนน
+                            </Typography>
+                            <Stack
+                              direction="row"
+                              spacing={0.65}
+                              sx={{ mt: 0.5, alignItems: "center" }}
+                            >
+                              <StarsRounded
+                                sx={{ color: "#E59A1B", fontSize: 22 }}
+                              />
+                              <Typography
+                                sx={{
+                                  color: "#C77A00",
+                                  fontSize: "1.65rem",
+                                  fontWeight: 700,
+                                  lineHeight: 1,
+                                }}
+                              >
+                                {detailReward.pointCost.toLocaleString("th-TH")}
+                              </Typography>
+                              <Typography
+                                color="text.secondary"
+                                sx={{ fontSize: ".78rem" }}
+                              >
+                                คะแนน
+                              </Typography>
+                            </Stack>
+                          </Box>
+                          <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+                            <Typography
+                              color="text.secondary"
+                              sx={{ fontSize: ".8rem" }}
+                            >
+                              คะแนนของคุณ
+                            </Typography>
+                            <Typography
+                              sx={{
+                                mt: 0.5,
+                                color: "primary.main",
+                                fontSize: "1.65rem",
+                                fontWeight: 700,
+                                lineHeight: 1,
+                              }}
+                            >
+                              {balance.toLocaleString("th-TH")}{" "}
+                              <Typography
+                                component="span"
+                                color="text.secondary"
+                                sx={{ fontSize: ".78rem" }}
+                              >
+                                คะแนน
+                              </Typography>
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box
+                          sx={{
+                            px: { xs: 1.5, sm: 2 },
+                            pb: { xs: 1.5, sm: 2 },
+                          }}
+                        >
+                          <LinearProgress
+                            variant="determinate"
+                            value={detailProgress}
+                            aria-label={`สะสมคะแนนได้ ${Math.round(detailProgress)} เปอร์เซ็นต์`}
+                            sx={{
+                              mt: 0.8,
+                              height: 9,
+                              borderRadius: 99,
+                              bgcolor: "#E6E1EA",
+                              "& .MuiLinearProgress-bar": {
+                                borderRadius: 99,
+                                bgcolor: detailEnabled ? "#4B3B86" : "#E59A1B",
+                              },
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              mt: 0.8,
+                              color: detailEnabled ? "success.main" : "#A86500",
+                              fontSize: ".78rem",
+                              fontWeight: 700,
+                              textAlign: "right",
+                            }}
+                          >
+                            {detailEnabled
+                              ? ""
+                              : detailReward.stock <= 0
+                                ? "ของรางวัลหมด"
+                                : `ขาดอีก ${(detailReward.pointCost - balance).toLocaleString("th-TH")} คะแนน`}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+
+                    <Box
+                      sx={{
+                        mt: 3,
+                        pt: 2.5,
+                        borderTop: 1,
+                        borderColor: "divider",
+                      }}
+                    >
+                      <Typography sx={{ fontSize: "1.05rem", fontWeight: 700 }}>
+                        รายละเอียดรางวัล
+                      </Typography>
+                      <Typography
+                        color="text.secondary"
+                        sx={{
+                          mt: 0.85,
+                          whiteSpace: "pre-line",
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        {detailReward.description || "ไม่มีรายละเอียดเพิ่มเติม"}
                       </Typography>
                     </Box>
-                    <Chip
-                      icon={<Inventory2Outlined />}
-                      label={`จำนวนคงเหลือ ${detailReward.stock} ชิ้น`}
-                      color={detailReward.stock > 0 ? "primary" : "default"}
-                      variant="outlined"
-                      sx={{ flex: "0 0 auto", fontWeight: 700 }}
-                    />
-                  </Stack>
+                  </Box>
 
                   {detailReward.rewardPeriod === "standard" && (
                     <Box
                       sx={{
-                        mt: 2.5,
-                        overflow: "hidden",
-                        borderRadius: 2.25,
-                        bgcolor: "#F8F6FB",
-                        border: "1px solid #E6DFEF",
+                        p: { xs: 2.25, sm: 3, md: "20px 32px 24px" },
+                        borderTop: 1,
+                        borderColor: "divider",
+                        bgcolor: "rgba(255,255,255,.98)",
                       }}
                     >
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        startIcon={
+                          detailEnabled ? <RedeemOutlined /> : undefined
+                        }
+                        disabled={!detailEnabled || redeem.isPending}
+                        onClick={() => {
+                          setSelectedReward(detailReward);
+                          setDetailReward(undefined);
                         }}
+                        sx={{ minHeight: 50, borderRadius: 2, fontWeight: 700 }}
                       >
-                        <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
-                          <Typography color="text.secondary" sx={{ fontSize: ".8rem" }}>
-                            ใช้คะแนน
-                          </Typography>
-                          <Stack direction="row" spacing={0.65} sx={{ mt: 0.5, alignItems: "center" }}>
-                            <StarsRounded sx={{ color: "#E59A1B", fontSize: 22 }} />
-                            <Typography sx={{ color: "#C77A00", fontSize: "1.65rem", fontWeight: 700, lineHeight: 1 }}>
-                              {detailReward.pointCost.toLocaleString("th-TH")}
-                            </Typography>
-                            <Typography color="text.secondary" sx={{ fontSize: ".78rem" }}>
-                              คะแนน
-                            </Typography>
-                          </Stack>
-                        </Box>
-                        <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
-                          <Typography color="text.secondary" sx={{ fontSize: ".8rem" }}>
-                            คะแนนของคุณ
-                          </Typography>
-                          <Typography sx={{ mt: 0.5, color: "primary.main", fontSize: "1.65rem", fontWeight: 700, lineHeight: 1 }}>
-                            {balance.toLocaleString("th-TH")}{" "}
-                            <Typography component="span" color="text.secondary" sx={{ fontSize: ".78rem" }}>
-                              คะแนน
-                            </Typography>
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: { xs: 1.5, sm: 2 } }}>
-                        <LinearProgress
-                          variant="determinate"
-                          value={detailProgress}
-                          aria-label={`สะสมคะแนนได้ ${Math.round(detailProgress)} เปอร์เซ็นต์`}
-                          sx={{
-                            mt: 0.8,
-                            height: 9,
-                            borderRadius: 99,
-                            bgcolor: "#E6E1EA",
-                            "& .MuiLinearProgress-bar": {
-                              borderRadius: 99,
-                              bgcolor: detailEnabled ? "#4B3B86" : "#E59A1B",
-                            },
-                          }}
-                        />
-                        <Typography
-                          sx={{
-                            mt: 0.8,
-                            color: detailEnabled ? "success.main" : "#A86500",
-                            fontSize: ".78rem",
-                            fontWeight: 700,
-                            textAlign: "right",
-                          }}
-                        >
-                          {detailEnabled
-                            ? ""
-                            : detailReward.stock <= 0
-                              ? "ของรางวัลหมด"
-                              : `ขาดอีก ${(detailReward.pointCost - balance).toLocaleString("th-TH")} คะแนน`}
-                        </Typography>
-                      </Box>
+                        {detailReward.stock <= 0
+                          ? "ของรางวัลหมด"
+                          : balance < detailReward.pointCost
+                            ? "คุณมีคะแนนไม่เพียงพอ"
+                            : `แลกของรางวัล ${detailReward.pointCost.toLocaleString("th-TH")} คะแนน`}
+                      </Button>
                     </Box>
                   )}
-
-                  <Box sx={{ mt: 3, pt: 2.5, borderTop: 1, borderColor: "divider" }}>
-                    <Typography sx={{ fontSize: "1.05rem", fontWeight: 700 }}>
-                      รายละเอียดรางวัล
-                    </Typography>
-                    <Typography
-                      color="text.secondary"
-                      sx={{ mt: 0.85, whiteSpace: "pre-line", lineHeight: 1.8 }}
-                    >
-                      {detailReward.description || "ไม่มีรายละเอียดเพิ่มเติม"}
-                    </Typography>
-                  </Box>
                 </Box>
-
-                {detailReward.rewardPeriod === "standard" && (
-                  <Box
-                    sx={{
-                      p: { xs: 2.25, sm: 3, md: "20px 32px 24px" },
-                      borderTop: 1,
-                      borderColor: "divider",
-                      bgcolor: "rgba(255,255,255,.98)",
-                    }}
-                  >
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      startIcon={detailEnabled ? <RedeemOutlined /> : undefined}
-                      disabled={!detailEnabled || redeem.isPending}
-                      onClick={() => {
-                        setSelectedReward(detailReward);
-                        setDetailReward(undefined);
-                      }}
-                      sx={{ minHeight: 50, borderRadius: 2, fontWeight: 700 }}
-                    >
-                      {detailReward.stock <= 0
-                        ? "ของรางวัลหมด"
-                        : balance < detailReward.pointCost
-                          ? "คุณมีคะแนนไม่เพียงพอ"
-                          : `แลกของรางวัล ${detailReward.pointCost.toLocaleString("th-TH")} คะแนน`}
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </DialogContent>
-          );
-        })()}
+              </DialogContent>
+            );
+          })()}
       </Dialog>
       <RewardRedemptionDialog
         reward={selectedReward}

@@ -7,10 +7,17 @@ import {
   DialogTitle,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { FileUploadField } from "../../components/form/fields/FileUploadField";
 import { actionNeedsNote } from "./workOrderWorkflowUi";
+
+const MAX_ATTACHMENTS = 3;
+const MAX_ATTACHMENT_SIZE = 3 * 1024 * 1024;
+const ATTACHMENT_ACCEPT = {
+  "image/jpeg": [".jpg", ".jpeg"],
+  "image/png": [".png"],
+};
 
 type Props = {
   open: boolean;
@@ -57,9 +64,7 @@ export function WorkOrderActionDialog({
         <Stack spacing={2}>
           {error && <Alert severity="error">{error}</Alert>}
           <TextField
-            label={
-              requiresNote ? "รายละเอียดการดำเนินงาน" : "หมายเหตุ (ถ้ามี)"
-            }
+            label={requiresNote ? "รายละเอียดการดำเนินงาน" : "หมายเหตุ (ถ้ามี)"}
             required={requiresNote}
             multiline
             minRows={4}
@@ -83,34 +88,17 @@ export function WorkOrderActionDialog({
             fullWidth
           />
           {allowsFiles && (
-            <Button component="label" variant="outlined">
-              แนบภาพประกอบ (ถ้ามี)
-              <input
-                hidden
-                type="file"
-                accept="image/jpeg,image/png"
-                multiple
-                onChange={(event) =>
-                  setFiles(Array.from(event.target.files ?? []).slice(0, 3))
-                }
-              />
-            </Button>
-          )}
-          {files.length > 0 && (
-            <Stack spacing={0.25}>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                แนบแล้ว {files.length} ภาพ
-              </Typography>
-              {files.map((file) => (
-                <Typography
-                  key={`${file.name}-${file.lastModified}`}
-                  variant="body2"
-                  color="text.secondary"
-                >
-                  {file.name}
-                </Typography>
-              ))}
-            </Stack>
+            <FileUploadField
+              label="แนบภาพประกอบ (ถ้ามี)"
+              files={files}
+              accept={ATTACHMENT_ACCEPT}
+              acceptedFileTypesLabel="JPG, JPEG, PNG"
+              maxFiles={MAX_ATTACHMENTS}
+              maxSize={MAX_ATTACHMENT_SIZE}
+              variant="button"
+              showImagePreviews={false}
+              onChange={setFiles}
+            />
           )}
         </Stack>
       </DialogContent>
