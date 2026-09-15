@@ -119,11 +119,7 @@ export function DispatchIncidentDetailPage() {
       technician.technician_specialties.includes(requiredSpecialty),
   );
   const technicianLabel = (technician: (typeof eligibleTechnicians)[number]) =>
-    `${technician.full_name} (${
-      technician.technician_specialties
-        .map((specialty) => specialtyLabels[specialty] ?? specialty)
-        .join(", ") || "ยังไม่ได้ระบุความเชี่ยวชาญ"
-    })`;
+    technician.full_name;
   return (
     <Stack spacing={3}>
       <Box>

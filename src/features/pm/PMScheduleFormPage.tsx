@@ -129,19 +129,6 @@ function addMonthsToDateInput(value: string, months: number): string {
   ).padStart(2, "0")}`;
 }
 
-const specialtyLabels: Record<string, string> = {
-  electrical: "งานไฟฟ้า",
-  plumbing: "งานประปา",
-  air_conditioning: "เครื่องปรับอากาศ",
-  elevator: "งานลิฟต์",
-  building: "โครงสร้างอาคาร",
-};
-
-export function formatTechnicianSpecialties(specialties?: string[]): string {
-  if (!specialties || specialties.length === 0) return "";
-  return specialties.map((s) => specialtyLabels[s] ?? s).join(", ");
-}
-
 export function PMScheduleFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -202,11 +189,7 @@ export function PMScheduleFormPage() {
           { value: "", label: "-- ยังไม่ระบุช่าง (เลือกภายหลังได้) --" },
           ...(technicians.data ?? []).map((t) => ({
             value: t.id,
-            label: `${t.full_name} (${t.email})${
-              t.technician_specialties?.length
-                ? ` · ${formatTechnicianSpecialties(t.technician_specialties)}`
-                : ""
-            }`,
+            label: t.full_name,
           })),
           ...(!isAdmin && editing?.assignedTechnicianId
             ? [

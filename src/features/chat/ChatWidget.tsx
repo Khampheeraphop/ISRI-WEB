@@ -404,7 +404,10 @@ export function ChatWidget({ user }: { user: User }) {
             <LimitedTextField
               {...register("text")}
               value={chatText}
-              label="ถามเกี่ยวกับ ISRI"
+              placeholder="ถามเกี่ยวกับ ISRI"
+              slotProps={{
+                htmlInput: { "aria-label": "ถามเกี่ยวกับ ISRI" },
+              }}
               fullWidth
               maxRows={4}
               size="small"
