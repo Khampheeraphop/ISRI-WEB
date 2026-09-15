@@ -10,6 +10,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -114,6 +115,17 @@ const getQrCodeImage = (location: ManagedLocation) =>
     errorCorrectionLevel: "M",
   });
 
+const canvasToPngBlob = (canvas: HTMLCanvasElement): Promise<Blob> =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("ไม่สามารถสร้างไฟล์ PNG ได้"));
+      }
+    }, "image/png");
+  });
+
 const getQrPoster = async (location: ManagedLocation) => {
   const qrImage = await loadImage(await getQrCodeImage(location));
   const canvas = document.createElement("canvas");
@@ -166,15 +178,44 @@ const getQrPoster = async (location: ManagedLocation) => {
   context.fillStyle = "#A7A1AA";
   context.font = "500 22px Anuphan, sans-serif";
   context.fillText(`รหัสจุด: ${location.code}`, POSTER_WIDTH / 2, 1415);
-  return canvas.toDataURL("image/png");
+  return canvasToPngBlob(canvas);
 };
 
+const isAppleMobileDevice = () =>
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 const downloadQr = async (location: ManagedLocation) => {
-  const image = await getQrPoster(location);
+  const blob = await getQrPoster(location);
+  const fileName = getDownloadFileName(location);
+  const file = new File([blob], fileName, { type: "image/png" });
+
+  // On iOS, the native share sheet is substantially more reliable than a
+  // synthetic download and includes Save Image / Save to Files.
+  if (
+    isAppleMobileDevice() &&
+    typeof navigator.share === "function" &&
+    navigator.canShare?.({ files: [file] })
+  ) {
+    try {
+      await navigator.share({ files: [file], title: fileName });
+      return;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      // Fall through to the regular browser download when sharing is blocked.
+    }
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = image;
-  link.download = getDownloadFileName(location);
+  link.href = objectUrl;
+  link.download = fileName;
+  link.rel = "noopener";
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
 };
 
 export function LocationManagementPage() {
@@ -192,6 +233,24 @@ export function LocationManagementPage() {
     location: ManagedLocation;
     image: string;
   }>();
+  const [downloadingLocationId, setDownloadingLocationId] = useState<string>();
+  const [downloadError, setDownloadError] = useState<string>();
+
+  const handleDownload = async (location: ManagedLocation) => {
+    setDownloadError(undefined);
+    setDownloadingLocationId(location.id);
+    try {
+      await downloadQr(location);
+    } catch (error) {
+      setDownloadError(
+        error instanceof Error
+          ? error.message
+          : "ไม่สามารถดาวน์โหลด QR ได้ กรุณาลองใหม่อีกครั้ง",
+      );
+    } finally {
+      setDownloadingLocationId(undefined);
+    }
+  };
   const columns: GridColDef<ManagedLocation>[] = [
     { field: "building", headerName: "อาคาร", width: 240 },
     { field: "floor", headerName: "ชั้น", width: 100 },
@@ -212,8 +271,16 @@ export function LocationManagementPage() {
           >
             <VisibilityOutlined fontSize="small" />
           </IconButton>
-          <IconButton aria-label="ดาวน์โหลด QR" onClick={() => downloadQr(row)}>
-            <DownloadOutlined fontSize="small" />
+          <IconButton
+            aria-label="ดาวน์โหลด QR"
+            disabled={downloadingLocationId === row.id}
+            onClick={() => void handleDownload(row)}
+          >
+            {downloadingLocationId === row.id ? (
+              <CircularProgress size={20} />
+            ) : (
+              <DownloadOutlined fontSize="small" />
+            )}
           </IconButton>
           <IconButton
             component={Link}
@@ -281,6 +348,15 @@ export function LocationManagementPage() {
               : "ไม่สามารถโหลดรายการตำแหน่งได้"}
           </Alert>
         )}
+        {downloadError && (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            onClose={() => setDownloadError(undefined)}
+          >
+            {downloadError}
+          </Alert>
+        )}
         <Alert severity="info" variant="outlined" sx={{ mb: 2 }}>
           แนะนำติดตั้ง QR ที่ระดับสายตา 120–150 ซม. จากพื้น
           ใกล้จุดที่มักเกิดปัญหา และไม่ถูกบดบัง
@@ -325,9 +401,12 @@ export function LocationManagementPage() {
               <Button
                 variant="contained"
                 startIcon={<DownloadOutlined />}
-                onClick={() => downloadQr(preview.location)}
+                disabled={downloadingLocationId === preview.location.id}
+                onClick={() => void handleDownload(preview.location)}
               >
-                ดาวน์โหลด PNG
+                {downloadingLocationId === preview.location.id
+                  ? "กำลังสร้าง PNG..."
+                  : "ดาวน์โหลด PNG"}
               </Button>
             </DialogActions>
           </>

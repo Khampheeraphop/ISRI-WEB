@@ -21,7 +21,7 @@ Browser / QR Code
                                       PostgreSQL + Storage + Realtime
 ```
 
-Supabase ไม่ได้ทำหน้าที่ host หน้าเว็บนี้ หน้าเว็บต้องเปิดด้วย Vite ใน Local หรือ deploy โฟลเดอร์ `dist` ไปยัง Netlify ส่วน URL `https://<project-ref>.supabase.co` เป็น URL ของ Auth, API, Storage และ Edge Function
+Supabase ไม่ได้ทำหน้าที่ host หน้าเว็บนี้ หน้าเว็บต้องเปิดด้วย Vite ใน Local หรือ deploy โฟลเดอร์ `dist` ผ่าน Cloudflare Pages ส่วน URL `https://<project-ref>.supabase.co` เป็น URL ของ Auth, API, Storage และ Edge Function
 
 ## 2. เปิดระบบบนเครื่อง Local
 
@@ -157,7 +157,28 @@ npx supabase stop
 nzwtybjijnreeylbmjlp
 ```
 
-โครงการเลือก deploy หน้าเว็บด้วย Netlify เพราะเป็น Vite SPA และไฟล์ `netlify.toml` เตรียม build, publish `dist` และ rewrite ไป `index.html` แล้ว
+หน้าเว็บ Production ใช้ Cloudflare Pages เท่านั้น ห้ามสร้าง Netlify site ใหม่ ห้ามสร้าง Cloudflare Pages project ซ้ำ และห้ามย้าย custom domain ออกจาก project เดิม
+
+ค่าที่เป็น source of truth:
+
+| รายการ | ค่าที่ถูกต้อง |
+|---|---|
+| Hosting | Cloudflare Pages |
+| Pages project | `isri-care` |
+| Git repository | `Khampheeraphop/ISRI-WEB` |
+| Production branch | `main` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Root directory | เว้นว่าง เพราะ repository นี้มี frontend อยู่ที่ root |
+| Production domain | `https://www.isri-care.xyz` |
+| Cloudflare fallback domain | `https://isri-care.pages.dev` |
+| Supabase project ref | `nzwtybjijnreeylbmjlp` |
+
+> ข้อห้ามสำหรับผู้ deploy และ AI: อย่า deploy ไป Netlify, อย่าเลือก repository `ISRI` ที่รวม backend, อย่าตั้ง Root directory เป็น `web`, อย่าใช้ branch `dev-phop` เป็น Production และอย่าเปลี่ยน DNS record ของ Resend
+
+> สถานะที่ยืนยันแล้วเมื่อ 13 กันยายน 2026: project `isri-care` เชื่อม GitHub แล้ว, Automatic deployments เปิดแล้ว, Production environment variables ทั้ง 3 ตัวถูกบันทึกแล้ว และ custom domain `www.isri-care.xyz` Active อยู่ ดังนั้นงานอัปเดตปกติห้าม disconnect Git, import project ใหม่ หรือสร้าง site ใหม่ เพียง push/merge frontend เข้า `main` แล้วตรวจ deployment เท่านั้น
+
+ไฟล์ `netlify.toml` และ URL `isri.netlify.app` เป็นค่า legacy ไม่ใช่ Production source of truth ห้ามใช้เป็นเหตุผลเลือก Netlify ส่วน Cloudflare deploy เฉพาะ frontend repository นี้เท่านั้น ไม่ build หรือ deploy โฟลเดอร์ `api`
 
 ### 3.1 แยก Production กับ Demo Seed ให้ชัด
 
@@ -262,7 +283,7 @@ order by item;
 | Reward redemptions | 3 |
 | Notifications | 6 |
 
-หากต้องการใช้แบบฟอร์มอีเมล/รหัสผ่านบนเว็บ Cloud สำหรับการนำเสนอ ให้ตั้ง Netlify environment variable `VITE_ENABLE_LOCAL_DEMO_LOGIN=true` แล้ว deploy ใหม่ เมื่อเปลี่ยนเป็น Production จริงให้ตั้งกลับเป็น `false` และลบบัญชี `@isri.local` ทั้งหมด
+หากต้องการใช้แบบฟอร์มอีเมล/รหัสผ่านบนเว็บ Cloud สำหรับการนำเสนอ ให้ตั้ง Cloudflare Pages Production environment variable `VITE_ENABLE_LOCAL_DEMO_LOGIN=true` แล้ว deploy commit ใหม่จาก `main` เมื่อเปลี่ยนเป็น Production จริงให้ตั้งกลับเป็น `false` และลบบัญชี `@isri.local` ทั้งหมด
 
 #### 3.2.4 แก้ปัญหา Seed ที่พบบ่อย
 
@@ -270,7 +291,7 @@ order by item;
 - `reward_redemptions_status_check` หรือสถานะ `pending` ถูกปฏิเสธ หมายถึง Cloud ยังไม่มี migration `normalize_reward_redemption_status`
 - `point_transactions_type_amount_check` ปฏิเสธ `refund` หมายถึง Cloud ยังไม่มี migration `allow_refund_point_transactions`
 - หาก Seed แสดง error หลังมี `begin;` ห้ามเติม `commit;` เพื่อฝืนรัน ให้แก้สาเหตุแล้วเริ่มรันทั้งไฟล์ใหม่ เพราะ transaction ที่ผิดจะถูก rollback
-- หาก Seed ผ่านแต่ล็อกอิน Demo ไม่ได้ ให้ตรวจว่า Netlify เปิด `VITE_ENABLE_LOCAL_DEMO_LOGIN=true` และ deploy หลังเปลี่ยน environment variable แล้ว
+- หาก Seed ผ่านแต่ล็อกอิน Demo ไม่ได้ ให้ตรวจว่า Cloudflare Pages เปิด `VITE_ENABLE_LOCAL_DEMO_LOGIN=true` ใน Environment `Production` และ deploy commit ใหม่หลังเปลี่ยน environment variable แล้ว
 
 ### 3.3 สำรองและตรวจโครงการก่อนเปลี่ยนฐานข้อมูล Cloud
 
@@ -317,10 +338,10 @@ npx supabase functions deploy isri-api --project-ref nzwtybjijnreeylbmjlp
 
 Supabase Cloud เตรียม `SUPABASE_URL` และ `SUPABASE_SERVICE_ROLE_KEY` ให้ Edge Function โดยอัตโนมัติ ตัวแปรที่ต้องตั้งเพิ่มหลังทราบ URL หน้าเว็บจริงคือ `WEB_ORIGIN`
 
-สำหรับเว็บจริงปัจจุบัน `https://isri.netlify.app`:
+สำหรับเว็บจริงปัจจุบัน `https://www.isri-care.xyz`:
 
 ```powershell
-npx supabase secrets set WEB_ORIGIN=https://isri.netlify.app --project-ref nzwtybjijnreeylbmjlp
+npx supabase secrets set WEB_ORIGIN=https://www.isri-care.xyz --project-ref nzwtybjijnreeylbmjlp
 ```
 
 ค่า `WEB_ORIGIN` ต้องเป็น origin เท่านั้น ไม่มี `/` ต่อท้ายและไม่มี path เช่น `/auth/callback`
@@ -338,49 +359,98 @@ https://nzwtybjijnreeylbmjlp.supabase.co/auth/v1/callback
 1. ไป Authentication → Sign In / Providers → Google
 2. เปิด Google provider และใส่ Client ID/Client Secret
 3. ไป Authentication → URL Configuration
-4. ตั้ง Site URL เป็น `https://isri.netlify.app`
-5. เพิ่ม Redirect URL `https://isri.netlify.app/auth/callback`
-6. หากยังพัฒนา Local ให้คง `http://127.0.0.1:5173/auth/callback` ไว้ด้วย
+4. ตั้ง Site URL เป็น `https://www.isri-care.xyz`
+5. เพิ่ม Redirect URL `https://www.isri-care.xyz/auth/callback`
+6. คง `https://isri-care.pages.dev/auth/callback` ไว้สำหรับตรวจ fallback domain
+7. หากยังพัฒนา Local ให้คง `http://127.0.0.1:5173/auth/callback` และ `http://localhost:5173/auth/callback` ไว้ด้วย
+
+ค่า `redirectTo` ใน frontend สร้างจาก `window.location.origin` ดังนั้นผู้ใช้ที่เริ่ม Google Login จาก `www.isri-care.xyz` ต้องกลับมาที่ `https://www.isri-care.xyz/auth/callback` หาก URL ระหว่าง OAuth มี `redirect_to=https://isri.netlify.app/...` แปลว่ากำลังใช้ deployment หรือ browser cache เก่า ให้หยุดและตรวจ production deployment ก่อน
 
 เมื่อ `poplowplay1@gmail.com` เข้าด้วย Google ครั้งแรก trigger จะสร้าง/ปรับ profile เป็น `approved + admin` อัตโนมัติ ผู้ใช้ Gmail อื่นจะเป็น `pending` และยังทำงานไม่ได้จน Admin อนุมัติ
 
-### 3.7 Deploy หน้าเว็บด้วย Netlify
+### 3.7 Deploy หน้าเว็บด้วย Cloudflare Pages
 
-เว็บไซต์ Production ปัจจุบันคือ `https://isri.netlify.app`
+เว็บไซต์ Production ปัจจุบันคือ `https://www.isri-care.xyz` และต้องใช้ Cloudflare Pages project `isri-care` ที่มีอยู่แล้วเท่านั้น
 
-นำ repository `web` ขึ้น Git provider แล้วเลือก Add new site → Import an existing project ใน Netlify:
+#### 3.7.1 การเชื่อม Git ที่ถูกต้อง
 
-- Framework preset: Vite
-- Base Directory: ใช้ `.` เพราะ repository `ISRI-WEB` มีหน้าเว็บอยู่ที่ root
-- Install Command: `npm ci`
-- Build Command: `npm run build`
-- Output Directory: `dist`
+Cloudflare Dashboard → Workers & Pages → `isri-care` → Settings → Build:
 
-ตั้ง Environment Variables ใน Netlify สำหรับ Production:
+- Git repository: `Khampheeraphop/ISRI-WEB`
+- Production branch: `main`
+- Automatic deployments: `Enabled`
+- Framework preset: ไม่บังคับ; ใช้ `None` ได้
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Root directory: เว้นว่าง
+- Build system version: Version 3
+
+Repository `ISRI-WEB` คือ frontend root อยู่แล้ว การตั้ง Root directory เป็น `web` จะทำให้ Cloudflare หา `package.json` ไม่พบ ห้ามเชื่อม repository backend และห้ามสร้าง Pages project ชื่อใหม่เพื่อแก้ปัญหา
+
+เมื่อ commit ถูก push หรือ merge เข้า `main` Cloudflare จะ clone repository, รัน `npm clean-install`, รัน `npm run build` และนำ `dist` ขึ้น Production ให้อัตโนมัติ การ push เฉพาะ `dev-phop` ไม่ใช่ Production deploy
+
+#### 3.7.2 Environment variables
+
+Cloudflare Dashboard → `isri-care` → Settings → เลือก Environment `Production` → Variables and secrets ต้องมีครบ:
 
 ```env
 VITE_SUPABASE_URL=https://nzwtybjijnreeylbmjlp.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<Publishable Key จาก Supabase Dashboard → Settings → API>
-VITE_ENABLE_LOCAL_DEMO_LOGIN=true
+VITE_ENABLE_LOCAL_DEMO_LOGIN=false
 ```
 
-ค่าปัจจุบันใช้ `true` เพราะเว็บไซต์นี้เป็นระบบสาธิตที่ลงบัญชีจาก Seed และต้องแสดงช่องอีเมล/รหัสผ่าน เมื่อนำไปใช้งานจริงกับบุคลากร ให้เปลี่ยนเป็น `false` ลบบัญชี `@isri.local` และใช้ Google OAuth เท่านั้น
+กฎสำคัญ:
 
-จากนั้น Deploy หน้าเว็บ เมื่อได้ URL จริงให้ย้อนกลับไปทำ 2 จุด:
+- ใช้ชื่อทั้งสามตัวให้ตรงทุกตัวอักษร เพราะ Vite อ่านเฉพาะตัวแปร `VITE_*` ตอน build
+- ค่า Production จริงของ `VITE_ENABLE_LOCAL_DEMO_LOGIN` คือ `false`
+- Publishable Key ใส่ใน browser ได้ แต่ห้ามใส่ `service_role`, Secret Key หรือ Google Client Secret
+- ตั้งค่าที่ Environment `Production` ไม่ใช่ Preview อย่างเดียว
+- การแก้ env ไม่ได้เปลี่ยน JavaScript bundle ที่ deploy ไปแล้ว ต้องสร้าง Production deployment ใหม่
+- หลังเปลี่ยน env ให้ push/merge commit ใหม่เข้า `main` วิธีนี้แน่นอนกว่าปุ่ม Retry เพราะ Retry อาจสร้าง URL deployment ใหม่แต่ alias หลักยังคงชี้ deployment เดิม
 
-1. ตั้ง Supabase secret `WEB_ORIGIN` ให้ตรงกับ URL
-2. ตั้ง Supabase Site URL และ Redirect URL ให้ตรงกับ URL
+หลัง deploy ให้เปิดหน้า `/login` หากเห็นข้อความ `ยังไม่ได้ตั้งค่าการเชื่อมต่อระบบ` หรือปุ่ม Google ถูก disable แปลว่า build ไม่มี env ห้ามประกาศว่า deploy สำเร็จแม้ Cloudflare จะแสดงสถานะ `success`
 
-ไฟล์ `netlify.toml` จะตั้ง SPA fallback ให้อัตโนมัติ หลัง deploy ให้ทดสอบ refresh URL ย่อย เช่น `/incidents/new?loc=OPD-F1-REG` ต้องยังเปิดหน้าเว็บได้ ไม่เป็น 404
+#### 3.7.3 Custom domain และ DNS
 
-หากต้องการ deploy แบบ Manual จาก production build ที่ตรวจแล้ว ให้ใช้ Netlify CLI จากโฟลเดอร์ `web`:
+Cloudflare Pages project `isri-care` ต้องมี Custom domain `www.isri-care.xyz` สถานะ Active
 
-```bash
-npm run build
-npx netlify deploy --dir=dist --prod --site=9af39124-8d30-4c70-868d-1bc2fbc562e4 --no-build
+DNS ของโดเมนจัดการที่ Hostinger:
+
+```text
+Type: CNAME
+Name: www
+Target: isri-care.pages.dev
+TTL: 300
 ```
 
-ต้องอัปโหลดโฟลเดอร์ `dist` โดยตรง ไม่ควรเลือก ZIP เป็นไฟล์เดียวในหน้า Production deploy เพราะ Netlify อาจเก็บ ZIP เป็นไฟล์แทนการคลายโครงสร้าง `assets/`
+ห้ามลบหรือแก้ MX/TXT/CNAME ที่ใช้โดย Resend และอีเมลโดเมน ส่วน `www.isri-care.xyz` เป็น canonical production domain ไม่ควรเปลี่ยน Supabase Site URL ไปใช้ `pages.dev` หรือ Netlify
+
+#### 3.7.4 SPA routing
+
+Cloudflare Pages รองรับ SPA fallback อัตโนมัติเมื่อไม่มี top-level `404.html` โปรเจกต์มี `public/_redirects` บรรทัด `/* /index.html 200` ซึ่ง Cloudflare อาจแจ้งว่าเป็น infinite loop และ ignore กฎนี้ ห้ามถือ warning นี้เป็น build failure และไม่ควรเพิ่ม redirect rule ซ้ำเพื่อแก้
+
+หลัง deploy ต้องเปิดและ refresh URL ย่อยโดยตรง เช่น:
+
+```text
+https://www.isri-care.xyz/login
+https://www.isri-care.xyz/incidents/new?loc=OPD-F1-REG
+```
+
+ทั้งสอง URL ต้องโหลดแอป ไม่เป็น 404
+
+#### 3.7.5 ตรวจ deployment และ rollback
+
+อย่าตรวจเฉพาะข้อความ `Success: Your site was deployed!` ให้ตรวจครบ:
+
+1. Deployment เป็น Environment `Production` และ Branch `main`
+2. Build settings แสดง environment variables 3 ตัว
+3. `www.isri-care.xyz/login` ไม่มีคำเตือนว่าไม่ได้ตั้งค่าการเชื่อมต่อ
+4. ปุ่ม Google Login ไม่ถูก disable
+5. OAuth มี `redirect_to=https://www.isri-care.xyz/auth/callback`
+
+หาก deployment ใหม่ build ผ่านแต่หน้าเว็บใช้งานไม่ได้ ให้ไป Deployments → deployment ก่อนหน้าที่ทดสอบแล้ว → Manage deployment → Rollback to this deployment การ rollback ไม่ยกเลิก Git connection; commit ถัดไปบน `main` ยัง deploy อัตโนมัติ
+
+ห้ามใช้ Direct Upload หรือ Netlify เป็นทางแก้ปกติ เพราะจะทำให้ source ของ Production ไม่ตรงกับ `main` และทำให้ AI/ผู้ดูแลคนถัดไปตรวจสถานะผิด
 
 ### 3.8 หากใช้ Server/Nginx ของตนเอง
 
@@ -452,7 +522,7 @@ npm run lint
 npm run build
 ```
 
-เมื่อ push branch Production แล้วให้ hosting build ใหม่ และทำ smoke test ตามเช็กลิสต์ทุกครั้ง
+จากนั้น commit และ push/merge เข้า `main` เท่านั้น Cloudflare Pages project `isri-care` จะ deploy อัตโนมัติ เมื่อสถานะเป็น `success` แล้วต้องทำ smoke test ที่ `https://www.isri-care.xyz` ตามเช็กลิสต์ทุกครั้ง อย่าสรุปจากสถานะ build เพียงอย่างเดียว
 
 ## 6. เอกสารอ้างอิงทางการ
 
@@ -462,4 +532,7 @@ npm run build
 - [Supabase: Deploy Edge Functions](https://supabase.com/docs/guides/functions/deploy)
 - [Supabase: Edge Function secrets](https://supabase.com/docs/guides/functions/secrets)
 - [Vite: Deploying a static site](https://vite.dev/guide/static-deploy.html)
-- [Netlify: Vite deployment](https://docs.netlify.com/build/frameworks/framework-setup-guides/vite/)
+- [Cloudflare Pages: Git integration](https://developers.cloudflare.com/pages/configuration/git-integration/)
+- [Cloudflare Pages: Build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/)
+- [Cloudflare Pages: Custom domains](https://developers.cloudflare.com/pages/configuration/custom-domains/)
+- [Cloudflare Pages: Redirects](https://developers.cloudflare.com/pages/configuration/redirects/)
