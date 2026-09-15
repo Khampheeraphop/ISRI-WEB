@@ -4,16 +4,21 @@ import {
   NotificationsOutlined,
   AdminPanelSettingsOutlined,
   AssignmentOutlined,
+  CampaignOutlined,
   CardGiftcardOutlined,
   DashboardOutlined,
   EmojiEventsOutlined,
   EngineeringOutlined,
+  EventRepeatOutlined,
   FactCheckOutlined,
   HistoryOutlined,
   AssignmentIndOutlined,
   LogoutOutlined,
   Menu as MenuIcon,
+  QrCode2Outlined,
+  RedeemOutlined,
   SettingsOutlined,
+  TimerOutlined,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -87,12 +92,20 @@ function getGoogleAvatarUrl(authUser: ReturnType<typeof useAuth>["authUser"]) {
     .map(normalizeAvatarUrl)
     .find((value): value is string => Boolean(value));
 }
-const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
+type NavigationItem = {
+  label: string;
+  to: string;
+  icon: ReactNode;
+  activePrefixes?: string[];
+};
+
+const menus: Record<Role, NavigationItem[]> = {
   reporter: [
     {
       label: "รายการแจ้งซ่อมของฉัน",
       to: "/incidents/mine",
       icon: <AssignmentOutlined />,
+      activePrefixes: ["/incidents"],
     },
     {
       label: "ประวัติการดำเนินงาน",
@@ -134,8 +147,8 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       to: "/activity-history",
       icon: <HistoryOutlined />,
     },
-    { label: "ตั้งค่า SLA", to: "/sla", icon: <SettingsOutlined /> },
-    { label: "แผน PM", to: "/pm", icon: <SettingsOutlined /> },
+    { label: "ตั้งค่า SLA", to: "/sla", icon: <TimerOutlined /> },
+    { label: "แผน PM", to: "/pm", icon: <EventRepeatOutlined /> },
     {
       label: "จัดการของรางวัล",
       to: "/rewards/manage",
@@ -144,12 +157,12 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
     {
       label: "การส่งมอบรางวัล",
       to: "/rewards/redemptions",
-      icon: <CardGiftcardOutlined />,
+      icon: <RedeemOutlined />,
     },
     {
       label: "จัดการแคมเปญ",
       to: "/campaigns/manage",
-      icon: <EmojiEventsOutlined />,
+      icon: <CampaignOutlined />,
     },
     { label: "อันดับแคมเปญ", to: "/campaigns", icon: <EmojiEventsOutlined /> },
     {
@@ -157,8 +170,32 @@ const menus: Record<Role, { label: string; to: string; icon: ReactNode }[]> = {
       to: "/users",
       icon: <AdminPanelSettingsOutlined />,
     },
-    { label: "ตำแหน่งและ QR", to: "/locations", icon: <AssignmentOutlined /> },
+    { label: "ตำแหน่งและ QR", to: "/locations", icon: <QrCode2Outlined /> },
   ],
+};
+
+const matchesMenuPath = (pathname: string, prefix: string) =>
+  prefix === "/"
+    ? pathname === "/"
+    : pathname === prefix || pathname.startsWith(`${prefix}/`);
+
+const getActiveMenuPath = (items: NavigationItem[], pathname: string) => {
+  let activePath: string | undefined;
+  let activeMatchLength = -1;
+
+  for (const item of items) {
+    for (const prefix of [item.to, ...(item.activePrefixes ?? [])]) {
+      if (
+        matchesMenuPath(pathname, prefix) &&
+        prefix.length > activeMatchLength
+      ) {
+        activePath = item.to;
+        activeMatchLength = prefix.length;
+      }
+    }
+  }
+
+  return activePath;
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -223,6 +260,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const unreadNotifications = (notifications.data ?? []).filter(
     (item) => !item.is_read,
   );
+  const activeMenuPath = getActiveMenuPath(menus[user.role], location.pathname);
   const navigation = (
     <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
       <Box sx={{ px: 3, py: 3, borderBottom: 1, borderColor: "divider" }}>
@@ -240,7 +278,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             key={item.to}
             component={Link}
             to={item.to}
-            selected={location.pathname === item.to}
+            selected={activeMenuPath === item.to}
             onClick={() => setMobileOpen(false)}
             sx={{ mb: 0.5, borderRadius: 1.5 }}
           >
@@ -248,7 +286,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               sx={{
                 minWidth: 38,
                 color:
-                  location.pathname === item.to
+                  activeMenuPath === item.to
                     ? "primary.main"
                     : "text.secondary",
               }}
