@@ -264,9 +264,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigation = (
     <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
       <Box sx={{ px: 3, py: 3, borderBottom: 1, borderColor: "divider" }}>
-        <Typography variant="h4" color="primary.main" sx={{ lineHeight: 1 }}>
-          ISRI
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5 }}>
+          <img
+            src="/images/isri-logo.svg"
+            alt="ISRI Logo"
+            style={{ width: 32, height: 32 }}
+          />
+          <Typography variant="h4" color="primary.main" sx={{ lineHeight: 1 }}>
+            ISRI
+          </Typography>
+        </Box>
         <Typography variant="body2" color="text.secondary">
           Infrastructure Safety Reporting
           <br />& Incentive System
