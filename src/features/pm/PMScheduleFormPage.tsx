@@ -59,10 +59,11 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
     .required("กรุณาระบุรายละเอียดแผน"),
   intervalMonths: yup
     .number()
-    .integer()
-    .min(1)
-    .max(60)
-    .required("กรุณากรอกข้อมูลให้ครบถ้วน"),
+    .typeError("กรุณาระบุรอบตรวจเป็นตัวเลข")
+    .integer("กรุณาระบุรอบตรวจเป็นจำนวนเต็ม")
+    .min(1, "รอบตรวจต้องไม่น้อยกว่า 1 เดือน")
+    .max(60, "รอบตรวจต้องไม่เกิน 60 เดือน")
+    .required("กรุณาระบุรอบตรวจ"),
   lastDoneAt: yup
     .string()
     .defined()
@@ -90,7 +91,10 @@ const schema: yup.ObjectSchema<PMForm> = yup.object({
     ),
   status: yup
     .mixed<PMForm["status"]>()
-    .oneOf(["draft", "active", "paused", "completed", "cancelled"])
+    .oneOf(
+      ["draft", "active", "paused", "completed", "cancelled"],
+      "กรุณาเลือกสถานะแผนที่ถูกต้อง",
+    )
     .required("กรุณาเลือกสถานะแผน"),
   assignedTechnicianId: yup.string().defined(),
 });

@@ -102,7 +102,10 @@ export function GenericForm<T extends FieldValues>({
           return (
             <Box
               key={resolvedField.name}
-              sx={{ gridColumn: resolvedField.fullWidth ? "1 / -1" : "auto" }}
+              sx={{
+                gridColumn: resolvedField.fullWidth ? "1 / -1" : "auto",
+                minWidth: 0,
+              }}
             >
               {resolvedField.type === "select" ? (
                 <SelectFieldControl control={control} field={resolvedField} />
