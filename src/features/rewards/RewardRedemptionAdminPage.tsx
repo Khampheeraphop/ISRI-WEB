@@ -246,7 +246,7 @@ export function RewardRedemptionAdminPage() {
               row.status === "fulfilled"
                 ? "success"
                 : row.status === "cancelled"
-                  ? "default"
+                  ? "error"
                   : "warning"
             }
             variant="outlined"
@@ -397,6 +397,15 @@ export function RewardRedemptionAdminPage() {
           selected={statusFilter === "fulfilled"}
           onClick={() => setStatusFilter("fulfilled")}
         />
+        <SummaryCard
+          label="ยกเลิก"
+          value={rows.filter((row) => row.status === "cancelled").length}
+          color="#C73E3E"
+          background="#FDEBEB"
+          icon={<CancelOutlined />}
+          selected={statusFilter === "cancelled"}
+          onClick={() => setStatusFilter("cancelled")}
+        />
       </Box>
 
       <Paper
@@ -411,7 +420,7 @@ export function RewardRedemptionAdminPage() {
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={1.5}
-          sx={{ alignItems: { sm: "center" } }}
+          sx={{ alignItems: { sm: "flex-start" } }}
         >
           <LimitedTextField
             value={search}
@@ -618,9 +627,9 @@ export function RewardRedemptionAdminPage() {
           update.isPending
             ? undefined
             : () => {
-                setAction(undefined);
-                setNote("");
-              }
+              setAction(undefined);
+              setNote("");
+            }
         }
         footer={
           <>

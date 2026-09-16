@@ -246,7 +246,9 @@ export function PMSchedulesPage() {
             <CalendarMonthOutlined sx={{ fontSize: 48, color: "primary.light" }} />
             <Typography variant="h5">ยังไม่มีแผน PM</Typography>
             <Typography color="text.secondary">
-              เริ่มสร้างรอบตรวจเพื่อวางแผนบำรุงรักษาครุภัณฑ์
+              {isAdmin
+                ? "เริ่มสร้างรอบตรวจเพื่อวางแผนบำรุงรักษาครุภัณฑ์"
+                : "ยังไม่มีแผนบำรุงรักษาเชิงป้องกันในขณะนี้"}
             </Typography>
             {isAdmin && (
               <Button component={Link} to="/pm/new" variant="contained" startIcon={<AddOutlined />}>
