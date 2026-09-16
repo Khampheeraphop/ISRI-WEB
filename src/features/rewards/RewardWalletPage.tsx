@@ -1,5 +1,4 @@
 import {
-  AccountBalanceWalletRounded,
   ArrowBackIosNewRounded,
   CardGiftcardOutlined,
   CloseRounded,
