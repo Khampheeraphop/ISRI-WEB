@@ -139,7 +139,7 @@ export function FileUploadField({
   required,
   files = [],
   maxFiles = 3,
-  maxSize = 3 * 1024 * 1024,
+  maxSize = 10 * 1024 * 1024,
   accept = DEFAULT_IMAGE_ACCEPT,
   acceptedFileTypesLabel,
   variant = "dropzone",
