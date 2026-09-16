@@ -35,9 +35,9 @@ import {
   type AdminRewardRedemption,
 } from "./rewardsApi";
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   pending: "รออนุมัติ",
-  approved: "อนุมัติ รอส่งมอบ",
+  approved: "อนุมัติแล้ว",
   fulfilled: "ส่งมอบแล้ว",
   cancelled: "ยกเลิก",
 };
@@ -175,7 +175,10 @@ export function RewardRedemptionAdminPage() {
           <Typography sx={{ fontWeight: 700 }} noWrap>
             {row.reward_items?.name ?? "ไม่ระบุรางวัล"}
           </Typography>
-          <Typography color="primary" sx={{ mt: 0.25, fontSize: ".72rem", fontWeight: 600 }}>
+          <Typography
+            color="primary"
+            sx={{ mt: 0.25, fontSize: ".72rem", fontWeight: 600 }}
+          >
             ใช้ {row.point_cost.toLocaleString("th-TH")} คะแนน
           </Typography>
         </Box>
@@ -191,7 +194,10 @@ export function RewardRedemptionAdminPage() {
           <Typography sx={{ fontWeight: 600 }} noWrap>
             {row.recipient_name}
           </Typography>
-          <Typography color="text.secondary" sx={{ mt: 0.25, fontSize: ".74rem" }}>
+          <Typography
+            color="text.secondary"
+            sx={{ mt: 0.25, fontSize: ".74rem" }}
+          >
             {formatThaiPhoneNumber(row.phone)}
           </Typography>
         </Box>
@@ -235,7 +241,7 @@ export function RewardRedemptionAdminPage() {
         >
           <Chip
             size="small"
-            label={statusLabels[row.status]}
+            label={statusLabels[row.status] || row.status}
             color={
               row.status === "fulfilled"
                 ? "success"
@@ -254,7 +260,7 @@ export function RewardRedemptionAdminPage() {
       width: 220,
       ...tableColumnAlignment.actions,
       renderCell: ({ row }) =>
-        row.status === "pending" || row.status === "approved" ? (
+        row.status === "pending" ? (
           <Stack
             direction="row"
             spacing={0.5}
@@ -273,11 +279,11 @@ export function RewardRedemptionAdminPage() {
                 setError(undefined);
                 setAction({
                   row,
-                  status: row.status === "pending" ? "approved" : "fulfilled",
+                  status: "fulfilled",
                 });
               }}
             >
-              {row.status === "pending" ? "อนุมัติ" : "บันทึกส่งมอบ"}
+              อนุมัติ
             </Button>
             <Button
               size="small"
@@ -381,15 +387,7 @@ export function RewardRedemptionAdminPage() {
           selected={statusFilter === "pending"}
           onClick={() => setStatusFilter("pending")}
         />
-        <SummaryCard
-          label="รอส่งมอบ"
-          value={rows.filter((row) => row.status === "approved").length}
-          color="#2F6F9F"
-          background="#EAF4FB"
-          icon={<LocalShippingOutlined />}
-          selected={statusFilter === "approved"}
-          onClick={() => setStatusFilter("approved")}
-        />
+
         <SummaryCard
           label="ส่งมอบแล้ว"
           value={rows.filter((row) => row.status === "fulfilled").length}
@@ -451,7 +449,8 @@ export function RewardRedemptionAdminPage() {
           </TextField>
         </Stack>
         <Typography sx={{ mt: 1.25, color: "#746B80", fontSize: ".76rem" }}>
-          แสดง {filteredRows.length.toLocaleString("th-TH")} จาก {rows.length.toLocaleString("th-TH")} คำขอ
+          แสดง {filteredRows.length.toLocaleString("th-TH")} จาก{" "}
+          {rows.length.toLocaleString("th-TH")} คำขอ
         </Typography>
       </Paper>
 
@@ -463,7 +462,9 @@ export function RewardRedemptionAdminPage() {
               : "โหลดรายการไม่สำเร็จ")}
         </Alert>
       )}
-      <MainCard sx={{ display: { xs: "none", md: "block" }, borderRadius: 2.5 }}>
+      <MainCard
+        sx={{ display: { xs: "none", md: "block" }, borderRadius: 2.5 }}
+      >
         <GenericDataTable
           rows={filteredRows}
           columns={columns}
@@ -489,19 +490,26 @@ export function RewardRedemptionAdminPage() {
               <Stack
                 direction="row"
                 spacing={1}
-                sx={{ alignItems: "flex-start", justifyContent: "space-between" }}
+                sx={{
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                }}
               >
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={{ fontWeight: 700 }}>
                     {row.reward_items?.name ?? "ไม่ระบุรางวัล"}
                   </Typography>
-                  <Typography color="text.secondary" sx={{ mt: 0.25, fontSize: ".8rem" }}>
-                    ผู้รับ: {row.recipient_name} · {formatThaiPhoneNumber(row.phone)}
+                  <Typography
+                    color="text.secondary"
+                    sx={{ mt: 0.25, fontSize: ".8rem" }}
+                  >
+                    ผู้รับ: {row.recipient_name} ·{" "}
+                    {formatThaiPhoneNumber(row.phone)}
                   </Typography>
                 </Box>
                 <Chip
                   size="small"
-                  label={statusLabels[row.status]}
+                  label={statusLabels[row.status] || row.status}
                   color={
                     row.status === "fulfilled"
                       ? "success"
@@ -514,18 +522,27 @@ export function RewardRedemptionAdminPage() {
               </Stack>
               <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: "#F7F5FA" }}>
                 <Typography sx={{ fontSize: ".8rem" }}>
-                  วิธีรับ: {row.fulfillment_method === "delivery" ? "จัดส่ง" : "รับด้วยตนเอง"}
+                  วิธีรับ:{" "}
+                  {row.fulfillment_method === "delivery"
+                    ? "จัดส่ง"
+                    : "รับด้วยตนเอง"}
                 </Typography>
                 {row.delivery_address && (
-                  <Typography color="text.secondary" sx={{ mt: 0.35, fontSize: ".76rem" }}>
+                  <Typography
+                    color="text.secondary"
+                    sx={{ mt: 0.35, fontSize: ".76rem" }}
+                  >
                     {row.delivery_address}
                   </Typography>
                 )}
-                <Typography color="primary" sx={{ mt: 0.5, fontSize: ".78rem", fontWeight: 700 }}>
+                <Typography
+                  color="primary"
+                  sx={{ mt: 0.5, fontSize: ".78rem", fontWeight: 700 }}
+                >
                   ใช้ {row.point_cost.toLocaleString("th-TH")} คะแนน
                 </Typography>
               </Box>
-              {(row.status === "pending" || row.status === "approved") && (
+              {row.status === "pending" && (
                 <Stack direction="row" spacing={1}>
                   <Button
                     fullWidth
@@ -535,11 +552,11 @@ export function RewardRedemptionAdminPage() {
                       setError(undefined);
                       setAction({
                         row,
-                        status: row.status === "pending" ? "approved" : "fulfilled",
+                        status: "fulfilled",
                       });
                     }}
                   >
-                    {row.status === "pending" ? "อนุมัติ" : "บันทึกส่งมอบ"}
+                    อนุมัติ
                   </Button>
                   <Button
                     color="error"
@@ -560,11 +577,18 @@ export function RewardRedemptionAdminPage() {
         {!items.isLoading && !filteredRows.length && (
           <Paper
             variant="outlined"
-            sx={{ py: 6, textAlign: "center", borderColor: "#E0D9EA", borderRadius: 2.25 }}
+            sx={{
+              py: 6,
+              textAlign: "center",
+              borderColor: "#E0D9EA",
+              borderRadius: 2.25,
+            }}
           >
             <CardGiftcardRounded sx={{ fontSize: 40, color: "#9B90AE" }} />
             <Typography sx={{ mt: 1, fontWeight: 700 }}>
-              {rows.length ? "ไม่พบคำขอที่ตรงกับตัวกรอง" : "ยังไม่มีคำขอรับรางวัล"}
+              {rows.length
+                ? "ไม่พบคำขอที่ตรงกับตัวกรอง"
+                : "ยังไม่มีคำขอรับรางวัล"}
             </Typography>
           </Paper>
         )}
@@ -576,7 +600,7 @@ export function RewardRedemptionAdminPage() {
           action?.status === "approved"
             ? "ยืนยันการอนุมัติคำขอ"
             : action?.status === "fulfilled"
-              ? "ยืนยันการส่งมอบรางวัล"
+              ? "ยืนยันการอนุมัติและส่งมอบรางวัล"
               : action?.status === "cancelled"
                 ? "ยืนยันการยกเลิกคำขอ"
                 : "จัดการคำขอ"
@@ -628,7 +652,11 @@ export function RewardRedemptionAdminPage() {
               }
               onClick={() =>
                 action &&
-                update.mutate({ id: action.row.id, status: action.status, note })
+                update.mutate({
+                  id: action.row.id,
+                  status: action.status,
+                  note,
+                })
               }
             >
               {update.isPending
@@ -636,7 +664,7 @@ export function RewardRedemptionAdminPage() {
                 : action?.status === "approved"
                   ? "อนุมัติคำขอ"
                   : action?.status === "fulfilled"
-                    ? "ยืนยันส่งมอบ"
+                    ? "อนุมัติและส่งมอบ"
                     : "ยกเลิกคำขอ"}
             </Button>
           </>
@@ -648,7 +676,10 @@ export function RewardRedemptionAdminPage() {
               sx={{
                 p: 1.75,
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                },
                 gap: 1.5,
                 border: "1px solid #DED6EA",
                 borderRadius: 2,
@@ -676,7 +707,10 @@ export function RewardRedemptionAdminPage() {
                 <Typography sx={{ mt: 0.25, fontWeight: 600 }}>
                   {action.row.recipient_name}
                 </Typography>
-                <Typography color="text.secondary" sx={{ mt: 0.15, fontSize: ".8rem" }}>
+                <Typography
+                  color="text.secondary"
+                  sx={{ mt: 0.15, fontSize: ".8rem" }}
+                >
                   {formatThaiPhoneNumber(action.row.phone)}
                 </Typography>
               </Box>
@@ -692,7 +726,11 @@ export function RewardRedemptionAdminPage() {
                 {action.row.delivery_address && (
                   <Typography
                     color="text.secondary"
-                    sx={{ mt: 0.15, fontSize: ".76rem", overflowWrap: "anywhere" }}
+                    sx={{
+                      mt: 0.15,
+                      fontSize: ".76rem",
+                      overflowWrap: "anywhere",
+                    }}
                   >
                     {action.row.delivery_address}
                   </Typography>
