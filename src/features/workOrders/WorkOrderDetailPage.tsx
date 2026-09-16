@@ -213,7 +213,7 @@ export function WorkOrderDetailPage() {
             icon={<TimelineOutlined />}
             fields={[
               {
-                label: "รับงานภายใน",
+                label: "กำหนดให้รับงานภายใน",
                 value: (
                   <Typography>
                     {formatBangkokDate(workOrder.respond_due_at)} น.
@@ -221,7 +221,7 @@ export function WorkOrderDetailPage() {
                 ),
               },
               {
-                label: "แก้ไขให้แล้วเสร็จ",
+                label: "กำหนดให้แก้ไขเสร็จภายใน",
                 value: (
                   <Typography>
                     {formatBangkokDate(workOrder.resolve_due_at)} น.
