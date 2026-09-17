@@ -46,18 +46,61 @@ export function IncentiveOverviewCard({
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, minmax(0, 1fr))",
+          },
           gap: 2,
         }}
       >
         {metrics.map((metric) => (
-          <Box key={metric.label}>
-            <Typography variant="body2" color="text.secondary">
+          <Box
+            key={metric.label}
+            sx={{
+              p: 2,
+              borderRadius: 1.5,
+              bgcolor: "rgba(242, 238, 248, 0.45)",
+              border: 1,
+              borderColor: "divider",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontWeight: 500 }}
+            >
               {metric.label}
             </Typography>
-            <Typography variant="h5" sx={{ mt: 0.35 }}>
-              {metric.value.toLocaleString("th-TH")} {metric.suffix}
-            </Typography>
+            <Box
+              sx={{
+                mt: 1,
+                display: "flex",
+                alignItems: "baseline",
+                gap: 0.75,
+              }}
+            >
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  color: "text.primary",
+                  letterSpacing: "-0.01em",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {metric.value.toLocaleString("th-TH")}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontWeight: 500 }}
+              >
+                {metric.suffix}
+              </Typography>
+            </Box>
           </Box>
         ))}
       </Box>

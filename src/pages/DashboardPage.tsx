@@ -92,43 +92,76 @@ function AttentionCard({
   value: number;
   tone: "error" | "warning" | "info";
 }) {
-  const color =
-    tone === "error"
-      ? "error.main"
-      : tone === "warning"
-        ? "warning.main"
-        : "info.main";
+  const toneConfig = {
+    error: {
+      main: "error.main",
+      bg: "rgba(193, 68, 58, 0.08)",
+    },
+    warning: {
+      main: "warning.main",
+      bg: "rgba(198, 138, 46, 0.08)",
+    },
+    info: {
+      main: "info.main",
+      bg: "rgba(62, 111, 166, 0.08)",
+    },
+  }[tone];
+
   return (
-    <Box
+    <MainCard
+      contentSx={{
+        p: 2.5,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 2,
+        height: "100%",
+      }}
       sx={{
-        display: "grid",
-        gridTemplateColumns: "40px minmax(0, 1fr)",
-        gap: 1.5,
-        p: 2,
-        bgcolor: "background.paper", // <- Added background
-        border: 1,
-        borderColor: "divider",
-        borderTop: 3,
-        borderTopColor: color,
-        borderRadius: 1.5,
+        transition: "box-shadow 0.2s ease, transform 0.2s ease",
+        "&:hover": {
+          boxShadow: "0px 6px 20px rgba(75, 59, 134, 0.08)",
+        },
       }}
     >
-      <Box sx={{ color, pt: 0.15 }}>{icon}</Box>
-      <Box>
-        <Typography variant="body2" color="text.secondary">
+      <Box sx={{ minWidth: 0 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
           {label}
         </Typography>
-        <Typography variant="h4" sx={{ mt: 0.25 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            mt: 0.5,
+            fontWeight: 700,
+            color: "text.primary",
+            lineHeight: 1.1,
+          }}
+        >
           {value.toLocaleString("th-TH")}
         </Typography>
       </Box>
-    </Box>
+      <Box
+        sx={{
+          width: 50,
+          height: 50,
+          borderRadius: 2,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: toneConfig.bg,
+          color: toneConfig.main,
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </Box>
+    </MainCard>
   );
 }
 
 function DashboardLoading() {
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ maxWidth: 1440, mx: "auto", width: "100%" }}>
       <Skeleton variant="rounded" height={92} />
       <Skeleton variant="rounded" height={108} />
       <Skeleton variant="rounded" height={390} />
@@ -159,6 +192,12 @@ export function DashboardPage() {
   });
   const summary = summaryQuery.data;
 
+  const totalStatusCount = useMemo(
+    () =>
+      summary?.statusCounts?.reduce((total, row) => total + row.count, 0) || 0,
+    [summary?.statusCounts],
+  );
+
   const statusOptions = useMemo<ApexOptions>(
     () => ({
       chart: { fontFamily: "Anuphan, sans-serif", toolbar: { show: false } },
@@ -171,7 +210,7 @@ export function DashboardPage() {
       dataLabels: { enabled: false },
       legend: { show: false },
       stroke: { colors: ["#FFFFFF"], width: 3 },
-      plotOptions: { pie: { donut: { size: "68%" } } },
+      plotOptions: { pie: { donut: { size: "70%" } } },
       tooltip: { y: { formatter: (value) => `${value} รายการ` } },
     }),
     [summary?.statusCounts],
@@ -181,274 +220,438 @@ export function DashboardPage() {
     return <DashboardLoading />;
   if (summaryQuery.isError || !summary)
     return (
-      <MainCard title="ไม่สามารถแสดงภาพรวมได้">
-        <Typography color="text.secondary">
-          กรุณาลองใหม่อีกครั้ง หรือแจ้งผู้ดูแลระบบหากปัญหายังคงอยู่
-        </Typography>
-      </MainCard>
+      <Box sx={{ maxWidth: 1440, mx: "auto", width: "100%" }}>
+        <MainCard title="ไม่สามารถแสดงภาพรวมได้">
+          <Typography color="text.secondary">
+            กรุณาลองใหม่อีกครั้ง หรือแจ้งผู้ดูแลระบบหากปัญหายังคงอยู่
+          </Typography>
+        </MainCard>
+      </Box>
     );
 
   return (
-    <Stack spacing={3}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: { xs: "flex-start", sm: "center" },
-          flexDirection: { xs: "column", sm: "row" },
-          gap: 2,
-        }}
-      >
-        <Box>
-          <Typography variant="body2" color="primary.main" sx={{ mb: 0.5 }}>
-            ภาพรวมระบบ
-          </Typography>
-          <Typography variant="h3">ภาพรวมการดำเนินงาน</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            สรุปข้อมูลเดือน{months[month - 1]} {year + 543} · อัปเดต{" "}
-            {thaiDateTime.format(new Date(summary.generatedAt))} น.
-          </Typography>
+    <Box sx={{ maxWidth: 1440, mx: "auto", width: "100%" }}>
+      <Stack spacing={3}>
+        {/* Page Header */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", md: "center" },
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                color: "primary.main",
+                textTransform: "uppercase",
+                display: "block",
+                mb: 0.5,
+              }}
+            >
+              ภาพรวมระบบ
+            </Typography>
+            <Typography variant="h3" sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}>
+              ภาพรวมการดำเนินงาน
+            </Typography>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={{ xs: 0.5, sm: 1.5 }}
+              sx={{ mt: 0.75, alignItems: { xs: "flex-start", sm: "center" } }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                สรุปข้อมูลเดือน{months[month - 1]} {year + 543} · อัปเดต{" "}
+                {thaiDateTime.format(new Date(summary.generatedAt))} น.
+              </Typography>
+              <Box
+                component="span"
+                sx={{
+                  display: { xs: "none", sm: "inline-block" },
+                  width: 4,
+                  height: 4,
+                  borderRadius: "50%",
+                  bgcolor: "text.secondary",
+                  opacity: 0.5,
+                }}
+              />
+              <Typography variant="caption" color="text.secondary">
+                สถิติรายงานและ KPI ใช้เดือนที่เลือก ส่วนงานค้างและกำหนดแผน PM แสดงสถานะปัจจุบัน
+              </Typography>
+            </Stack>
+          </Box>
+
+          {/* Month / Year Filters */}
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              alignSelf: { xs: "stretch", sm: "auto" },
+              alignItems: "center",
+            }}
+          >
+            <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 140 } }}>
+              <InputLabel id="dashboard-month">เดือน</InputLabel>
+              <Select
+                labelId="dashboard-month"
+                label="เดือน"
+                value={month}
+                onChange={(event) => setMonth(Number(event.target.value))}
+              >
+                {months.map((label, index) => (
+                  <MenuItem
+                    key={label}
+                    value={index + 1}
+                    disabled={year === currentYear && index + 1 > currentMonth}
+                  >
+                    {label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: { xs: 90, sm: 110 } }}>
+              <InputLabel id="dashboard-year">ปี</InputLabel>
+              <Select
+                labelId="dashboard-year"
+                label="ปี"
+                value={year}
+                onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setYear(value);
+                  if (value === currentYear && month > currentMonth)
+                    setMonth(currentMonth);
+                }}
+              >
+                {[currentYear, currentYear - 1, currentYear - 2].map((item) => (
+                  <MenuItem key={item} value={item}>
+                    {item + 543}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
         </Box>
-        <Stack direction="row" spacing={1.25}>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel id="dashboard-month">เดือน</InputLabel>
-            <Select
-              labelId="dashboard-month"
-              label="เดือน"
-              value={month}
-              onChange={(event) => setMonth(Number(event.target.value))}
-            >
-              {months.map((label, index) => (
-                <MenuItem
-                  key={label}
-                  value={index + 1}
-                  disabled={year === currentYear && index + 1 > currentMonth}
-                >
-                  {label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 118 }}>
-            <InputLabel id="dashboard-year">ปี</InputLabel>
-            <Select
-              labelId="dashboard-year"
-              label="ปี"
-              value={year}
-              onChange={(event) => {
-                const value = Number(event.target.value);
-                setYear(value);
-                if (value === currentYear && month > currentMonth)
-                  setMonth(currentMonth);
-              }}
-            >
-              {[currentYear, currentYear - 1, currentYear - 2].map((item) => (
-                <MenuItem key={item} value={item}>
-                  {item + 543}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      </Box>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mt: -1.5 }}>
-        สถิติรายงานและ KPI ใช้เดือนที่เลือก ส่วนงานค้างและกำหนดแผน PM
-        แสดงสถานะปัจจุบัน
-      </Typography>
-
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(3, minmax(0, 1fr))",
-          },
-          gap: 2,
-        }}
-      >
-        <AttentionCard
-          icon={<AssignmentLateOutlined />}
-          label="เกิน SLA"
-          value={summary.attention.overdue}
-          tone="error"
-        />
-        <AttentionCard
-          icon={<HourglassTopOutlined />}
-          label="ใกล้เกิน SLA ภายใน 24 ชม."
-          value={summary.attention.nearDue}
-          tone="warning"
-        />
-        <AttentionCard
-          icon={<PersonAddAltOutlined />}
-          label="รอมอบหมายงาน"
-          value={summary.attention.pendingAssignment}
-          tone="info"
-        />
-      </Box>
-
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            lg: "minmax(0, 1.45fr) minmax(340px, .85fr)",
-          },
-          gap: 3,
-          alignItems: "start",
-        }}
-      >
-        <Stack spacing={3}>
-          <ReportingRateCard
-            data={reportingRateQuery.data}
-            error={
-              reportingRateQuery.error instanceof Error
-                ? reportingRateQuery.error
-                : null
-            }
+        {/* KPI Summary Cards */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(3, minmax(0, 1fr))",
+            },
+            gap: 2.5,
+          }}
+        >
+          <AttentionCard
+            icon={<AssignmentLateOutlined fontSize="medium" />}
+            label="เกิน SLA"
+            value={summary.attention.overdue}
+            tone="error"
           />
-          <MainCard
-            title={
-              <Typography variant="h6">ประสิทธิภาพการดำเนินงาน</Typography>
-            }
-          >
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, 1fr)",
-                  lg: "repeat(4, 1fr)",
-                },
-                gap: 2,
-              }}
+          <AttentionCard
+            icon={<HourglassTopOutlined fontSize="medium" />}
+            label="ใกล้เกิน SLA ภายใน 24 ชม."
+            value={summary.attention.nearDue}
+            tone="warning"
+          />
+          <AttentionCard
+            icon={<PersonAddAltOutlined fontSize="medium" />}
+            label="รอมอบหมายงาน"
+            value={summary.attention.pendingAssignment}
+            tone="info"
+          />
+        </Box>
+
+        {/* Main Content 2-Column Grid */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              lg: "minmax(0, 1.42fr) minmax(360px, .92fr)",
+            },
+            gap: 3,
+            alignItems: "start",
+          }}
+        >
+          {/* Left Column */}
+          <Stack spacing={3}>
+            <ReportingRateCard
+              data={reportingRateQuery.data}
+              error={
+                reportingRateQuery.error instanceof Error
+                  ? reportingRateQuery.error
+                  : null
+              }
+            />
+
+            {/* Performance Section */}
+            <MainCard
+              title={
+                <Typography variant="h6">ประสิทธิภาพการดำเนินงาน</Typography>
+              }
+              subheader="ตัวชี้วัดความเร็วและคุณภาพการตอบสนองตาม SLA ของเดือนที่เลือก"
             >
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  ตอบรับภายใน SLA
-                </Typography>
-                <Typography variant="h5" sx={{ mt: 0.35 }}>
-                  {summary.sla.responseOnTimeRate === null
-                    ? "–"
-                    : `${summary.sla.responseOnTimeRate}%`}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  เวลาเฉลี่ยในการตอบรับ
-                </Typography>
-                <Typography variant="h5" sx={{ mt: 0.35 }}>
-                  {minutesLabel(summary.sla.averageResponseMinutes)}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  ปิดงานภายใน SLA
-                </Typography>
-                <Typography variant="h5" sx={{ mt: 0.35 }}>
-                  {summary.sla.resolutionOnTimeRate === null
-                    ? "–"
-                    : `${summary.sla.resolutionOnTimeRate}%`}
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  เวลาเฉลี่ยในการปิดงาน
-                </Typography>
-                <Typography variant="h5" sx={{ mt: 0.35 }}>
-                  {minutesLabel(
-                    summary.sla.averageClosureMinutes ??
-                      summary.sla.averageResolutionMinutes ??
-                      null,
-                  )}
-                </Typography>
-              </Box>
-            </Box>
-          </MainCard>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 1.5,
+                    bgcolor: "rgba(242, 238, 248, 0.45)",
+                    border: 1,
+                    borderColor: "divider",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    ตอบรับภายใน SLA
+                  </Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 1,
+                      fontWeight: 700,
+                      color: "text.primary",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {summary.sla.responseOnTimeRate === null
+                      ? "–"
+                      : `${summary.sla.responseOnTimeRate}%`}
+                  </Typography>
+                </Box>
 
-          <HotspotCard data={summary} />
-          <IncentiveOverviewCard data={summary.incentives} />
-        </Stack>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 1.5,
+                    bgcolor: "rgba(242, 238, 248, 0.45)",
+                    border: 1,
+                    borderColor: "divider",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    เวลาเฉลี่ยในการตอบรับ
+                  </Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 1,
+                      fontWeight: 700,
+                      color: "text.primary",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {minutesLabel(summary.sla.averageResponseMinutes)}
+                  </Typography>
+                </Box>
 
-        <Stack spacing={3}>
-          <MainCard
-            title={
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <LocationOnOutlined color="primary" />
-                <Typography variant="h6">สถานะงานในช่วงเวลา</Typography>
-              </Stack>
-            }
-            subheader="ภาพรวมสถานะของรายการที่แจ้งในเดือนที่เลือก"
-          >
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "130px minmax(0, 1fr)" },
-                alignItems: "center",
-                gap: 1,
-              }}
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 1.5,
+                    bgcolor: "rgba(242, 238, 248, 0.45)",
+                    border: 1,
+                    borderColor: "divider",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    ปิดงานภายใน SLA
+                  </Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 1,
+                      fontWeight: 700,
+                      color: "text.primary",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {summary.sla.resolutionOnTimeRate === null
+                      ? "–"
+                      : `${summary.sla.resolutionOnTimeRate}%`}
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 1.5,
+                    bgcolor: "rgba(242, 238, 248, 0.45)",
+                    border: 1,
+                    borderColor: "divider",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    เวลาเฉลี่ยในการปิดงาน
+                  </Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      mt: 1,
+                      fontWeight: 700,
+                      color: "text.primary",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {minutesLabel(
+                      summary.sla.averageClosureMinutes ??
+                        summary.sla.averageResolutionMinutes ??
+                        null,
+                    )}
+                  </Typography>
+                </Box>
+              </Box>
+            </MainCard>
+
+            <HotspotCard data={summary} />
+            <IncentiveOverviewCard data={summary.incentives} />
+          </Stack>
+
+          {/* Right Column */}
+          <Stack spacing={3}>
+            {/* Status Distribution */}
+            <MainCard
+              title={
+                <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                  <LocationOnOutlined color="primary" />
+                  <Typography variant="h6">สถานะงานในช่วงเวลา</Typography>
+                </Stack>
+              }
+              subheader="ภาพรวมสถานะของรายการที่แจ้งในเดือนที่เลือก"
             >
               {summary.statusCounts.some((item) => item.count > 0) ? (
-                <DashboardChart
-                  type="donut"
-                  height={180}
-                  options={statusOptions}
-                  series={summary.statusCounts.map((item) => item.count)}
-                />
-              ) : (
-                <Typography color="text.secondary">
-                  ไม่มีรายการแจ้งในเดือนที่เลือก
-                </Typography>
-              )}
-              <Stack spacing={1.15}>
-                {summary.statusCounts.map((item) => (
-                  <Stack
-                    key={item.status}
-                    direction="row"
-                    spacing={1}
-                    sx={{ justifyContent: "space-between" }}
-                  >
-                    <Stack
-                      direction="row"
-                      spacing={0.8}
-                      sx={{ minWidth: 0, alignItems: "center" }}
-                    >
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: "50%",
-                          bgcolor:
-                            statusColors[item.status] ?? "text.secondary",
-                          flexShrink: 0,
-                        }}
-                      />
-                      <Typography variant="body2">
-                        {statusLabels[item.status] ?? item.status}
-                      </Typography>
-                    </Stack>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {item.count} (
-                      {Math.round(
-                        (item.count /
-                          (summary.statusCounts.reduce(
-                            (total, row) => total + row.count,
-                            0,
-                          ) || 1)) *
-                          100,
-                      )}
-                      %)
-                    </Typography>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "170px minmax(0, 1fr)" },
+                    alignItems: "center",
+                    gap: 2.5,
+                  }}
+                >
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <DashboardChart
+                      type="donut"
+                      height={200}
+                      width={170}
+                      options={statusOptions}
+                      series={summary.statusCounts.map((item) => item.count)}
+                    />
+                  </Box>
+                  <Stack spacing={1} sx={{ minWidth: 0 }}>
+                    {summary.statusCounts.map((item) => {
+                      const percent = Math.round(
+                        (item.count / (totalStatusCount || 1)) * 100,
+                      );
+                      return (
+                        <Box
+                          key={item.status}
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr auto auto",
+                            gap: 1.5,
+                            alignItems: "center",
+                            py: 0.6,
+                            borderBottom: "1px dashed",
+                            borderColor: "divider",
+                            "&:last-child": { borderBottom: 0 },
+                          }}
+                        >
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ minWidth: 0, alignItems: "center" }}
+                          >
+                            <Box
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: "50%",
+                                bgcolor:
+                                  statusColors[item.status] ?? "text.secondary",
+                                flexShrink: 0,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              noWrap
+                              sx={{
+                                color: "text.primary",
+                                fontWeight: 500,
+                                fontSize: "0.875rem",
+                              }}
+                            >
+                              {statusLabels[item.status] ?? item.status}
+                            </Typography>
+                          </Stack>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 700,
+                              textAlign: "right",
+                              minWidth: 28,
+                              fontVariantNumeric: "tabular-nums",
+                            }}
+                          >
+                            {item.count}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              textAlign: "right",
+                              minWidth: 46,
+                              fontVariantNumeric: "tabular-nums",
+                            }}
+                          >
+                            ({percent}%)
+                          </Typography>
+                        </Box>
+                      );
+                    })}
                   </Stack>
-                ))}
-              </Stack>
-            </Box>
-          </MainCard>
-          <TechnicianWorkloadCard data={summary.technicianWorkload} />
-        </Stack>
-      </Box>
+                </Box>
+              ) : (
+                <Box sx={{ py: 3, textAlign: "center" }}>
+                  <Typography color="text.secondary">
+                    ไม่มีรายการแจ้งในเดือนที่เลือก
+                  </Typography>
+                </Box>
+              )}
+            </MainCard>
 
-      <PmDueOverviewCard data={summary.pm} />
-    </Stack>
+            <TechnicianWorkloadCard data={summary.technicianWorkload} />
+          </Stack>
+        </Box>
+
+        <PmDueOverviewCard data={summary.pm} />
+      </Stack>
+    </Box>
   );
 }
