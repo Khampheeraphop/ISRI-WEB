@@ -207,6 +207,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationAnchor, setNotificationAnchor] =
     useState<HTMLElement | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
   const isMobileRewards =
     user?.role === "reporter" && location.pathname === "/rewards";
   const queryClient = useQueryClient();
@@ -332,12 +333,44 @@ export function AppShell({ children }: { children: ReactNode }) {
             <MenuIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }} />
+          <Button
+            aria-label="ผู้ช่วย ISRI"
+            onClick={() => setChatOpen(true)}
+            sx={{
+              background:
+                "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+              backgroundSize: "200% 200%",
+              color: "white",
+              borderRadius: 2,
+              px: 1.5,
+              py: 0.75,
+              boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
+              animation: "gradientMove 3s ease infinite",
+              "@keyframes gradientMove": {
+                "0%": { backgroundPosition: "0% 50%" },
+                "50%": { backgroundPosition: "100% 50%" },
+                "100%": { backgroundPosition: "0% 50%" },
+              },
+              "&:hover": {
+                background:
+                  "linear-gradient(135deg, #5568d3 0%, #653a8f 50%, #e080e8 100%)",
+                backgroundSize: "200% 200%",
+                boxShadow: "0 6px 16px rgba(102, 126, 234, 0.6)",
+                animation: "gradientMove 2s ease infinite",
+              },
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              AI Assistant
+            </Typography>
+          </Button>
           <IconButton
             aria-label="การแจ้งเตือน"
             onClick={(event) => setNotificationAnchor(event.currentTarget)}
+            sx={{ p: 1 }}
           >
             <Badge badgeContent={unreadNotifications.length} color="error">
-              <NotificationsOutlined />
+              <NotificationsOutlined fontSize="medium" />
             </Badge>
           </IconButton>
           <Button
@@ -798,7 +831,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         {children}
       </Box>
-      <ChatWidget key={`${user.id}:${user.role}`} user={user} />
+      <ChatWidget
+        key={`${user.id}:${user.role}`}
+        user={user}
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+      />
     </Box>
   );
 }
