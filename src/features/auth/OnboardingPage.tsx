@@ -66,11 +66,10 @@ export function OnboardingPage() {
     try {
       setError(undefined);
       setSubmitting(true);
-      await saveOnboarding(
-        position,
-        position === "technician" ? selected : [],
-      );
+      await saveOnboarding(position, position === "technician" ? selected : []);
       await refreshProfile();
+      // Force page reload to show updated status
+      window.location.reload();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "บันทึกข้อมูลไม่สำเร็จ",
@@ -87,7 +86,7 @@ export function OnboardingPage() {
     );
   const isWaiting = Boolean(profile?.requestedPosition);
   const isRejected = profile?.approvalStatus === "rejected";
-  const showForm = !isWaiting || isRejected; // Show form for new users or rejected users
+  const showForm = true; // Always show form to allow editing and resubmission
   return (
     <AuthPageFrame>
       <Stack spacing={1}>
