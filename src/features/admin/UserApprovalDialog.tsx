@@ -24,7 +24,7 @@ import { ActionDialog } from "../../components/feedback/ActionDialog";
 import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
 import type { ApprovalStatus, TechnicianSpecialty } from "../../types/auth";
 import type { Role } from "../../types/user";
-import { getRoleLabel } from "../../constants/roles";
+// import { getRoleLabel } from "../../constants/roles";
 import {
   roleLabels,
   specialtyOptions,
@@ -205,14 +205,14 @@ export function UserApprovalDialog({
               {user.role ? ` · ${roleLabels[user.role]}` : ""}
             </Typography>
           </Box>
-          <Box>
+          {/* <Box>
             <Typography variant="caption" color="text.secondary">
               ตำแหน่งที่แจ้งไว้
             </Typography>
             <Typography>
               {getRoleLabel(user.requestedPosition) ?? "ยังไม่ระบุ"}
             </Typography>
-          </Box>
+          </Box> */}
           <FormControl fullWidth>
             <InputLabel id="approval-role-label">สิทธิ์การใช้งาน</InputLabel>
             <Select
