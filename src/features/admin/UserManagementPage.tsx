@@ -37,7 +37,9 @@ export function UserManagementPage() {
       const statusDifference =
         statusOrder[left.approvalStatus] - statusOrder[right.approvalStatus];
       if (statusDifference !== 0) return statusDifference;
-      return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+      return (
+        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+      );
     });
   }, [users.data]);
   const pendingCount = orderedUsers.filter(
@@ -175,6 +177,7 @@ export function UserManagementPage() {
         />
       </MainCard>
       <UserApprovalDialog
+        key={selectedUser?.id}
         user={selectedUser}
         isSubmitting={approval.isPending}
         error={approval.error}

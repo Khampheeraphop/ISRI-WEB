@@ -86,7 +86,7 @@ export function OnboardingPage() {
     );
   const isWaiting = Boolean(profile?.requestedPosition);
   const isRejected = profile?.approvalStatus === "rejected";
-  const showForm = true; // Always show form to allow editing and resubmission
+  const showForm = !isWaiting || isRejected;
   return (
     <AuthPageFrame>
       <Stack spacing={1}>
