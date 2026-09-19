@@ -15,16 +15,45 @@ import { Link } from "react-router-dom";
 import { IncidentStatusChip } from "../components/IncidentStatusChip";
 
 import { useAuth } from "../hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { getMyIncidents } from "../features/incidents/incidentsApi";
 import { formatBangkokDate } from "../utils/incident";
+import { supabase } from "../lib/supabase/client";
 
 export function MyIncidentsPage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const incidents = useQuery({
     queryKey: ["my-incidents"],
     queryFn: getMyIncidents,
   });
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Subscribe to realtime updates for incidents
+    const channel = supabase
+      ?.channel(`incidents:user:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "incidents",
+          filter: `reporter_id=eq.${user.id}`,
+        },
+        () => {
+          void queryClient.invalidateQueries({ queryKey: ["my-incidents"] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      if (channel) void supabase?.removeChannel(channel);
+    };
+  }, [queryClient, user]);
+
   if (!user) return null;
   const items = incidents.data ?? [];
 
