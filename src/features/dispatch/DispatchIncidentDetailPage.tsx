@@ -35,6 +35,7 @@ import {
   getDispatchTechnicians,
   rejectDispatchIncident,
 } from "./dispatchApi";
+import { DispatchAssistantCard } from "./DispatchAssistantCard";
 
 export function DispatchIncidentDetailPage() {
   const { id } = useParams();
@@ -251,6 +252,18 @@ export function DispatchIncidentDetailPage() {
             ),
           },
         ]}
+      />
+
+      <DispatchAssistantCard
+        incidentId={incident.id}
+        onUseUrgency={setUrgencyVerified}
+        onUseTechnician={(technicianId) => {
+          if (!eligibleTechnicians.some((item) => item.id === technicianId)) return;
+          setPrimaryTechnicianId(technicianId);
+          setSupportTechnicianIds((current) =>
+            current.filter((id) => id !== technicianId),
+          );
+        }}
       />
 
       <MainCard

@@ -7,7 +7,7 @@ export type ChatReply = {
   fetchedAt: string;
 };
 
-async function request<T>(init: RequestInit): Promise<T> {
+export async function requestChatFunction<T>(init: RequestInit): Promise<T> {
   if (!supabase || !supabaseUrl)
     throw new Error("ยังไม่ได้ตั้งค่าการเชื่อมต่อระบบ");
   const { data } = await supabase.auth.getSession();
@@ -31,9 +31,9 @@ async function request<T>(init: RequestInit): Promise<T> {
 }
 
 export const getChatAvailability = (signal: AbortSignal) =>
-  request<{ enabled: boolean }>({ method: "GET", signal });
+  requestChatFunction<{ enabled: boolean }>({ method: "GET", signal });
 export const sendChat = (messages: ChatMessage[], signal: AbortSignal) =>
-  request<ChatReply>({
+  requestChatFunction<ChatReply>({
     method: "POST",
     signal,
     body: JSON.stringify({ messages }),

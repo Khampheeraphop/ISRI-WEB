@@ -2,6 +2,7 @@ import { apiFetch } from "../api/apiClient";
 import { toIncident, type IncidentDetail } from "../incidents/incidentsApi";
 import type { MyWorkOrder } from "../workOrders/workOrdersApi";
 import type { UrgencyLevel } from "../../types/incident";
+import { requestChatFunction } from "../chat/chatApi";
 
 export type DispatchIncident = {
   id: string;
@@ -24,6 +25,23 @@ export type DispatchSlaRule = {
   responseMinutes: number;
   resolveMinutes: number;
   pointValue: number;
+};
+export type DispatchAdvice = {
+  summary: string;
+  recommendedUrgency: UrgencyLevel;
+  confidence: "low" | "medium" | "high";
+  urgencyReasons: string[];
+  missingInformation: string[];
+  repeatInsight: string;
+  relatedIncidentCount: number;
+  technicianRecommendations: Array<{
+    technicianId: string;
+    fullName: string;
+    specialties: string[];
+    activeWorkOrders: number;
+    reason: string;
+  }>;
+  generatedAt: string;
 };
 
 export async function getDispatchIncidents() {
@@ -71,6 +89,19 @@ export async function getDispatchSlaRules(): Promise<DispatchSlaRule[]> {
     resolveMinutes: rule.resolve_minutes,
     pointValue: rule.point_value,
   }));
+}
+export async function getDispatchAdvice(
+  incidentId: string,
+  signal: AbortSignal,
+) {
+  return requestChatFunction<DispatchAdvice>({
+    method: "POST",
+    signal,
+    body: JSON.stringify({
+      action: "dispatch_assessment",
+      incidentId,
+    }),
+  });
 }
 export async function assignWorkOrder(input: {
   incidentId: string;
