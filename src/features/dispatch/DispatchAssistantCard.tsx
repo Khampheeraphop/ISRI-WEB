@@ -11,7 +11,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Divider,
   Stack,
   Typography,
 } from "@mui/material";
@@ -30,10 +29,14 @@ const confidenceLabels = {
 
 export function DispatchAssistantCard({
   incidentId,
+  selectedUrgency,
+  selectedTechnicianId,
   onUseUrgency,
   onUseTechnician,
 }: {
   incidentId: string;
+  selectedUrgency: UrgencyLevel;
+  selectedTechnicianId: string;
   onUseUrgency: (urgency: UrgencyLevel) => void;
   onUseTechnician: (technicianId: string) => void;
 }) {
@@ -50,11 +53,24 @@ export function DispatchAssistantCard({
     <MainCard
       title={
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <AutoAwesomeOutlined color="primary" />
-          <Typography variant="h5">AI ช่วยพิจารณารายการ</Typography>
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: 2,
+              display: "grid",
+              placeItems: "center",
+              color: "primary.main",
+              bgcolor: "rgba(78, 57, 155, 0.08)",
+            }}
+          >
+            <AutoAwesomeOutlined fontSize="small" />
+          </Box>
+          <Typography variant="h5">ผู้ช่วยจัดสรรงาน</Typography>
+          <Chip label="AI" size="small" color="primary" />
         </Stack>
       }
-      subheader="สรุปเหตุ แนะนำระดับความเร่งด่วน และช่างที่เหมาะสมจากข้อมูลในระบบ"
+      subheader="สรุปข้อมูลสำคัญ พร้อมแนะนำระดับความเร่งด่วนและช่างที่เหมาะสม"
       action={
         result ? (
           <Button
@@ -90,7 +106,11 @@ export function DispatchAssistantCard({
         <Alert
           severity="info"
           action={
-            <Button color="inherit" size="small" onClick={() => void advice.refetch()}>
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => void advice.refetch()}
+            >
               ลองใหม่
             </Button>
           }
@@ -104,138 +124,278 @@ export function DispatchAssistantCard({
         </Alert>
       )}
       {result && (
-        <Stack spacing={2.25}>
-          <Box>
-            <Typography variant="overline" color="text.secondary">
-              เกิดอะไรขึ้น
-            </Typography>
-            <Typography sx={{ lineHeight: 1.75 }}>{result.summary}</Typography>
-          </Box>
-
-          <Divider />
-          <Box>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={1}
-              sx={{ alignItems: { sm: "center" }, mb: 1.25 }}
-            >
-              <Typography sx={{ fontWeight: 700 }}>ระดับที่แนะนำ</Typography>
-              <Chip
-                size="small"
-                color={urgencyPresentation[result.recommendedUrgency].color}
-                label={urgencyPresentation[result.recommendedUrgency].label}
-              />
-              <Chip
-                size="small"
-                variant="outlined"
-                label={confidenceLabels[result.confidence]}
-              />
-              <Button
-                size="small"
-                startIcon={<CheckCircleOutlined />}
-                onClick={() => onUseUrgency(result.recommendedUrgency)}
-                sx={{ ml: { sm: "auto !important" } }}
-              >
-                ใช้ระดับนี้
-              </Button>
-            </Stack>
-            <Stack component="ul" spacing={0.5} sx={{ pl: 2.5, my: 0 }}>
-              {result.urgencyReasons.map((reason) => (
-                <Typography component="li" key={reason} variant="body2">
-                  {reason}
-                </Typography>
-              ))}
-            </Stack>
-          </Box>
-
-          {(result.relatedIncidentCount > 0 || result.repeatInsight) && (
-            <Alert severity={result.relatedIncidentCount > 0 ? "warning" : "info"}>
-              <Typography sx={{ fontWeight: 600 }}>
-                ประวัติเหตุที่อาจเกี่ยวข้อง
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 0.25 }}>
-                {result.repeatInsight}
-              </Typography>
-            </Alert>
-          )}
-
-          {!!result.missingInformation.length && (
+        <Stack spacing={2.5}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "1fr",
+                lg: "minmax(0, 1.35fr) minmax(320px, 0.65fr)",
+              },
+              gap: 1.5,
+            }}
+          >
             <Box
               sx={{
-                display: "flex",
-                gap: 1,
-                p: 1.5,
-                borderRadius: 2,
-                bgcolor: "action.hover",
+                p: 2.25,
+                borderRadius: 3,
+                border: 1,
+                borderColor: "divider",
+                bgcolor: "rgba(78, 57, 155, 0.035)",
               }}
             >
-              <ErrorOutlined color="action" fontSize="small" />
-              <Box>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  ข้อมูลที่ควรตรวจเพิ่ม
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {result.missingInformation.join(" · ")}
-                </Typography>
-              </Box>
+              <Typography variant="overline" color="primary.main">
+                สรุปเหตุจากข้อมูลในระบบ
+              </Typography>
+              <Typography sx={{ mt: 0.5, fontSize: "1rem", lineHeight: 1.8 }}>
+                {result.summary}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                p: 2.25,
+                borderRadius: 3,
+                border: 1,
+                borderColor: "primary.light",
+                bgcolor: "rgba(78, 57, 155, 0.055)",
+              }}
+            >
+              <Typography variant="overline" color="text.secondary">
+                ระดับความเร่งด่วนที่แนะนำ
+              </Typography>
+              <Stack
+                direction="row"
+                spacing={0.75}
+                sx={{ mt: 0.5, mb: 1.25, flexWrap: "wrap", rowGap: 0.75 }}
+              >
+                <Chip
+                  color={urgencyPresentation[result.recommendedUrgency].color}
+                  label={urgencyPresentation[result.recommendedUrgency].label}
+                  sx={{ fontWeight: 700 }}
+                />
+                <Chip
+                  variant="outlined"
+                  label={confidenceLabels[result.confidence]}
+                />
+              </Stack>
+              <Stack spacing={0.5} sx={{ mb: 1.5 }}>
+                {result.urgencyReasons.map((reason) => (
+                  <Typography key={reason} variant="body2">
+                    • {reason}
+                  </Typography>
+                ))}
+              </Stack>
+              <Button
+                fullWidth
+                color={
+                  selectedUrgency === result.recommendedUrgency
+                    ? "success"
+                    : "primary"
+                }
+                variant="contained"
+                startIcon={<CheckCircleOutlined />}
+                onClick={() => onUseUrgency(result.recommendedUrgency)}
+              >
+                {selectedUrgency === result.recommendedUrgency
+                  ? "ใช้ระดับนี้แล้ว"
+                  : "ใช้ระดับที่แนะนำ"}
+              </Button>
+            </Box>
+          </Box>
+
+          {(result.relatedIncidentCount > 0 ||
+            result.repeatInsight ||
+            result.missingInformation.length > 0) && (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                gap: 1.5,
+              }}
+            >
+              {(result.relatedIncidentCount > 0 || result.repeatInsight) && (
+                <Alert severity="warning" sx={{ borderRadius: 3 }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: "center", mb: 0.25 }}
+                  >
+                    <Typography sx={{ fontWeight: 700 }}>
+                      พบเหตุคล้ายกันในพื้นที่
+                    </Typography>
+                    {result.relatedIncidentCount > 0 && (
+                      <Chip
+                        size="small"
+                        label={`${result.relatedIncidentCount} รายการ`}
+                      />
+                    )}
+                  </Stack>
+                  <Typography variant="body2">{result.repeatInsight}</Typography>
+                </Alert>
+              )}
+
+              {!!result.missingInformation.length && (
+                <Alert
+                  severity="info"
+                  icon={<ErrorOutlined />}
+                  sx={{ borderRadius: 3 }}
+                >
+                  <Typography sx={{ fontWeight: 700 }}>
+                    ควรตรวจข้อมูลเพิ่มก่อนมอบหมาย
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.25 }}>
+                    {result.missingInformation.join(" · ")}
+                  </Typography>
+                </Alert>
+              )}
             </Box>
           )}
 
           <Box>
-            <Typography sx={{ fontWeight: 700, mb: 1 }}>
-              ช่างที่แนะนำ
-            </Typography>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={0.5}
+              sx={{ mb: 1.25, justifyContent: "space-between" }}
+            >
+              <Typography sx={{ fontWeight: 700 }}>ช่างที่เหมาะกับงานนี้</Typography>
+              <Typography variant="body2" color="text.secondary">
+                เรียงตามทักษะที่ตรงกับงานและภาระงานปัจจุบัน
+              </Typography>
+            </Stack>
             {result.technicianRecommendations.length ? (
-              <Stack spacing={1}>
-                {result.technicianRecommendations.map((technician) => (
-                  <Box
-                    key={technician.technicianId}
-                    sx={{
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      gap: 1.25,
-                      alignItems: { sm: "center" },
-                      p: 1.5,
-                      border: 1,
-                      borderColor: "divider",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <EngineeringOutlined color="primary" />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 700 }}>
-                        {technician.fullName}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {technician.specialties
-                          .map((specialty) => specialtyLabels[specialty] ?? specialty)
-                          .join(", ")} · งานที่กำลังรับผิดชอบ {technician.activeWorkOrders} งาน
-                      </Typography>
-                      <Typography variant="body2" sx={{ mt: 0.5 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 1.25,
+                }}
+              >
+                {result.technicianRecommendations.map((technician) => {
+                  const isSelected =
+                    technician.technicianId === selectedTechnicianId;
+                  return (
+                    <Box
+                      key={technician.technicianId}
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1.5,
+                        p: 2,
+                        border: isSelected ? 2 : 1,
+                        borderColor: isSelected ? "success.main" : "divider",
+                        borderRadius: 3,
+                        bgcolor: isSelected
+                          ? "rgba(46, 125, 50, 0.055)"
+                          : "background.paper",
+                        boxShadow: isSelected
+                          ? "0 10px 28px rgba(46, 125, 50, 0.10)"
+                          : "0 6px 20px rgba(35, 26, 80, 0.045)",
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1.25}
+                        sx={{ alignItems: "center" }}
+                      >
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            flexShrink: 0,
+                            borderRadius: 2,
+                            display: "grid",
+                            placeItems: "center",
+                            color: "primary.main",
+                            bgcolor: "rgba(78, 57, 155, 0.08)",
+                          }}
+                        >
+                          <EngineeringOutlined fontSize="small" />
+                        </Box>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography sx={{ fontWeight: 700 }} noWrap>
+                            {technician.fullName}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            รับผิดชอบอยู่ {technician.activeWorkOrders} งาน
+                          </Typography>
+                        </Box>
+                        {isSelected && (
+                          <Chip
+                            size="small"
+                            color="success"
+                            label="เลือกแล้ว"
+                          />
+                        )}
+                      </Stack>
+                      <Stack
+                        direction="row"
+                        spacing={0.75}
+                        sx={{ flexWrap: "wrap", rowGap: 0.75 }}
+                      >
+                        {technician.specialties.slice(0, 2).map((specialty) => (
+                          <Chip
+                            key={specialty}
+                            size="small"
+                            variant="outlined"
+                            label={specialtyLabels[specialty] ?? specialty}
+                          />
+                        ))}
+                        {technician.specialties.length > 2 && (
+                          <Chip
+                            size="small"
+                            variant="outlined"
+                            label={`+${technician.specialties.length - 2} ทักษะ`}
+                          />
+                        )}
+                      </Stack>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ flex: 1, lineHeight: 1.7 }}
+                      >
                         {technician.reason}
                       </Typography>
+                      <Button
+                        fullWidth
+                        size="small"
+                        color={isSelected ? "success" : "primary"}
+                        variant={isSelected ? "contained" : "outlined"}
+                        startIcon={
+                          isSelected ? <CheckCircleOutlined /> : undefined
+                        }
+                        aria-pressed={isSelected}
+                        onClick={() => onUseTechnician(technician.technicianId)}
+                      >
+                        {isSelected
+                          ? "เลือกเป็นช่างหลักแล้ว"
+                          : "เลือกเป็นช่างหลัก"}
+                      </Button>
                     </Box>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => onUseTechnician(technician.technicianId)}
-                    >
-                      เลือกเป็นช่างหลัก
-                    </Button>
-                  </Box>
-                ))}
-              </Stack>
+                  );
+                })}
+              </Box>
             ) : (
               <Alert severity="warning">
-                ยังไม่มีช่างที่ตรงเงื่อนไข กรุณาตรวจรายชื่อและความเชี่ยวชาญด้วยตนเอง
+                ยังไม่มีช่างที่ตรงเงื่อนไข
+                กรุณาตรวจรายชื่อและความเชี่ยวชาญด้วยตนเอง
               </Alert>
             )}
           </Box>
 
-          <Typography variant="caption" color="text.secondary">
-            วิเคราะห์เมื่อ {formatBangkokDate(result.generatedAt)} น. · ไม่ได้วิเคราะห์ภาพประกอบ
-            · คำแนะนำนี้ยังไม่เปลี่ยนข้อมูลจนกว่าผู้จัดสรรจะกดยืนยัน
-          </Typography>
+          <Box
+            sx={{
+              pt: 1.5,
+              borderTop: 1,
+              borderColor: "divider",
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              วิเคราะห์เมื่อ {formatBangkokDate(result.generatedAt)} น. ·
+              ไม่ได้วิเคราะห์ภาพประกอบ ·
+              ระบบจะยังไม่บันทึกการมอบหมายจนกว่าผู้จัดสรรจะกดยืนยัน
+            </Typography>
+          </Box>
         </Stack>
       )}
     </MainCard>

@@ -21,7 +21,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { MainCard } from "../../components/base/MainCard";
 import { LimitedTextField } from "../../components/form/fields/LimitedTextField";
@@ -41,6 +41,7 @@ export function DispatchIncidentDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const client = useQueryClient();
+  const assignmentSectionRef = useRef<HTMLDivElement>(null);
   const [primaryTechnicianId, setPrimaryTechnicianId] = useState("");
   const [supportTechnicianIds, setSupportTechnicianIds] = useState<string[]>(
     [],
@@ -256,197 +257,208 @@ export function DispatchIncidentDetailPage() {
 
       <DispatchAssistantCard
         incidentId={incident.id}
+        selectedUrgency={urgencyVerified}
+        selectedTechnicianId={primaryTechnicianId}
         onUseUrgency={setUrgencyVerified}
         onUseTechnician={(technicianId) => {
-          if (!eligibleTechnicians.some((item) => item.id === technicianId)) return;
+          if (!eligibleTechnicians.some((item) => item.id === technicianId))
+            return;
           setPrimaryTechnicianId(technicianId);
           setSupportTechnicianIds((current) =>
             current.filter((id) => id !== technicianId),
           );
+          window.requestAnimationFrame(() => {
+            assignmentSectionRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          });
         }}
       />
 
-      <MainCard
-        title={
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-            <AssignmentIndOutlined color="primary" />
-            <Typography variant="h5">มอบหมายผู้รับผิดชอบ</Typography>
-          </Stack>
-        }
-        subheader="กำหนดช่างหลักและช่างสนับสนุนตามประเภทของใบแจ้งซ่อม"
-      >
-        <Stack spacing={2}>
-          {technicians.error && (
-            <Alert severity="error">
-              {technicians.error instanceof Error
-                ? technicians.error.message
-                : "ไม่สามารถโหลดรายชื่อช่างได้"}
+      <Box ref={assignmentSectionRef} sx={{ scrollMarginTop: 88 }}>
+        <MainCard
+          title={
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+              <AssignmentIndOutlined color="primary" />
+              <Typography variant="h5">มอบหมายผู้รับผิดชอบ</Typography>
+            </Stack>
+          }
+          subheader="กำหนดช่างหลักและช่างสนับสนุนตามประเภทของใบแจ้งซ่อม"
+        >
+          <Stack spacing={2}>
+            {technicians.error && (
+              <Alert severity="error">
+                {technicians.error instanceof Error
+                  ? technicians.error.message
+                  : "ไม่สามารถโหลดรายชื่อช่างได้"}
+              </Alert>
+            )}
+            <Alert
+              severity={requiredSpecialty ? "info" : "warning"}
+              sx={{ maxWidth: 720 }}
+            >
+              {requiredSpecialty
+                ? `งานประเภท ${incident.category} เลือกได้เฉพาะ ${specialtyLabels[requiredSpecialty]} เท่านั้น`
+                : "งานประเภทอื่น ๆ สามารถเลือกช่างได้ทุกความเชี่ยวชาญ"}
             </Alert>
-          )}
-          <Alert
-            severity={requiredSpecialty ? "info" : "warning"}
-            sx={{ maxWidth: 720 }}
-          >
-            {requiredSpecialty
-              ? `งานประเภท ${incident.category} เลือกได้เฉพาะ ${specialtyLabels[requiredSpecialty]} เท่านั้น`
-              : "งานประเภทอื่น ๆ สามารถเลือกช่างได้ทุกความเชี่ยวชาญ"}
-          </Alert>
-          <Box sx={{ maxWidth: 720 }}>
-            <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
-              ช่างหลัก
-            </Typography>
-            <Select
-              fullWidth
-              displayEmpty
-              value={primaryTechnicianId}
-              onChange={(event) => {
-                const nextPrimary = event.target.value;
-                setPrimaryTechnicianId(nextPrimary);
-                setSupportTechnicianIds((current) =>
-                  current.filter(
-                    (technicianId) => technicianId !== nextPrimary,
-                  ),
-                );
-              }}
-            >
-              <MenuItem value="" disabled>
-                เลือกช่างหลัก
-              </MenuItem>
-              {eligibleTechnicians.map((technician) => (
-                <MenuItem key={technician.id} value={technician.id}>
-                  {technicianLabel(technician)}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-          <Box sx={{ maxWidth: 720 }}>
-            <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
-              ช่างสนับสนุน{" "}
-              <Typography
-                component="span"
-                variant="caption"
-                color="text.secondary"
-              >
-                (เลือกได้หลายคน)
+            <Box sx={{ maxWidth: 720 }}>
+              <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+                ช่างหลัก
               </Typography>
-            </Typography>
-            <Select
-              fullWidth
-              multiple
-              displayEmpty
-              value={supportTechnicianIds}
-              renderValue={(selected) =>
-                selected.length
-                  ? selected
-                      .map(
-                        (id) =>
-                          eligibleTechnicians.find(
-                            (technician) => technician.id === id,
-                          )?.full_name ?? id,
-                      )
-                      .join(", ")
-                  : "ยังไม่เลือกช่างสนับสนุน"
-              }
-              onChange={(event) =>
-                setSupportTechnicianIds(
-                  (event.target.value as string[]).filter(
-                    (technicianId) => technicianId !== primaryTechnicianId,
-                  ),
-                )
-              }
-            >
-              {eligibleTechnicians
-                .filter((technician) => technician.id !== primaryTechnicianId)
-                .map((technician) => (
+              <Select
+                fullWidth
+                displayEmpty
+                value={primaryTechnicianId}
+                onChange={(event) => {
+                  const nextPrimary = event.target.value;
+                  setPrimaryTechnicianId(nextPrimary);
+                  setSupportTechnicianIds((current) =>
+                    current.filter(
+                      (technicianId) => technicianId !== nextPrimary,
+                    ),
+                  );
+                }}
+              >
+                <MenuItem value="" disabled>
+                  เลือกช่างหลัก
+                </MenuItem>
+                {eligibleTechnicians.map((technician) => (
                   <MenuItem key={technician.id} value={technician.id}>
-                    <Checkbox
-                      checked={supportTechnicianIds.includes(technician.id)}
-                    />
-                    <ListItemText primary={technicianLabel(technician)} />
+                    {technicianLabel(technician)}
                   </MenuItem>
                 ))}
-            </Select>
-          </Box>
-          <Box sx={{ maxWidth: 560 }}>
-            <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
-              ระดับความเร่งด่วนที่ผู้จัดสรรยืนยัน
-            </Typography>
-            <Select
-              fullWidth
-              value={urgencyVerified}
-              onChange={(event) =>
-                setUrgencyVerified(
-                  event.target.value as "critical" | "urgent" | "normal",
-                )
-              }
+              </Select>
+            </Box>
+            <Box sx={{ maxWidth: 720 }}>
+              <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+                ช่างสนับสนุน{" "}
+                <Typography
+                  component="span"
+                  variant="caption"
+                  color="text.secondary"
+                >
+                  (เลือกได้หลายคน)
+                </Typography>
+              </Typography>
+              <Select
+                fullWidth
+                multiple
+                displayEmpty
+                value={supportTechnicianIds}
+                renderValue={(selected) =>
+                  selected.length
+                    ? selected
+                        .map(
+                          (id) =>
+                            eligibleTechnicians.find(
+                              (technician) => technician.id === id,
+                            )?.full_name ?? id,
+                        )
+                        .join(", ")
+                    : "ยังไม่เลือกช่างสนับสนุน"
+                }
+                onChange={(event) =>
+                  setSupportTechnicianIds(
+                    (event.target.value as string[]).filter(
+                      (technicianId) => technicianId !== primaryTechnicianId,
+                    ),
+                  )
+                }
+              >
+                {eligibleTechnicians
+                  .filter((technician) => technician.id !== primaryTechnicianId)
+                  .map((technician) => (
+                    <MenuItem key={technician.id} value={technician.id}>
+                      <Checkbox
+                        checked={supportTechnicianIds.includes(technician.id)}
+                      />
+                      <ListItemText primary={technicianLabel(technician)} />
+                    </MenuItem>
+                  ))}
+              </Select>
+            </Box>
+            <Box sx={{ maxWidth: 560 }}>
+              <Typography variant="subtitle2" sx={{ mb: 0.75 }}>
+                ระดับความเร่งด่วนที่ผู้จัดสรรยืนยัน
+              </Typography>
+              <Select
+                fullWidth
+                value={urgencyVerified}
+                onChange={(event) =>
+                  setUrgencyVerified(
+                    event.target.value as "critical" | "urgent" | "normal",
+                  )
+                }
+              >
+                <MenuItem value="critical">วิกฤต</MenuItem>
+                <MenuItem value="urgent">เร่งด่วน</MenuItem>
+                <MenuItem value="normal">ปกติ</MenuItem>
+              </Select>
+            </Box>
+            {slaRules.error && (
+              <Alert severity="error">
+                {slaRules.error instanceof Error
+                  ? slaRules.error.message
+                  : "ไม่สามารถโหลดกติกา SLA ได้"}
+              </Alert>
+            )}
+            {assign.error && (
+              <Alert severity="error">
+                {assign.error instanceof Error
+                  ? assign.error.message
+                  : "ไม่สามารถมอบหมายงานได้"}
+              </Alert>
+            )}
+            {reject.error && (
+              <Alert severity="error">
+                {reject.error instanceof Error
+                  ? reject.error.message
+                  : "ไม่สามารถบันทึกผลการพิจารณาได้"}
+              </Alert>
+            )}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ justifyContent: "flex-end" }}
             >
-              <MenuItem value="critical">วิกฤต</MenuItem>
-              <MenuItem value="urgent">เร่งด่วน</MenuItem>
-              <MenuItem value="normal">ปกติ</MenuItem>
-            </Select>
-          </Box>
-          {slaRules.error && (
-            <Alert severity="error">
-              {slaRules.error instanceof Error
-                ? slaRules.error.message
-                : "ไม่สามารถโหลดกติกา SLA ได้"}
-            </Alert>
-          )}
-          {assign.error && (
-            <Alert severity="error">
-              {assign.error instanceof Error
-                ? assign.error.message
-                : "ไม่สามารถมอบหมายงานได้"}
-            </Alert>
-          )}
-          {reject.error && (
-            <Alert severity="error">
-              {reject.error instanceof Error
-                ? reject.error.message
-                : "ไม่สามารถบันทึกผลการพิจารณาได้"}
-            </Alert>
-          )}
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ justifyContent: "flex-end" }}
-          >
-            <Button
-              color="error"
-              variant="outlined"
-              disabled={assign.isPending || reject.isPending}
-              onClick={() => {
-                setRejectionReason("");
-                setRejectionOpen(true);
-              }}
-            >
-              ไม่รับรายการ
-            </Button>
-            <Button
-              variant="contained"
-              disabled={
-                !primaryTechnicianId ||
-                assign.isPending ||
-                reject.isPending ||
-                slaRules.isError ||
-                !(slaRules.data ?? []).some(
-                  (rule) => rule.urgencyLevel === urgencyVerified,
-                )
-              }
-              onClick={() =>
-                assign.mutate({
-                  incidentId: incident.id,
-                  primaryTechnicianId,
-                  supportTechnicianIds,
-                  urgencyVerified,
-                })
-              }
-            >
-              มอบหมายงาน
-            </Button>
+              <Button
+                color="error"
+                variant="outlined"
+                disabled={assign.isPending || reject.isPending}
+                onClick={() => {
+                  setRejectionReason("");
+                  setRejectionOpen(true);
+                }}
+              >
+                ไม่รับรายการ
+              </Button>
+              <Button
+                variant="contained"
+                disabled={
+                  !primaryTechnicianId ||
+                  assign.isPending ||
+                  reject.isPending ||
+                  slaRules.isError ||
+                  !(slaRules.data ?? []).some(
+                    (rule) => rule.urgencyLevel === urgencyVerified,
+                  )
+                }
+                onClick={() =>
+                  assign.mutate({
+                    incidentId: incident.id,
+                    primaryTechnicianId,
+                    supportTechnicianIds,
+                    urgencyVerified,
+                  })
+                }
+              >
+                มอบหมายงาน
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>
-      </MainCard>
+        </MainCard>
+      </Box>
       <Dialog
         open={rejectionOpen}
         onClose={() => !reject.isPending && setRejectionOpen(false)}
