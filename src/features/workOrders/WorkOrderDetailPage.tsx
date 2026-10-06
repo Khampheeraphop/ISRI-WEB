@@ -24,6 +24,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { formatBangkokDate } from "../../utils/incident";
 import { WorkOrderActionDialog } from "./WorkOrderActionDialog";
 import { WorkOrderHistoryTimeline } from "./WorkOrderHistoryTimeline";
+import { LocationMapPreview } from "../facilityMaps/LocationMapPreview";
 import {
   getIncident,
   getWorkOrderDetail,
@@ -208,6 +209,7 @@ export function WorkOrderDetailPage() {
               },
             ]}
           />
+          <LocationMapPreview locationId={incident.location_id} />
           <DetailSection
             title="กำหนดเวลา SLA"
             icon={<TimelineOutlined />}

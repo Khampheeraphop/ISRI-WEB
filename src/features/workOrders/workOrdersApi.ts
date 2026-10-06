@@ -2,6 +2,7 @@ import { supabase } from "../../lib/supabase/client";
 import { apiFetch } from "../api/apiClient";
 
 export type WorkOrderIncident = {
+  location_id: string;
   ticket_number: string;
   location_label: string;
   asset_name: string | null;

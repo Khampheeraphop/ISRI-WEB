@@ -32,6 +32,7 @@ type LocationResponse = {
   floor: string;
   zone: string;
   asset_name: string | null;
+  qr_scope: "area" | "asset";
   is_reporting_locked?: boolean;
 };
 
@@ -74,6 +75,7 @@ export async function getLocationByCode(
     floor: result.data.floor,
     zone: result.data.zone,
     assetName: result.data.asset_name ?? undefined,
+    qrScope: result.data.qr_scope,
     isReportingLocked: result.data.is_reporting_locked ?? false,
   };
 }

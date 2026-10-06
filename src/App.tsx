@@ -119,6 +119,16 @@ const LocationFormPage = lazy(() =>
     default: module.LocationFormPage,
   })),
 );
+const FacilityMapPage = lazy(() =>
+  import("./features/facilityMaps/FacilityMapPage").then((module) => ({
+    default: module.FacilityMapPage,
+  })),
+);
+const FloorPlanEditorPage = lazy(() =>
+  import("./features/facilityMaps/FloorPlanEditorPage").then((module) => ({
+    default: module.FloorPlanEditorPage,
+  })),
+);
 const DispatchQueuePage = lazy(() =>
   import("./features/dispatch/DispatchQueuePage").then((module) => ({
     default: module.DispatchQueuePage,
@@ -362,6 +372,22 @@ function ApplicationRoutes() {
             element={
               <RoleRoute roles={["admin"]}>
                 <LocationManagementPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/facility-maps"
+            element={
+              <RoleRoute roles={["admin", "dispatcher", "technician"]}>
+                <FacilityMapPage />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/facility-maps/:id/edit"
+            element={
+              <RoleRoute roles={["admin"]}>
+                <FloorPlanEditorPage />
               </RoleRoute>
             }
           />

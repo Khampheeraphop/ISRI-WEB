@@ -1,6 +1,6 @@
 import {
   AddOutlined,
-  DeleteOutlined,
+  DeleteOutlineRounded,
   DownloadOutlined,
   EditOutlined,
   QrCode2Outlined,
@@ -16,7 +16,9 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Snackbar,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -26,6 +28,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GenericDataTable } from "../../components/GenericDataTable";
 import { MainCard } from "../../components/base/MainCard";
+import { ActionDialog } from "../../components/feedback/ActionDialog";
 import { tableColumnAlignment } from "../../components/dataTable.constants";
 import type { ManagedLocation } from "../../types/location";
 import { deleteManagedLocation, getManagedLocations } from "./locationsApi";
@@ -226,8 +229,11 @@ export function LocationManagementPage() {
   });
   const remove = useMutation({
     mutationFn: deleteManagedLocation,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["managed-locations"] }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["managed-locations"] });
+      setDeleteTarget(undefined);
+      setFeedback("ลบ QR Code เรียบร้อยแล้ว");
+    },
   });
   const [preview, setPreview] = useState<{
     location: ManagedLocation;
@@ -235,6 +241,23 @@ export function LocationManagementPage() {
   }>();
   const [downloadingLocationId, setDownloadingLocationId] = useState<string>();
   const [downloadError, setDownloadError] = useState<string>();
+  const [deleteTarget, setDeleteTarget] = useState<ManagedLocation>();
+  const [feedback, setFeedback] = useState<string>();
+
+  const actionButtonSx = {
+    width: 34,
+    height: 34,
+    border: "1px solid",
+    borderColor: "divider",
+    borderRadius: 2,
+    color: "text.secondary",
+    bgcolor: "background.paper",
+    "&:hover": {
+      borderColor: "primary.light",
+      color: "primary.main",
+      bgcolor: "action.hover",
+    },
+  } as const;
 
   const handleDownload = async (location: ManagedLocation) => {
     setDownloadError(undefined);
@@ -259,50 +282,69 @@ export function LocationManagementPage() {
     {
       field: "actions",
       headerName: "จัดการ",
-      width: 176,
+      width: 208,
       ...tableColumnAlignment.actions,
       renderCell: ({ row }) => (
-        <Stack direction="row" sx={{ width: "100%", justifyContent: "center" }}>
-          <IconButton
-            aria-label="ดู QR"
-            onClick={async () =>
-              setPreview({ location: row, image: await getQrCodeImage(row) })
-            }
-          >
-            <VisibilityOutlined fontSize="small" />
-          </IconButton>
-          <IconButton
-            aria-label="ดาวน์โหลด QR"
-            disabled={downloadingLocationId === row.id}
-            onClick={() => void handleDownload(row)}
-          >
-            {downloadingLocationId === row.id ? (
-              <CircularProgress size={20} />
-            ) : (
-              <DownloadOutlined fontSize="small" />
-            )}
-          </IconButton>
-          <IconButton
-            component={Link}
-            to={`/locations/${row.id}`}
-            aria-label="แก้ไขตำแหน่ง"
-          >
-            <EditOutlined fontSize="small" />
-          </IconButton>
-          <IconButton
-            aria-label="ลบตำแหน่ง"
-            color="error"
-            onClick={() => {
-              if (
-                window.confirm(
-                  `ลบจุดแจ้งเหตุ ${row.building} · ${row.floor} · ${row.zone} ใช่หรือไม่`,
-                )
-              )
-                remove.mutate(row.id);
-            }}
-          >
-            <DeleteOutlined fontSize="small" />
-          </IconButton>
+        <Stack direction="row" spacing={0.75} sx={{ width: "100%", justifyContent: "center" }}>
+          <Tooltip title="ดู QR" arrow>
+            <IconButton
+              aria-label="ดู QR"
+              sx={actionButtonSx}
+              onClick={async () =>
+                setPreview({ location: row, image: await getQrCodeImage(row) })
+              }
+            >
+              <VisibilityOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="ดาวน์โหลด QR" arrow>
+            <span>
+              <IconButton
+                aria-label="ดาวน์โหลด QR"
+                sx={actionButtonSx}
+                disabled={downloadingLocationId === row.id}
+                onClick={() => void handleDownload(row)}
+              >
+                {downloadingLocationId === row.id ? (
+                  <CircularProgress size={18} />
+                ) : (
+                  <DownloadOutlined fontSize="small" />
+                )}
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="แก้ไขตำแหน่ง" arrow>
+            <IconButton
+              component={Link}
+              to={`/locations/${row.id}`}
+              aria-label="แก้ไขตำแหน่ง"
+              sx={actionButtonSx}
+            >
+              <EditOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="ลบ QR" arrow>
+            <IconButton
+              aria-label="ลบ QR"
+              sx={{
+                ...actionButtonSx,
+                color: "error.main",
+                borderColor: "error.light",
+                bgcolor: "rgba(211, 47, 47, 0.06)",
+                "&:hover": {
+                  color: "error.dark",
+                  borderColor: "error.main",
+                  bgcolor: "rgba(211, 47, 47, 0.12)",
+                },
+              }}
+              onClick={() => {
+                remove.reset();
+                setDeleteTarget(row);
+              }}
+            >
+              <DeleteOutlineRounded fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Stack>
       ),
     },
@@ -368,6 +410,57 @@ export function LocationManagementPage() {
           emptyMessage="ยังไม่มีตำแหน่ง"
         />
       </MainCard>
+      <ActionDialog
+        open={Boolean(deleteTarget)}
+        maxWidth="xs"
+        title="ยืนยันการลบ QR Code"
+        icon={<DeleteOutlineRounded sx={{ color: "error.main" }} />}
+        onRequestClose={() => !remove.isPending && setDeleteTarget(undefined)}
+        footer={
+          <>
+            <Button onClick={() => setDeleteTarget(undefined)} disabled={remove.isPending}>
+              ยกเลิก
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              startIcon={<DeleteOutlineRounded />}
+              disabled={remove.isPending}
+              onClick={() => deleteTarget && remove.mutate(deleteTarget.id)}
+            >
+              {remove.isPending ? "กำลังตรวจสอบ..." : "ลบ QR Code"}
+            </Button>
+          </>
+        }
+      >
+        {deleteTarget && (
+          <Stack spacing={1.5}>
+            <Box>
+              <Typography sx={{ fontWeight: 700 }}>
+                {getLocationTitle(deleteTarget)}
+              </Typography>
+              <Typography color="text.secondary" sx={{ mt: 0.5, fontSize: ".85rem" }}>
+                ระบบจะตรวจสอบก่อนว่าจุดนี้ถูกใช้ในรายการแจ้งเหตุ แผน PM หรือแผนผังสถานที่หรือไม่
+              </Typography>
+            </Box>
+            {remove.isError && (
+              <Alert severity="error">
+                QR Code กำลังถูกใช้งานอยู่ ไม่สามารถลบได้
+              </Alert>
+            )}
+          </Stack>
+        )}
+      </ActionDialog>
+      <Snackbar
+        open={Boolean(feedback)}
+        autoHideDuration={4000}
+        onClose={() => setFeedback(undefined)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setFeedback(undefined)}>
+          {feedback}
+        </Alert>
+      </Snackbar>
       <Dialog
         open={Boolean(preview)}
         onClose={() => setPreview(undefined)}
