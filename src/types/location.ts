@@ -5,7 +5,6 @@ export interface ManagedLocation {
   floor: string;
   zone: string;
   assetName?: string;
-  qrScope: "area" | "asset";
   isReportingLocked?: boolean;
 }
 

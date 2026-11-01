@@ -440,7 +440,7 @@ export function LocationManagementPage() {
                 {getLocationTitle(deleteTarget)}
               </Typography>
               <Typography color="text.secondary" sx={{ mt: 0.5, fontSize: ".85rem" }}>
-                ระบบจะตรวจสอบก่อนว่าจุดนี้ถูกใช้ในรายการแจ้งเหตุ แผน PM หรือแผนผังสถานที่หรือไม่
+                ระบบจะตรวจสอบก่อนว่าจุดนี้ถูกใช้ในรายการแจ้งเหตุหรือแผน PM หรือไม่
               </Typography>
             </Box>
             {remove.isError && (

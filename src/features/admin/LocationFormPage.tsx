@@ -16,75 +16,36 @@ type FormValues = {
   floor: string;
   zone: string;
   assetName: string;
-  qrScope: "area" | "asset";
 };
 
 const buildingFloorMap: Record<string, string[]> = {
-  อาคารสำนักอธิการบดี: [
-    "ชั้น G",
-    "ชั้น 1",
-    "ชั้น 2",
-    "ชั้น 3",
-    "ชั้น 4",
-    "ชั้น 5",
-    "ชั้น 6",
-  ],
-  "อาคาร 2": [
-    "ชั้น G",
-    "ชั้น 1",
-    "ชั้น 2",
-    "ชั้น 3",
-    "ชั้น 4",
-    "ชั้น 5",
-    "ชั้น 6",
-  ],
+  "อาคารสำนักอธิการบดี": ["ชั้น G", "ชั้น 1", "ชั้น 2", "ชั้น 3", "ชั้น 4", "ชั้น 5", "ชั้น 6"],
+  "อาคาร 2": ["ชั้น G", "ชั้น 1", "ชั้น 2", "ชั้น 3", "ชั้น 4", "ชั้น 5", "ชั้น 6"],
   "อาคารเฉลิมพระเกียรติ 80 พรรษา": ["ชั้น 1", "ชั้น 2", "ชั้น 3"],
-  อาคารหอพัก: [
-    "ชั้น 1",
-    "ชั้น 2",
-    "ชั้น 3",
-    "ชั้น 4",
-    "ชั้น 5",
-    "ชั้น 6",
-    "ชั้น 7",
-    "ชั้น 8",
-  ],
-  อาคารศูนย์ศิลปวัฒนธรรม: ["ชั้น 1", "ชั้น 2"],
+  "อาคารหอพัก": ["ชั้น 1", "ชั้น 2", "ชั้น 3", "ชั้น 4", "ชั้น 5", "ชั้น 6", "ชั้น 7", "ชั้น 8"],
+  "อาคารศูนย์ศิลปวัฒนธรรม": ["ชั้น 1", "ชั้น 2"],
 };
 
-const buildingOptions = Object.keys(buildingFloorMap).map((b) => ({
-  label: b,
-  value: b,
-}));
+const buildingOptions = Object.keys(buildingFloorMap).map((b) => ({ label: b, value: b }));
 
 const fields: FormField<FormValues>[] = [
-  {
-    name: "qrScope",
-    label: "ระดับของ QR Code",
-    type: "select",
-    options: [
-      { label: "พื้นที่หรือห้อง", value: "area" },
-      { label: "ชิ้นงานหรืออุปกรณ์", value: "asset" },
-    ],
-    required: true,
-  },
-  {
-    name: "building",
-    label: "อาคาร",
+  { 
+    name: "building", 
+    label: "อาคาร", 
     type: "select",
     options: buildingOptions,
-    required: true,
+    required: true 
   },
-  {
-    name: "floor",
-    label: "ชั้น",
+  { 
+    name: "floor", 
+    label: "ชั้น", 
     type: "select",
     options: (values) => {
       const building = values.building;
       if (!building || !buildingFloorMap[building]) return [];
       return buildingFloorMap[building].map((f) => ({ label: f, value: f }));
     },
-    required: true,
+    required: true 
   },
   { name: "zone", label: "โซน", required: true },
   {
@@ -95,18 +56,10 @@ const fields: FormField<FormValues>[] = [
   },
 ];
 const schema = yup.object({
-  qrScope: yup
-    .mixed<"area" | "asset">()
-    .oneOf(["area", "asset"])
-    .required("กรุณาเลือกระดับ QR Code"),
   building: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   floor: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
   zone: yup.string().required("กรุณากรอกข้อมูลให้ครบถ้วน"),
-  assetName: yup.string().when("qrScope", {
-    is: "asset",
-    then: (value) => value.required("กรุณาระบุชื่อชิ้นงาน"),
-    otherwise: (value) => value.default(""),
-  }),
+  assetName: yup.string().default(""),
 }) as yup.ObjectSchema<FormValues>;
 export function LocationFormPage() {
   const { id } = useParams();
@@ -168,14 +121,12 @@ export function LocationFormPage() {
                   floor: item.floor,
                   zone: item.zone,
                   assetName: item.assetName ?? "",
-                  qrScope: item.qrScope,
                 }
               : {
                   building: "",
                   floor: "",
                   zone: "",
                   assetName: "",
-                  qrScope: "area",
                 }
           }
           columns={2}

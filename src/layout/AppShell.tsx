@@ -14,7 +14,6 @@ import {
   HistoryOutlined,
   AssignmentIndOutlined,
   LogoutOutlined,
-  MapOutlined,
   Menu as MenuIcon,
   QrCode2Outlined,
   RedeemOutlined,
@@ -117,7 +116,6 @@ const menus: Record<Role, NavigationItem[]> = {
   ],
   technician: [
     { label: "งานของฉัน", to: "/work-orders", icon: <EngineeringOutlined /> },
-    { label: "แผนผังสถานที่", to: "/facility-maps", icon: <MapOutlined /> },
     {
       label: "ประวัติการดำเนินงาน",
       to: "/activity-history",
@@ -136,7 +134,6 @@ const menus: Record<Role, NavigationItem[]> = {
       to: "/dispatch/reviews",
       icon: <FactCheckOutlined />,
     },
-    { label: "แผนผังสถานที่", to: "/facility-maps", icon: <MapOutlined /> },
     {
       label: "ประวัติการดำเนินงาน",
       to: "/activity-history",
@@ -174,7 +171,6 @@ const menus: Record<Role, NavigationItem[]> = {
       icon: <AdminPanelSettingsOutlined />,
     },
     { label: "ตำแหน่งและ QR", to: "/locations", icon: <QrCode2Outlined /> },
-    { label: "แผนผังสถานที่", to: "/facility-maps", icon: <MapOutlined /> },
   ],
 };
 

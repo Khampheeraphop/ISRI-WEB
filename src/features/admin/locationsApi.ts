@@ -8,7 +8,6 @@ type LocationResponse = {
   floor: string;
   zone: string;
   asset_name: string | null;
-  qr_scope: "area" | "asset";
 };
 
 export type LocationInput = Pick<
@@ -16,7 +15,6 @@ export type LocationInput = Pick<
   "building" | "floor" | "zone"
 > & {
   assetName?: string;
-  qrScope: "area" | "asset";
 };
 
 const toManagedLocation = (location: LocationResponse): ManagedLocation => ({
@@ -26,7 +24,6 @@ const toManagedLocation = (location: LocationResponse): ManagedLocation => ({
   floor: location.floor,
   zone: location.zone,
   assetName: location.asset_name ?? undefined,
-  qrScope: location.qr_scope,
 });
 
 export async function getManagedLocations() {

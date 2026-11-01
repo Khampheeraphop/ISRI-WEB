@@ -36,7 +36,6 @@ import {
   rejectDispatchIncident,
 } from "./dispatchApi";
 import { DispatchAssistantCard } from "./DispatchAssistantCard";
-import { LocationMapPreview } from "../facilityMaps/LocationMapPreview";
 
 export function DispatchIncidentDetailPage() {
   const { id } = useParams();
@@ -255,8 +254,6 @@ export function DispatchIncidentDetailPage() {
           },
         ]}
       />
-
-      <LocationMapPreview locationId={incident.locationId} />
 
       <DispatchAssistantCard
         incidentId={incident.id}
